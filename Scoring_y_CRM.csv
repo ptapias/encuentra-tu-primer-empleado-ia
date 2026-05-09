@@ -1,0 +1,48 @@
+tipo,campo,descripcion,escala_o_valores,uso
+scoring,frecuencia,Cuántas veces ocurre la tarea,1 raro; 5 diario o varias veces al día,Priorizar volumen
+scoring,repetitividad,Cuánto se parece cada caso al anterior,1 cada caso distinto; 5 patrón claro,Detectar automatización viable
+scoring,tiempo_perdido,Horas o energía que consume,1 poco; 5 mucho,Impacto operativo
+scoring,impacto_economico,Ahorro o recuperación de valor,1 bajo; 5 alto,ROI
+scoring,impacto_ventas,Efecto en leads ventas cierres o reactivación,1 bajo; 5 alto,Intención comercial
+scoring,impacto_atencion_cliente,Efecto en velocidad calidad o satisfacción,1 bajo; 5 alto,Experiencia cliente
+scoring,riesgo_si_falla,Daño potencial si la IA se equivoca,1 bajo; 5 alto,Penalización
+scoring,facilidad_tecnica,Facilidad de montar una primera versión,1 difícil; 5 simple,Viabilidad
+scoring,claridad_proceso,Proceso actual entendido y estable,1 confuso; 5 claro,Preparación
+scoring,datos_disponibles,Existencia de ejemplos fuentes y documentación,1 nada; 5 suficiente,Preparación
+scoring,urgencia,Presión para resolver,1 baja; 5 alta,Derivación comercial
+scoring,dependencia_fundador,Cuánto depende del dueño/fundador,1 baja; 5 alta,Valor estratégico
+scoring,potencial_aprendizaje,Cuánto ayuda al usuario a aprender IA aplicada,1 bajo; 5 alto,Cohort fit
+scoring,encaje_oferta,Encaje con newsletter cohort o servicio,1 bajo; 5 alto,CTA
+crm,lead_id,Identificador único,Texto,Operación
+crm,fecha,Fecha de entrada,Fecha,Operación
+crm,fuente,Canal de adquisición,YouTube newsletter orgánico ads referido,Segmentación
+crm,video_origen,Video o campaña que trajo el lead,Texto,Contenido
+crm,nombre,Nombre del lead,Texto,CRM
+crm,email,Email,Email,Entrega y nurturing
+crm,rol,Rol de quien responde,Fundador autónomo manager empleado otro,Segmentación
+crm,sector,Sector del negocio,Consultoría agencia inmobiliaria ecommerce clínica restaurante despacho formación local B2B otro,Segmentación
+crm,tamano_equipo,Tamaño del equipo,1 2-5 6-20 21-50 50+,Cualificación
+crm,facturacion_rango,Rango orientativo de facturación,Sin dato <50k 50-150k 150-500k 500k+,Cualificación
+crm,objetivo_principal,Objetivo declarado,Vender más ahorrar tiempo atender mejor ordenar escalar otro,Segmentación
+crm,caso_uso_principal,Oportunidad principal detectada,WhatsApp email ventas soporte reservas admin operaciones contenido reporting documentación,Oferta
+crm,score_total,Score normalizado,0-100,Prioridad
+crm,score_urgencia,Urgencia,1-5,Prioridad
+crm,presupuesto_estimado,Disposición de inversión,Gratis bajo medio alto sin dato,Derivación
+crm,oferta_recomendada,Siguiente paso,Newsletter recurso cohort diagnóstico premium llamada no listo,Automatización
+crm,estado,Estado interno,Nuevo enviar recurso invitar cohort invitar llamada no apto cliente,Pipeline
+crm,resumen_informe,Resumen corto del diagnóstico,Texto,Ventas
+crm,frases_literales,Frases útiles del usuario,Texto,Copy y ventas
+crm,ideas_contenido,Ideas derivadas del caso,Texto,YouTube newsletter
+crm,objeciones,Objeciones detectadas,No técnico sin tiempo miedo herramientas ya probé ChatGPT presupuesto privacidad otra,Nurturing
+crm,feedback_utilidad_1_5,Valoración de utilidad del diagnóstico,1-5,Mejora producto
+crm,feedback_parte_mas_util,Qué parte aportó más claridad,Texto,Mejora informe y copy
+crm,feedback_echa_en_falta,Qué faltó en el diagnóstico o informe,Texto,Mejora producto
+crm,feedback_pregunta_confusa,Qué pregunta sobró o confundió,Texto,Mejora agente
+crm,feedback_mejora_informe,Qué incluiría una versión más completa,Texto,Validación premium futura
+crm,permiso_contacto_mejora,Permiso para avisar o pedir más feedback,Sí No,Seguimiento
+crm,use_case_impact,Impacto de la iniciativa recomendada,1-5,Framework IA
+crm,use_case_feasibility,Factibilidad en 1-3 meses,1-5,Framework IA
+crm,use_case_scalability,Escalabilidad o reutilización,1-5,Framework IA
+crm,use_case_data_sensitivity,Sensibilidad de datos como penalización,1-5,Framework IA
+crm,use_case_composite_score,Score compuesto del framework,0-5,Framework IA
+crm,use_case_triage,Resultado de triage,PROCEED REFINE PARK,Framework IA

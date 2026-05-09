@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encuentra Tu Primer Empleado IA</title>
+  <style>
+    :root {
+      --bg: #f7f5ef;
+      --ink: #171717;
+      --muted: #5f625f;
+      --line: #dad6ca;
+      --accent: #1f7a5b;
+      --accent-dark: #11513b;
+      --panel: #ffffff;
+      --warn: #8b4b10;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      align-items: center;
+      padding: 48px 0 28px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 36px;
+      align-items: center;
+    }
+    .eyebrow {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent-dark);
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: .95;
+      margin: 0 0 22px;
+      letter-spacing: 0;
+      max-width: 760px;
+    }
+    .lead {
+      font-size: 21px;
+      color: #343633;
+      max-width: 680px;
+      margin: 0 0 28px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button, .button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    button:hover, .button:hover { background: var(--accent-dark); }
+    button.secondary {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+    button.secondary:hover { background: #eeebe1; }
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 12px;
+    }
+    .visual {
+      background: #101513;
+      color: white;
+      border-radius: 8px;
+      padding: 22px;
+      min-height: 460px;
+      display: grid;
+      align-content: space-between;
+      box-shadow: 0 24px 70px rgba(23,23,23,.18);
+    }
+    .visual h2 {
+      margin: 0;
+      font-size: 28px;
+      max-width: 420px;
+    }
+    .mini-card {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .mini-card strong { display: block; margin-bottom: 4px; }
+    .mini-card span { color: #c9d7cf; font-size: 14px; }
+    section {
+      padding: 46px 0;
+      border-top: 1px solid var(--line);
+    }
+    .section-title {
+      font-size: 32px;
+      margin: 0 0 20px;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .feature {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 130px;
+    }
+    .feature h3 { margin: 0 0 8px; font-size: 18px; }
+    .feature p { margin: 0; color: var(--muted); }
+    .diagnostic {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      max-width: 760px;
+    }
+    .progress {
+      height: 8px;
+      background: #ece8dc;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .bar {
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+    label {
+      display: block;
+      font-weight: 800;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    select, input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+    textarea { min-height: 126px; resize: vertical; }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      justify-content: space-between;
+    }
+    .result {
+      display: none;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      max-width: 860px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: #e2f2eb;
+      color: var(--accent-dark);
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .result h3 {
+      margin: 0 0 10px;
+      font-size: 28px;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .score-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfaf6;
+    }
+    .score-card strong { display: block; }
+    .score-card span { color: var(--muted); font-size: 14px; }
+    .warning { color: var(--warn); font-weight: 700; }
+    .feedback {
+      margin-top: 22px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+    .feedback h4 {
+      font-size: 22px;
+      margin: 0 0 8px;
+    }
+    .feedback p {
+      color: var(--muted);
+      margin: 0 0 14px;
+    }
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .feedback-grid .wide { grid-column: 1 / -1; }
+    .small-label {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .thanks {
+      display: none;
+      margin-top: 12px;
+      color: var(--accent-dark);
+      font-weight: 800;
+    }
+    footer {
+      color: var(--muted);
+      padding: 32px 0 46px;
+      border-top: 1px solid var(--line);
+    }
+    @media (max-width: 860px) {
+      .hero-grid, .features, .result-grid { grid-template-columns: 1fr; }
+      .feedback-grid { grid-template-columns: 1fr; }
+      .feedback-grid .wide { grid-column: auto; }
+      .visual { min-height: 360px; }
+      .hero { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">Diagnóstico gratuito para negocios no técnicos</div>
+          <h1>Encuentra tu primer empleado IA</h1>
+          <p class="lead">Descubre qué tarea de tu negocio deberías delegar primero en IA, qué impacto tendría y cuál es el siguiente paso más sensato para construirla.</p>
+          <div class="actions">
+            <a class="button" href="#diagnostico">Hacer diagnóstico</a>
+            <button class="secondary" onclick="document.getElementById('como').scrollIntoView({behavior:'smooth'})">Ver cómo funciona</button>
+          </div>
+          <p class="note">Sin tecnicismos. Sin promesas mágicas. Pensado para detectar oportunidades reales.</p>
+        </div>
+        <div class="visual" aria-label="Ejemplo de informe">
+          <h2>Tu recomendación podría ser un asistente de ventas, email, WhatsApp, soporte o reporting.</h2>
+          <div>
+            <div class="mini-card">
+              <strong>Recepcionista IA de WhatsApp</strong>
+              <span>Cualifica leads, responde dudas repetidas y deriva a una persona cuando toca.</span>
+            </div>
+            <div class="mini-card">
+              <strong>Asistente de email</strong>
+              <span>Clasifica, resume y prepara borradores para que no pierdas oportunidades.</span>
+            </div>
+            <div class="mini-card">
+              <strong>Analista semanal</strong>
+              <span>Convierte datos dispersos en un informe accionable para decidir mejor.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="como">
+      <h2 class="section-title">Cómo funciona</h2>
+      <div class="features">
+        <div class="feature">
+          <h3>1. Cuéntame tu negocio</h3>
+          <p>Sector, equipo, prioridad y tareas que se repiten.</p>
+        </div>
+        <div class="feature">
+          <h3>2. Detecto oportunidades</h3>
+          <p>Busco repetición, impacto, datos disponibles y riesgo.</p>
+        </div>
+        <div class="feature">
+          <h3>3. Te doy un primer paso</h3>
+          <p>Recomendación clara y una pregunta final para mejorar el diagnóstico.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="diagnostico">
+      <h2 class="section-title">Diagnóstico rápido</h2>
+      <div class="diagnostic" id="wizard">
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <div id="step"></div>
+        <div class="form-actions">
+          <button class="secondary" id="back" type="button">Atrás</button>
+          <button id="next" type="button">Siguiente</button>
+        </div>
+      </div>
+      <div class="result" id="result"></div>
+    </section>
+
+    <footer>
+      MVP local gratuito. Para producción: conectar formulario, base de datos, feedback, generación de informe con IA y secuencia de emails.
+    </footer>
+  </main>
+
+  <script>
+    const questions = [
+      { key: "email", label: "¿Dónde quieres recibir el informe?", type: "email", placeholder: "tu@email.com" },
+      { key: "sector", label: "¿Qué tipo de negocio tienes?", type: "select", options: ["Consultoría / coaching", "Agencia / servicios B2B", "Inmobiliaria", "Ecommerce", "Clínica / salud", "Restaurante / local", "Formación online", "Otro"] },
+      { key: "goal", label: "¿Qué quieres mejorar primero?", type: "select", options: ["Vender más", "Responder mejor a clientes", "Ahorrar tiempo", "Ordenar operaciones", "Crear contenido", "Entender datos"] },
+      { key: "task", label: "¿Qué tarea repetitiva te quita más tiempo?", type: "textarea", placeholder: "Ejemplo: responder WhatsApps de leads, perseguir propuestas, ordenar emails..." },
+      { key: "channel", label: "¿Dónde ocurre más ese problema?", type: "select", options: ["WhatsApp", "Email", "CRM / ventas", "Atención al cliente", "Reservas", "Hojas de cálculo", "Documentos", "Varias herramientas"] },
+      { key: "frequency", label: "¿Con qué frecuencia ocurre?", type: "select", options: ["Pocas veces al mes", "Cada semana", "Varias veces por semana", "Cada día", "Varias veces al día"] },
+      { key: "process", label: "¿El proceso está claro o vive en tu cabeza?", type: "select", options: ["Muy claro y escrito", "Bastante claro", "Más o menos", "Confuso", "Vive totalmente en mi cabeza"] },
+      { key: "data", label: "¿Tienes ejemplos reales o datos para entrenar/probar?", type: "select", options: ["Sí, muchos", "Algunos", "Pocos", "No lo sé", "No"] },
+      { key: "urgency", label: "¿Qué urgencia tiene resolverlo?", type: "select", options: ["Baja", "Media", "Alta", "Muy alta"] },
+      { key: "help", label: "¿Cómo preferirías avanzar?", type: "select", options: ["Aprender a hacerlo yo", "Hacerlo acompañado", "Que alguien lo implemente", "Todavía estoy explorando"] }
+    ];
+
+    const answers = {};
+    let index = 0;
+
+    const stepEl = document.getElementById("step");
+    const barEl = document.getElementById("bar");
+    const backBtn = document.getElementById("back");
+    const nextBtn = document.getElementById("next");
+
+    function render() {
+      const q = questions[index];
+      barEl.style.width = `${(index / questions.length) * 100}%`;
+      backBtn.style.visibility = index === 0 ? "hidden" : "visible";
+      nextBtn.textContent = index === questions.length - 1 ? "Ver recomendación" : "Siguiente";
+      let field = "";
+      if (q.type === "select") {
+        field = `<select id="answer">${q.options.map(o => `<option value="${o}">${o}</option>`).join("")}</select>`;
+      } else if (q.type === "textarea") {
+        field = `<textarea id="answer" placeholder="${q.placeholder || ""}">${answers[q.key] || ""}</textarea>`;
+      } else {
+        field = `<input id="answer" type="${q.type}" placeholder="${q.placeholder || ""}" value="${answers[q.key] || ""}">`;
+      }
+      stepEl.innerHTML = `<label for="answer">${q.label}</label>${field}`;
+      if (answers[q.key] && q.type === "select") document.getElementById("answer").value = answers[q.key];
+    }
+
+    function valueScore(value, map) {
+      return map[value] || 3;
+    }
+
+    function recommend() {
+      const channel = answers.channel;
+      const goal = answers.goal;
+      const frequency = valueScore(answers.frequency, {
+        "Pocas veces al mes": 1,
+        "Cada semana": 2,
+        "Varias veces por semana": 3,
+        "Cada día": 4,
+        "Varias veces al día": 5
+      });
+      const clarity = valueScore(answers.process, {
+        "Muy claro y escrito": 5,
+        "Bastante claro": 4,
+        "Más o menos": 3,
+        "Confuso": 2,
+        "Vive totalmente en mi cabeza": 1
+      });
+      const data = valueScore(answers.data, {
+        "Sí, muchos": 5,
+        "Algunos": 4,
+        "Pocos": 2,
+        "No lo sé": 2,
+        "No": 1
+      });
+      const urgency = valueScore(answers.urgency, {
+        "Baja": 1,
+        "Media": 3,
+        "Alta": 4,
+        "Muy alta": 5
+      });
+
+      const impact = goal === "Vender más" ? 5 : goal === "Responder mejor a clientes" ? 4 : 3;
+      const score = Math.round(((frequency + clarity + data + urgency + impact) / 25) * 100);
+
+      let employee = "Asistente de operaciones IA";
+      if (channel === "WhatsApp") employee = "Recepcionista IA de WhatsApp";
+      if (channel === "Email") employee = "Asistente de email";
+      if (channel === "CRM / ventas") employee = "SDR IA de seguimiento";
+      if (channel === "Atención al cliente") employee = "Asistente de soporte";
+      if (channel === "Reservas") employee = "Coordinador IA de reservas";
+      if (channel === "Hojas de cálculo") employee = "Analista IA semanal";
+      if (channel === "Documentos") employee = "Documentalista IA interno";
+
+      let cta = "Apúntate a la newsletter y empieza con una plantilla de mapa de procesos.";
+      let badge = "Requiere ordenar proceso";
+      if (score >= 72 && clarity >= 3 && data >= 3 && answers.help === "Que alguien lo implemente") {
+        cta = "Tu caso parece buen candidato para una llamada de implementación.";
+        badge = "Implementación premium";
+      } else if (score >= 62 && clarity >= 3 && data >= 3) {
+        cta = "Tu caso encaja bien con el cohort: aprenderlo acompañado y salir con una primera versión.";
+        badge = "Buena para cohort";
+      } else if (clarity <= 2 || data <= 2) {
+        cta = "Antes de construir IA, ordena el proceso y reúne ejemplos reales.";
+        badge = "Ordenar antes de automatizar";
+      }
+
+      document.getElementById("wizard").style.display = "none";
+      const result = document.getElementById("result");
+      result.style.display = "block";
+      result.innerHTML = `
+        <span class="badge">${badge}</span>
+        <h3>Tu primer empleado IA podría ser: ${employee}</h3>
+        <p>Por lo que has contado, el mayor potencial está en <strong>${channel}</strong>, especialmente porque tu prioridad es <strong>${goal.toLowerCase()}</strong>.</p>
+        <p>${clarity <= 2 || data <= 2 ? '<span class="warning">Aviso:</span> ahora mismo conviene definir mejor el proceso antes de automatizar.' : 'El caso parece suficientemente concreto para diseñar una primera versión con revisión humana.'}</p>
+        <div class="result-grid">
+          <div class="score-card"><strong>${score}/100</strong><span>Score inicial</span></div>
+          <div class="score-card"><strong>${clarity}/5</strong><span>Claridad del proceso</span></div>
+          <div class="score-card"><strong>${data}/5</strong><span>Datos disponibles</span></div>
+        </div>
+        <p><strong>Siguiente paso recomendado:</strong> ${cta}</p>
+        <div class="feedback" id="feedback">
+          <h4>Ayúdame a mejorar este diagnóstico</h4>
+          <p>Estoy lanzándolo gratis al inicio para aprender con casos reales. Tu feedback vale casi más que el resultado.</p>
+          <div class="feedback-grid">
+            <div>
+              <div class="small-label">¿Te ha resultado útil?</div>
+              <select id="fbUseful">
+                <option value="5">5 - Muy útil</option>
+                <option value="4">4 - Bastante útil</option>
+                <option value="3">3 - Algo útil</option>
+                <option value="2">2 - Poco útil</option>
+                <option value="1">1 - Nada útil</option>
+              </select>
+            </div>
+            <div>
+              <div class="small-label">¿Quieres que te avise de la versión mejorada?</div>
+              <select id="fbContact">
+                <option value="Sí">Sí</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+            <div class="wide">
+              <div class="small-label">¿Qué parte te ha dado más claridad?</div>
+              <textarea id="fbLiked" placeholder="Ejemplo: entender que no debo empezar por herramientas..."></textarea>
+            </div>
+            <div class="wide">
+              <div class="small-label">¿Qué has echado en falta o cómo lo mejorarías?</div>
+              <textarea id="fbMissing" placeholder="Ejemplo: más ejemplos de mi sector, herramientas concretas, estimación de coste..."></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" onclick="saveFeedback()">Enviar feedback</button>
+            <button class="secondary" type="button" onclick="downloadLead()">Descargar respuestas</button>
+          </div>
+          <div class="thanks" id="thanks">Gracias. Feedback guardado en este navegador para pruebas.</div>
+        </div>
+        <button onclick="location.reload()">Hacer otro diagnóstico</button>
+      `;
+      barEl.style.width = "100%";
+    }
+
+    function getPayload() {
+      return {
+        answers,
+        feedback: {
+          utilidad: document.getElementById("fbUseful")?.value || "",
+          permiso_contacto: document.getElementById("fbContact")?.value || "",
+          parte_mas_util: document.getElementById("fbLiked")?.value || "",
+          echa_en_falta: document.getElementById("fbMissing")?.value || ""
+        },
+        created_at: new Date().toISOString()
+      };
+    }
+
+    function saveFeedback() {
+      const payload = getPayload();
+      const saved = JSON.parse(localStorage.getItem("primerEmpleadoIaLeads") || "[]");
+      saved.push(payload);
+      localStorage.setItem("primerEmpleadoIaLeads", JSON.stringify(saved));
+      document.getElementById("thanks").style.display = "block";
+    }
+
+    function downloadLead() {
+      const payload = JSON.stringify(getPayload(), null, 2);
+      const blob = new Blob([payload], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `diagnostico-primer-empleado-ia-${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    nextBtn.addEventListener("click", () => {
+      const q = questions[index];
+      const value = document.getElementById("answer").value.trim();
+      if (!value) return;
+      answers[q.key] = value;
+      if (index === questions.length - 1) recommend();
+      else {
+        index += 1;
+        render();
+      }
+    });
+
+    backBtn.addEventListener("click", () => {
+      if (index > 0) {
+        index -= 1;
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

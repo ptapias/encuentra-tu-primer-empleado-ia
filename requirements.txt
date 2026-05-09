@@ -1,0 +1,5 @@
+# No Python package dependencies are required.
+# Runtime requirements:
+# - ffmpeg available at /opt/homebrew/bin/ffmpeg
+# - openai-whisper CLI available at /opt/homebrew/bin/whisper
+

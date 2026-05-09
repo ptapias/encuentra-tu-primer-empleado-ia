@@ -1,0 +1,9 @@
+crm_leads.jsonl
+__pycache__/
+.DS_Store
+*.pyc
+*.tmp
+*.webm
+*.wav
+*.aiff
+

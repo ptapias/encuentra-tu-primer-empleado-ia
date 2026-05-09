@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encuentra Tu Primer Empleado IA - Conversación</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --ink: #171717;
+      --muted: #62645f;
+      --line: #d8d1c2;
+      --panel: #fffdf8;
+      --agent: #ffffff;
+      --user: #173f32;
+      --accent: #1f7a5b;
+      --accent-dark: #11513b;
+      --soft: #e8f3ed;
+      --warn: #8b4b10;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(280px, 390px) 1fr;
+    }
+    aside {
+      padding: 36px;
+      border-right: 1px solid var(--line);
+      background: #faf8f1;
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: clamp(34px, 4vw, 56px);
+      line-height: .98;
+      letter-spacing: 0;
+      margin: 0 0 18px;
+    }
+    .lead {
+      font-size: 18px;
+      color: #383a36;
+      margin: 0 0 24px;
+    }
+    .principles {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .principle {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .principle strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+    main {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+    }
+    .topbar {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(250,248,241,.85);
+      backdrop-filter: blur(10px);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .progress-wrap {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+    .status {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .progress-rail {
+      height: 8px;
+      background: #e3ddcf;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      width: 8%;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width .25s ease;
+    }
+    .steps {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .step-chip {
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #fffdf8;
+      border-radius: 999px;
+      min-height: 24px;
+      padding: 0 8px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .step-chip.active {
+      background: var(--soft);
+      border-color: #b8ddca;
+      color: var(--accent-dark);
+      font-weight: 800;
+    }
+    .stage {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .chat {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .message {
+      max-width: 780px;
+      display: grid;
+      gap: 6px;
+    }
+    .message.agent { align-self: flex-start; }
+    .message.user { align-self: flex-end; }
+    .bubble {
+      border-radius: 8px;
+      padding: 14px 15px;
+      white-space: pre-wrap;
+    }
+    .agent .bubble {
+      background: var(--agent);
+      border: 1px solid var(--line);
+    }
+    .user .bubble {
+      background: var(--user);
+      color: white;
+    }
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+    .composer {
+      padding: 18px 22px 22px;
+      border-top: 1px solid var(--line);
+      background: #faf8f1;
+    }
+    .composer-inner {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+    textarea {
+      width: 100%;
+      min-height: 58px;
+      max-height: 180px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px 14px;
+      font: inherit;
+      background: white;
+      color: var(--ink);
+    }
+    button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      border-radius: 8px;
+      min-height: 48px;
+      padding: 0 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .icon-button {
+      width: 48px;
+      padding: 0;
+    }
+    .icon-button svg {
+      width: 21px;
+      height: 21px;
+      display: block;
+      margin: 0 auto;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    button:hover { background: var(--accent-dark); }
+    button.secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    button.listening {
+      background: #8b2f21;
+      position: relative;
+      animation: pulseMic 1.05s ease-in-out infinite;
+    }
+    button.listening::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 2px solid rgba(139,47,33,.28);
+      border-radius: 10px;
+      animation: ringMic 1.05s ease-out infinite;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .time-hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-left: auto;
+    }
+    .mic-status {
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 18px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mic-status.active {
+      color: var(--accent-dark);
+      font-weight: 800;
+    }
+    .mic-status.error {
+      color: #8b2f21;
+      font-weight: 800;
+    }
+    .mic-status.active::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(31,122,91,.45);
+      animation: pulseDot 1s ease-in-out infinite;
+    }
+    .mic-status.loading::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 2px solid #c9d7cf;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .lead-capture {
+      display: grid;
+      grid-template-columns: minmax(180px, 280px) 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .lead-capture input {
+      min-height: 42px;
+    }
+    .crm-status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .crm-status.ok {
+      color: var(--accent-dark);
+      font-weight: 800;
+    }
+    .crm-status.error {
+      color: #8b2f21;
+      font-weight: 800;
+    }
+    @keyframes pulseMic {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    @keyframes ringMic {
+      0% { opacity: .8; transform: scale(.96); }
+      100% { opacity: 0; transform: scale(1.18); }
+    }
+    @keyframes pulseDot {
+      0% { box-shadow: 0 0 0 0 rgba(31,122,91,.45); }
+      70% { box-shadow: 0 0 0 8px rgba(31,122,91,0); }
+      100% { box-shadow: 0 0 0 0 rgba(31,122,91,0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .report {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin-top: 6px;
+    }
+    .report h2, .report h3 {
+      margin: 0 0 10px;
+      letter-spacing: 0;
+    }
+    .report h2 { font-size: 28px; }
+    .report h3 { font-size: 19px; margin-top: 18px; }
+    .report ul { margin: 8px 0 0 20px; padding: 0; }
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .score-card {
+      background: #fbfaf6;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .score-card strong { display: block; font-size: 22px; }
+    .score-card span { color: var(--muted); font-size: 13px; }
+    .initiative-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .initiative {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfaf6;
+    }
+    .initiative-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+    .initiative-title {
+      font-weight: 900;
+      font-size: 17px;
+    }
+    .triage {
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .triage.refine {
+      background: #fff1d8;
+      color: var(--warn);
+    }
+    .triage.park {
+      background: #f5ded8;
+      color: #8b2f21;
+    }
+    .bars {
+      display: grid;
+      gap: 8px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 44px;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .mini-rail {
+      height: 8px;
+      background: #e6dfd2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .mini-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+    .mini-fill.penalty {
+      background: #b65b35;
+    }
+    .feedback {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    select, input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      font: inherit;
+      background: #fff;
+    }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); padding: 24px; }
+      .principles { grid-template-columns: 1fr; }
+      .score-grid { grid-template-columns: 1fr; }
+      .composer-inner { grid-template-columns: 1fr; }
+      .topbar { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 92px 1fr 34px; }
+      .lead-capture { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="eyebrow">MVP conversacional gratuito</div>
+      <h1>Encuentra tu primer empleado IA</h1>
+      <p class="lead">No es un formulario. Es una entrevista guiada para entender tu negocio, tus procesos y dónde tendría sentido usar IA primero.</p>
+      <div class="principles">
+        <div class="principle"><strong>Menos de 10 minutos</strong>Preguntas densas, pocas rondas y máximo foco.</div>
+        <div class="principle"><strong>Habla normal</strong>Escribe o dicta como se lo contarías a una persona.</div>
+        <div class="principle"><strong>Repreguntas justas</strong>Solo tiraré del hilo si falta algo importante.</div>
+        <div class="principle"><strong>No voy a vender humo</strong>Si primero hay que ordenar el proceso, te lo diré.</div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div class="progress-wrap">
+          <div class="status" id="status">Conversación iniciada</div>
+          <div class="progress-rail"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="steps" id="steps"></div>
+        </div>
+        <div class="stage" id="stage">Contexto</div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div class="composer">
+        <div class="composer-inner">
+          <textarea id="input" placeholder="Escribe aquí. Cuanto más concreto, mejor diagnóstico."></textarea>
+          <button class="secondary icon-button" id="mic" type="button" aria-label="Micrófono" title="Micrófono">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <path d="M12 19v3"></path>
+            </svg>
+            <span class="sr-only">Micrófono</span>
+          </button>
+          <button id="send">Enviar</button>
+        </div>
+        <div class="actions">
+          <button class="secondary" id="finish">Generar informe con lo que hay</button>
+          <button class="secondary" id="download">Descargar conversación</button>
+          <span class="time-hint">Objetivo: 7-10 min; más si el caso lo pide</span>
+        </div>
+        <div class="lead-capture">
+          <input id="leadEmail" type="email" placeholder="Email para guardar/enviar resultado">
+          <span class="crm-status" id="crmStatus">El resultado se guardará al generar el informe.</span>
+        </div>
+        <div class="mic-status" id="micStatus"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const statusEl = document.getElementById("status");
+    const stageEl = document.getElementById("stage");
+    const stepsEl = document.getElementById("steps");
+    const progressBar = document.getElementById("progressBar");
+    const micBtn = document.getElementById("mic");
+    const micStatus = document.getElementById("micStatus");
+    const leadEmail = document.getElementById("leadEmail");
+    const crmStatus = document.getElementById("crmStatus");
+    const transcript = [];
+    let currentOutcome = null;
+    const SYSTEM_RESEARCH_PROMPT = `
+Eres un consultor de automatización con IA para personas no técnicas. Tu misión no es vender herramientas, sino investigar procesos reales.
+
+Debes averiguar la máxima información útil en el mínimo tiempo posible. No uses una lista fija de preguntas. Adapta la entrevista a lo que la persona cuenta. Objetivo normal: 7-10 minutos. Si el caso es complejo, puedes llegar a 12-15 preguntas.
+
+Debes averiguar:
+- Qué hace el negocio y para quién.
+- Qué tareas se repiten.
+- Qué tareas siguen reglas o patrones.
+- Dónde se pierde tiempo, ventas, calidad o foco.
+- Qué herramientas y datos existen.
+- Qué parte depende demasiado del fundador.
+- Qué riesgos aparecen si una IA se equivoca.
+- Qué oportunidades son factibles en 1-3 meses.
+
+Comportamiento:
+- Pregunta una cosa cada vez.
+- Haz preguntas densas, pero fáciles de responder.
+- Evita entrevistas largas, pero no cierres si falta información crítica.
+- Elige la siguiente pregunta según lo que falte para evaluar procesos automatizables.
+- Resume lo que has entendido antes de profundizar.
+- Pide ejemplos concretos cuando el usuario sea vago.
+- No recomiendes IA si primero hay que ordenar el proceso.
+- Evalúa iniciativas con el framework: Impacto 40%, Factibilidad 30%, Escalabilidad 15%, Sensibilidad de datos -15%.
+- Cierra con recomendación, iniciativas priorizadas, riesgos, primer paso y feedback.
+`;
+    const state = {
+      stage: 0,
+      turns: 0,
+      facts: {
+        business: "",
+        customer: "",
+        process: "",
+        example: "",
+        tools: "",
+        data: "",
+        risk: "",
+        impact: "",
+        preference: "",
+        viability: "",
+        volume: ""
+      },
+      expecting: "business",
+      clarifications: 0,
+      maxClarifications: 3,
+      asked: {
+        volume: false,
+        tools: false,
+        risk: false,
+        preference: false,
+        compare: false
+      },
+      signals: {
+        whatsapp: 0,
+        email: 0,
+        sales: 0,
+        support: 0,
+        bookings: 0,
+        reporting: 0,
+        documentation: 0,
+        operations: 0
+      }
+    };
+
+    const stages = [
+      "Contexto",
+      "Exploración",
+      "Profundización",
+      "Evaluación",
+      "Recomendación",
+      "Informe"
+    ];
+
+    stages.forEach((label, idx) => {
+      const chip = document.createElement("span");
+      chip.className = `step-chip ${idx === 0 ? "active" : ""}`;
+      chip.textContent = label;
+      stepsEl.appendChild(chip);
+    });
+
+    const signalMap = [
+      ["whatsapp", ["whatsapp", "wasap", "whatsapps", "whatsapp business"]],
+      ["email", ["email", "correo", "bandeja", "gmail", "outlook"]],
+      ["sales", ["ventas", "leads", "crm", "propuesta", "presupuesto", "comercial", "cliente potencial"]],
+      ["support", ["soporte", "atencion", "cliente", "incidencia", "ticket", "duda"]],
+      ["bookings", ["reserva", "cita", "agenda", "calendly", "no-show"]],
+      ["reporting", ["reporte", "reporting", "informe", "metricas", "datos", "dashboard"]],
+      ["documentation", ["documentar", "documentacion", "procedimiento", "sop", "manual"]],
+      ["operations", ["operaciones", "admin", "administracion", "factura", "excel", "sheet", "hoja"]]
+    ];
+
+    function add(role, text, meta = "") {
+      transcript.push({ role, text, meta, at: new Date().toISOString() });
+      const wrap = document.createElement("div");
+      wrap.className = `message ${role}`;
+      wrap.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
+      chat.appendChild(wrap);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addHtml(role, html, meta = "") {
+      transcript.push({ role, text: html.replace(/<[^>]+>/g, " "), meta, at: new Date().toISOString() });
+      const wrap = document.createElement("div");
+      wrap.className = `message ${role}`;
+      wrap.innerHTML = `<div class="bubble">${html}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
+      chat.appendChild(wrap);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function normalize(text) {
+      return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function updateSignals(text) {
+      const clean = normalize(text);
+      signalMap.forEach(([key, words]) => {
+        words.forEach(word => {
+          if (clean.includes(word)) state.signals[key] += 1;
+        });
+      });
+    }
+
+    function updateProgress() {
+      const stageProgress = (Math.min(state.stage, stages.length - 1) + 1) / stages.length;
+      const turnProgress = Math.min(state.turns, 12) / 12;
+      const pct = Math.round(Math.max(stageProgress, turnProgress) * 100);
+      progressBar.style.width = `${pct}%`;
+      stageEl.textContent = stages[Math.min(state.stage, stages.length - 1)] || "Informe";
+      [...stepsEl.children].forEach((chip, idx) => {
+        chip.classList.toggle("active", idx === Math.min(state.stage, stages.length - 1));
+      });
+    }
+
+    function isVague(text) {
+      const clean = normalize(text);
+      return text.trim().length < 45 || ["no se", "depende", "varias cosas", "muchas cosas", "todo", "un poco"].some(x => clean.includes(x));
+    }
+
+    function strongestSignal() {
+      return Object.entries(state.signals).sort((a, b) => b[1] - a[1])[0]?.[0] || "operations";
+    }
+
+    function topSignals(limit = 3) {
+      const sorted = Object.entries(state.signals)
+        .sort((a, b) => b[1] - a[1])
+        .filter(([, value]) => value > 0);
+      if (sorted.length === 0) return [["operations", 1], ["documentation", 1], ["email", 1]];
+      const padded = [...sorted];
+      [["operations", 1], ["documentation", 1], ["email", 1], ["sales", 1]].forEach(item => {
+        if (!padded.some(([key]) => key === item[0])) padded.push(item);
+      });
+      return padded.slice(0, limit);
+    }
+
+    function employeeFor(signal) {
+      return {
+        whatsapp: "Recepcionista IA de WhatsApp",
+        email: "Jefe IA de bandeja de entrada",
+        sales: "SDR IA de seguimiento comercial",
+        support: "Asistente IA de atención al cliente",
+        bookings: "Coordinador IA de reservas",
+        reporting: "Analista IA semanal",
+        documentation: "Documentalista IA interno",
+        operations: "Asistente IA de operaciones"
+      }[signal] || "Asistente IA de operaciones";
+    }
+
+    function areaName(signal) {
+      return {
+        whatsapp: "WhatsApp y primera respuesta",
+        email: "email y priorización",
+        sales: "ventas y seguimiento",
+        support: "atención al cliente",
+        bookings: "reservas y citas",
+        reporting: "reporting y datos",
+        documentation: "documentación interna",
+        operations: "operaciones y administración"
+      }[signal] || "operaciones";
+    }
+
+    function processQuestion(signal) {
+      const bySignal = {
+        sales: "Veo que puede haber algo comercial. Cuéntame cómo funciona hoy tu flujo de venta: de dónde entra el lead, qué haces tú después y dónde suelen enfriarse o perderse oportunidades.",
+        whatsapp: "Parece que WhatsApp o mensajería puede ser importante. ¿Qué tipo de conversaciones se repiten ahí, cuántas llegan aproximadamente y cuáles sí o sí debería revisar una persona?",
+        email: "Parece que el email pesa en tu operación. ¿Qué tipos de correos se repiten, cuáles te roban más tiempo y cuáles podrían clasificarse o prepararse con ayuda?",
+        support: "Suena a que atención al cliente puede tener potencial. ¿Qué dudas o incidencias se repiten, dónde está la respuesta correcta y cuándo habría que escalar a humano?",
+        bookings: "Parece que reservas/citas pueden ser un cuello de botella. ¿Cómo se agenda hoy, qué cambios o no-shows se repiten y qué datos necesita el equipo antes de la cita?",
+        reporting: "Veo señales de reporting/datos. ¿Qué informe o revisión haces de forma recurrente, de dónde salen los datos y qué decisión debería facilitar?",
+        documentation: "Veo posible documentación interna. ¿Qué explicas una y otra vez, dónde vive hoy ese conocimiento y qué pasaría si tú no pudieras responder dudas una semana?",
+        operations: "Vamos al mapa operativo. Dime 2 o 3 tareas que se repiten cada semana y, para cada una, si te cuesta tiempo, ventas, calidad, foco o dependencia de ti."
+      };
+      return bySignal[signal] || bySignal.operations;
+    }
+
+    function exampleQuestion(signal) {
+      return `Quiero bajarlo a tierra en ${areaName(signal)}.\n\nCuéntame un caso real reciente: qué entró, qué tuviste que mirar, qué decidiste, qué respuesta/documento/acción salió y qué parte te gustaría no repetir manualmente.`;
+    }
+
+    function volumeQuestion(signal) {
+      return `Para priorizar bien necesito magnitud.\n\nEn ${areaName(signal)}, ¿con qué frecuencia ocurre, cuánto tiempo consume y qué pierdes si sigue igual 3 meses: ventas, clientes, calidad, foco o dinero?`;
+    }
+
+    function toolsQuestion(signal) {
+      return `Ahora necesito saber si se puede construir.\n\n¿Qué herramientas usas para ${areaName(signal)}, dónde están los datos o ejemplos reales y quién tendría que aprobar o supervisar una primera versión?`;
+    }
+
+    function riskQuestion(signal) {
+      return `Antes de recomendar nada, miremos límites.\n\n¿Qué sería peligroso que una IA hiciera mal en ${areaName(signal)}? ¿Qué decisiones o mensajes deberían quedar siempre en revisión humana?`;
+    }
+
+    function preferenceQuestion() {
+      return "Con esto ya puedo perfilar una recomendación preliminar. Última: si vemos un primer empleado IA claro, ¿prefieres aprender a montarlo, hacerlo acompañado o que alguien lo implemente? ¿Hay urgencia o presupuesto aproximado?";
+    }
+
+    function hasEnoughForReport() {
+      const required = [
+        state.facts.business.length > 50,
+        state.facts.process.length > 50,
+        state.facts.example.length > 70,
+        state.facts.tools.length > 40,
+        state.facts.risk.length > 35,
+        state.facts.impact.length > 35
+      ];
+      const covered = required.filter(Boolean).length;
+      return covered >= 5 && state.turns >= 6;
+    }
+
+    function storeAnswer(answer) {
+      const target = state.expecting || "business";
+      if (target === "business") state.facts.business = answer;
+      if (target === "process") state.facts.process = answer;
+      if (target === "example") state.facts.example = answer;
+      if (target === "volume") {
+        state.facts.volume = answer;
+        state.facts.impact = `${state.facts.impact} ${answer}`.trim();
+      }
+      if (target === "tools") {
+        state.facts.tools = answer;
+        state.facts.data = answer;
+        state.facts.viability = answer;
+      }
+      if (target === "risk") state.facts.risk = answer;
+      if (target === "preference") {
+        state.facts.preference = answer;
+        state.facts.impact = `${state.facts.impact} ${answer}`.trim();
+      }
+      if (target === "compare") state.facts.process = `${state.facts.process} ${answer}`.trim();
+    }
+
+    function nextQuestion(answer) {
+      state.turns += 1;
+      updateSignals(answer);
+      const vague = isVague(answer);
+      const signal = strongestSignal();
+      storeAnswer(answer);
+
+      if (state.turns >= 15 || hasEnoughForReport() && state.expecting === "preference") {
+        state.stage = 5;
+        return buildReport();
+      }
+
+      if (vague && state.clarifications < state.maxClarifications) {
+        state.clarifications += 1;
+        return "Te sigo, pero necesito un poco más de carne para no inventarme el diagnóstico. Dame un ejemplo concreto con: qué entra, qué haces tú y qué resultado debería salir.";
+      }
+
+      if (!state.facts.process) {
+        state.stage = 1;
+        state.expecting = "process";
+        return processQuestion(signal);
+      }
+
+      const strongAreas = topSignals(2).filter(([, value]) => value > 1);
+      if (!state.asked.compare && !state.facts.example && strongAreas.length > 1 && state.turns < 8) {
+        state.asked.compare = true;
+        state.stage = 1;
+        state.expecting = "compare";
+        return `Veo dos posibles frentes: ${areaName(strongAreas[0][0])} y ${areaName(strongAreas[1][0])}.\n\n¿Cuál duele más hoy y por qué: más tiempo perdido, más ventas perdidas, más errores o más dependencia de ti?`;
+      }
+
+      if (!state.facts.example) {
+        state.stage = 2;
+        state.expecting = "example";
+        return exampleQuestion(signal);
+      }
+
+      if (!state.asked.volume) {
+        state.asked.volume = true;
+        state.stage = 2;
+        state.expecting = "volume";
+        return volumeQuestion(signal);
+      }
+
+      if (!state.asked.tools) {
+        state.asked.tools = true;
+        state.stage = 3;
+        state.expecting = "tools";
+        return toolsQuestion(signal);
+      }
+
+      if (!state.asked.risk) {
+        state.asked.risk = true;
+        state.stage = 3;
+        state.expecting = "risk";
+        return riskQuestion(signal);
+      }
+
+      if (!state.asked.preference) {
+        state.asked.preference = true;
+        state.stage = 4;
+        state.expecting = "preference";
+        return preferenceQuestion();
+      }
+
+      state.stage = 5;
+      return buildReport();
+    }
+
+    function scoreInitiative(signal, rank) {
+      const text = normalize(Object.values(state.facts).join(" "));
+      const signalStrength = state.signals[signal] || 1;
+      const hasExamples = state.facts.example.length > 80;
+      const hasTools = state.facts.tools.length > 60;
+      const mentionsSensitive = ["salud", "legal", "fiscal", "rrhh", "nomina", "contrato", "paciente", "medico", "banco", "datos personales", "nda"].some(word => text.includes(word));
+      const commercialPriority = ["sales", "whatsapp", "support", "bookings"].includes(signal);
+      const impact = Math.max(2, Math.min(5, signalStrength + (commercialPriority ? 2 : 1) + (state.facts.impact.length > 80 ? 1 : 0) - rank));
+      const feasibility = Math.max(1, Math.min(5, (hasExamples ? 2 : 1) + (hasTools ? 2 : 1) + (signal === "documentation" || signal === "email" ? 1 : 0)));
+      const scalability = Math.max(2, Math.min(5, signal === "documentation" || signal === "support" || signal === "reporting" || signal === "sales" ? 4 : 3));
+      const sensitivity = Math.max(1, Math.min(5, mentionsSensitive ? 4 : signal === "email" || signal === "whatsapp" ? 3 : 2));
+      const composite = (impact * 0.40) + (feasibility * 0.30) + (scalability * 0.15) - (sensitivity * 0.15);
+      const priorityScore = composite + (commercialPriority ? 0.25 : 0);
+      const triage = composite >= 3.5 ? "PROCEED" : composite >= 2 ? "REFINE" : "PARK";
+      return { signal, title: employeeFor(signal), area: areaName(signal), impact, feasibility, scalability, sensitivity, composite, priorityScore, triage };
+    }
+
+    function initiativeHtml(item) {
+      const triageClass = item.triage === "PROCEED" ? "" : item.triage === "REFINE" ? "refine" : "park";
+      const pct = value => Math.round((value / 5) * 100);
+      return `
+      <div class="initiative">
+        <div class="initiative-head">
+          <div>
+            <div class="initiative-title">${item.title}</div>
+            <div class="meta">${item.area} · score ${item.composite.toFixed(2)} / 5</div>
+          </div>
+          <div class="triage ${triageClass}">${item.triage}</div>
+        </div>
+        <div class="bars">
+          <div class="bar-row"><span>Impacto</span><div class="mini-rail"><div class="mini-fill" style="width:${pct(item.impact)}%"></div></div><strong>${item.impact}/5</strong></div>
+          <div class="bar-row"><span>Factibilidad</span><div class="mini-rail"><div class="mini-fill" style="width:${pct(item.feasibility)}%"></div></div><strong>${item.feasibility}/5</strong></div>
+          <div class="bar-row"><span>Escalabilidad</span><div class="mini-rail"><div class="mini-fill" style="width:${pct(item.scalability)}%"></div></div><strong>${item.scalability}/5</strong></div>
+          <div class="bar-row"><span>Sensibilidad</span><div class="mini-rail"><div class="mini-fill penalty" style="width:${pct(item.sensitivity)}%"></div></div><strong>${item.sensitivity}/5</strong></div>
+        </div>
+      </div>`;
+    }
+
+    function buildReport() {
+      const initiatives = topSignals(3).map(([signal], index) => scoreInitiative(signal, index));
+      const best = initiatives.sort((a, b) => b.priorityScore - a.priorityScore)[0];
+      const signal = best.signal;
+      const employee = employeeFor(signal);
+      const clarity = state.facts.example.length > 80 ? 4 : 2;
+      const data = state.facts.tools.length > 60 ? 4 : 2;
+      const riskText = normalize(state.facts.risk);
+      const risk = riskText.includes("legal") || riskText.includes("salud") || riskText.includes("dinero") || riskText.includes("cliente enfad") ? 4 : 2;
+      const impact = state.facts.impact.length > 70 ? 4 : 3;
+      const score = Math.max(32, Math.min(92, Math.round((clarity + data + impact + (6 - risk) + Math.min(state.turns, 6)) / 23 * 100)));
+      const classification = best.triage === "PROCEED"
+        ? "Prioridad recomendada"
+        : risk >= 4
+        ? "Oportunidad con revisión humana obligatoria"
+        : clarity <= 2 || data <= 2
+          ? "Primero ordenar proceso"
+          : score >= 72
+            ? "Buen primer empleado IA"
+            : "Oportunidad prometedora";
+
+      state.stage = stages.length - 1;
+      updateProgress();
+      stageEl.textContent = "Informe";
+      statusEl.textContent = "Diagnóstico preliminar generado";
+      currentOutcome = {
+        recommended_employee: employee,
+        recommended_area: areaName(signal),
+        classification,
+        score_100: score,
+        clarity,
+        risk,
+        best_signal: signal,
+        initiatives: initiatives.map(item => ({
+          signal: item.signal,
+          title: item.title,
+          area: item.area,
+          impact: item.impact,
+          feasibility: item.feasibility,
+          scalability: item.scalability,
+          sensitivity: item.sensitivity,
+          composite: Number(item.composite.toFixed(2)),
+          triage: item.triage
+        }))
+      };
+      saveLeadToCrm("report_generated");
+
+      return `
+<div class="report">
+  <h2>Tu primer empleado IA recomendado: ${employee}</h2>
+  <p><strong>Clasificación:</strong> ${classification}</p>
+  <p>Por lo que has contado, la oportunidad más clara está en <strong>${areaName(signal)}</strong>. No empezaría por una automatización enorme, sino por una versión controlada que ayude en una tarea concreta y mantenga revisión humana al principio.</p>
+
+  <div class="score-grid">
+    <div class="score-card"><strong>${score}/100</strong><span>Score preliminar</span></div>
+    <div class="score-card"><strong>${clarity}/5</strong><span>Claridad del proceso</span></div>
+    <div class="score-card"><strong>${risk}/5</strong><span>Riesgo si falla</span></div>
+  </div>
+
+  <h3>Matriz de iniciativas detectadas</h3>
+  <p>He aplicado el framework que prioriza impacto, factibilidad en 1-3 meses, escalabilidad y penaliza sensibilidad de datos.</p>
+  <div class="initiative-list">
+    ${initiatives.map(initiativeHtml).join("")}
+  </div>
+
+  <h3>Lo que haría este empleado IA</h3>
+  <ul>
+    <li>Recoger y ordenar la información de entrada.</li>
+    <li>Preparar respuestas, resúmenes o siguientes pasos.</li>
+    <li>Detectar cuándo debe intervenir una persona.</li>
+    <li>Guardar aprendizajes para mejorar el proceso con el tiempo.</li>
+  </ul>
+
+  <h3>Lo que no automatizaría todavía</h3>
+  <p>No automatizaría decisiones delicadas, promesas a clientes ni envíos sin revisión hasta tener ejemplos, reglas y límites claros.</p>
+
+  <h3>Primer paso recomendado</h3>
+  <p>Durante 7 días, recopila 20 ejemplos reales de este proceso: mensajes, emails, documentos, respuestas o casos. Con eso se puede diseñar una primera versión bastante más precisa.</p>
+
+  <h3>Feedback para mejorar el diagnóstico</h3>
+  <div class="feedback">
+    <select id="useful">
+      <option value="5">5 - Muy útil</option>
+      <option value="4">4 - Bastante útil</option>
+      <option value="3">3 - Algo útil</option>
+      <option value="2">2 - Poco útil</option>
+      <option value="1">1 - Nada útil</option>
+    </select>
+    <input id="liked" placeholder="¿Qué parte te ha dado más claridad?">
+    <input id="missing" placeholder="¿Qué has echado en falta?">
+    <button onclick="saveFeedback()">Guardar feedback</button>
+  </div>
+</div>`;
+    }
+
+    function handleSend() {
+      const text = input.value.trim();
+      if (!text) return;
+      add("user", text, "Tú");
+      input.value = "";
+      statusEl.textContent = `${state.turns + 1} respuestas recogidas`;
+      const reply = nextQuestion(text);
+      stageEl.textContent = stages[Math.min(state.stage, stages.length - 1)];
+      setTimeout(() => {
+        if (reply.includes("<div")) addHtml("agent", reply, "Agente diagnóstico");
+        else add("agent", reply, "Agente diagnóstico");
+      }, 260);
+    }
+
+    function saveFeedback() {
+      const feedback = {
+        utilidad: document.getElementById("useful")?.value || "",
+        claridad: document.getElementById("liked")?.value || "",
+        faltante: document.getElementById("missing")?.value || ""
+      };
+      const payload = {
+        transcript,
+        facts: state.facts,
+        signals: state.signals,
+        feedback,
+        outcome: currentOutcome,
+        system_prompt: SYSTEM_RESEARCH_PROMPT,
+        at: new Date().toISOString()
+      };
+      const saved = JSON.parse(localStorage.getItem("primerEmpleadoIaConversaciones") || "[]");
+      saved.push(payload);
+      localStorage.setItem("primerEmpleadoIaConversaciones", JSON.stringify(saved));
+      saveLeadToCrm("feedback_saved", feedback);
+      add("agent", "Gracias. He guardado el feedback en este navegador para la prueba. En producción esto iría a tu CRM junto con la conversación.", "Sistema");
+    }
+
+    function downloadConversation() {
+      const payload = JSON.stringify({ lead_email: leadEmail.value.trim(), transcript, facts: state.facts, signals: state.signals, outcome: currentOutcome, system_prompt: SYSTEM_RESEARCH_PROMPT }, null, 2);
+      const blob = new Blob([payload], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `conversacion-primer-empleado-ia-${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function saveLeadToCrm(eventName, feedback = null) {
+      const payload = {
+        event: eventName,
+        lead_email: leadEmail.value.trim(),
+        created_at: new Date().toISOString(),
+        facts: state.facts,
+        signals: state.signals,
+        outcome: currentOutcome,
+        feedback,
+        transcript
+      };
+      const saved = JSON.parse(localStorage.getItem("primerEmpleadoIaCrm") || "[]");
+      saved.push(payload);
+      localStorage.setItem("primerEmpleadoIaCrm", JSON.stringify(saved));
+      try {
+        setCrmStatus("Guardando en CRM local...", "");
+        const response = await fetch("/crm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.error || "No se pudo guardar");
+        }
+        setCrmStatus("Guardado en CRM local.", "ok");
+      } catch (error) {
+        setCrmStatus(`Guardado solo en este navegador: ${error.message}`, "error");
+      }
+    }
+
+    document.getElementById("send").addEventListener("click", handleSend);
+    document.getElementById("finish").addEventListener("click", () => addHtml("agent", buildReport(), "Agente diagnóstico"));
+    document.getElementById("download").addEventListener("click", downloadConversation);
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) handleSend();
+    });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let listening = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let activeStream = null;
+
+    function setMicStatus(message = "", type = "") {
+      micStatus.textContent = message;
+      micStatus.className = `mic-status ${type}`.trim();
+    }
+
+    function setCrmStatus(message = "", type = "") {
+      crmStatus.textContent = message;
+      crmStatus.className = `crm-status ${type}`.trim();
+    }
+
+    function cleanInterim(text) {
+      return text.replace(/\s*\[escuchando:.*?\]\s*$/i, "").trim();
+    }
+
+    async function startLocalRecording() {
+      if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+        throw new Error("Este navegador no permite grabación local de audio.");
+      }
+      activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const mimeType = supportedAudioMimeType();
+      mediaRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
+      mediaRecorder.ondataavailable = event => {
+        if (event.data && event.data.size > 0) audioChunks.push(event.data);
+      };
+      mediaRecorder.onstop = transcribeRecording;
+      mediaRecorder.start();
+      listening = true;
+      micBtn.classList.add("listening");
+      micBtn.innerHTML = stopIcon();
+      setMicStatus("Grabando... pulsa el cuadrado para transcribir.", "active");
+    }
+
+    async function stopLocalRecording() {
+      if (!mediaRecorder || mediaRecorder.state === "inactive") return;
+        setMicStatus("Procesando audio...", "loading");
+      mediaRecorder.stop();
+      activeStream?.getTracks().forEach(track => track.stop());
+    }
+
+    async function transcribeRecording() {
+      listening = false;
+      micBtn.classList.remove("listening");
+      micBtn.innerHTML = micIcon();
+      try {
+        const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
+        if (blob.size < 1000) {
+          setMicStatus("La grabación está vacía. Pulsa el micro, habla y vuelve a pulsar para transcribir.", "error");
+          return;
+        }
+        setMicStatus("Transcribiendo con Whisper local...", "loading");
+        const response = await fetch("/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": "audio/webm" },
+          body: blob
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "No se pudo transcribir");
+        const text = (result.text || "").trim();
+        if (!text) {
+          setMicStatus("No he podido extraer texto. Prueba hablando más cerca del micro.", "error");
+          return;
+        }
+        input.value = `${input.value.trim()} ${text}`.trim();
+        setMicStatus("Transcripción añadida. Revisa y envía.", "active");
+      } catch (error) {
+        setMicStatus(`Fallo en transcripción local: ${error.message}. Intento usar dictado del navegador.`, "error");
+        startBrowserDictationFallback();
+      } finally {
+        audioChunks = [];
+        activeStream = null;
+        mediaRecorder = null;
+      }
+    }
+
+    function supportedAudioMimeType() {
+      const options = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+      return options.find(type => MediaRecorder.isTypeSupported?.(type)) || "";
+    }
+
+    function createRecognition() {
+      recognition = new SpeechRecognition();
+      recognition.lang = "es-ES";
+      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.maxAlternatives = 1;
+      let baseText = "";
+      let finalBuffer = "";
+      let heardSomething = false;
+      let noSpeechTimer = null;
+
+      recognition.onstart = () => {
+        heardSomething = false;
+        finalBuffer = "";
+        baseText = cleanInterim(input.value);
+        setMicStatus("Escuchando... habla ahora.", "active");
+        noSpeechTimer = window.setTimeout(() => {
+          if (!heardSomething && listening) {
+            setMicStatus("Sigo escuchando, pero no detecto voz. Acércate al micro o prueba Chrome si no transcribe.", "error");
+          }
+        }, 7000);
+      };
+
+      recognition.onsoundstart = () => {
+        heardSomething = true;
+        setMicStatus("Te escucho. Sigue hablando.", "active");
+      };
+
+      recognition.onspeechstart = () => {
+        heardSomething = true;
+        setMicStatus("Transcribiendo...", "active");
+      };
+
+      recognition.onresult = event => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const chunk = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalBuffer += ` ${chunk}`;
+          else interim += chunk;
+        }
+        input.value = `${baseText} ${finalBuffer}${interim ? ` [escuchando: ${interim}]` : ""}`.trim();
+        heardSomething = true;
+      };
+
+      recognition.onerror = event => {
+        const messages = {
+          "not-allowed": "El navegador ha bloqueado el micrófono. Revisa permisos del sitio y vuelve a intentarlo.",
+          "audio-capture": "No encuentro entrada de audio. Revisa que el micrófono esté seleccionado en el sistema.",
+          "no-speech": "No he detectado voz. Pulsa el micro otra vez y habla después de ver “Escuchando”.",
+          "network": "El reconocimiento de voz del navegador no responde. Prueba en Chrome con localhost.",
+          "aborted": "Dictado detenido."
+        };
+        setMicStatus(messages[event.error] || `Error de micrófono: ${event.error}`, event.error === "aborted" ? "" : "error");
+      };
+
+      recognition.onend = () => {
+        if (noSpeechTimer) window.clearTimeout(noSpeechTimer);
+        listening = false;
+        micBtn.classList.remove("listening");
+        micBtn.innerHTML = micIcon();
+        input.value = cleanInterim(input.value);
+        if (input.value.length > baseText.length) {
+          setMicStatus("Transcripción añadida. Puedes revisar y enviar.", "active");
+        } else if (!micStatus.classList.contains("error")) {
+          setMicStatus("Dictado detenido sin texto. Prueba de nuevo hablando después del permiso.", "");
+        }
+      };
+      return recognition;
+    }
+
+    function startBrowserDictationFallback() {
+      if (!SpeechRecognition) {
+        setMicStatus("El navegador no soporta dictado en vivo y la transcripción local falló.", "error");
+        return;
+      }
+      try {
+        recognition = createRecognition();
+        listening = true;
+        micBtn.classList.add("listening");
+        micBtn.innerHTML = stopIcon();
+        setMicStatus("Escuchando con dictado del navegador...", "active");
+        recognition.start();
+      } catch (error) {
+        setMicStatus(`No puedo iniciar dictado del navegador: ${error.message}`, "error");
+      }
+    }
+
+    micBtn.addEventListener("click", async () => {
+      if (listening) {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          await stopLocalRecording();
+        } else {
+          recognition?.stop();
+        }
+        return;
+      }
+      try {
+        await startLocalRecording();
+      } catch (error) {
+        listening = false;
+        micBtn.classList.remove("listening");
+        micBtn.innerHTML = micIcon();
+        setMicStatus(`No puedo grabar audio local: ${error.message}. Intento dictado del navegador.`, "error");
+        startBrowserDictationFallback();
+      }
+    });
+
+    function micIcon() {
+      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg><span class="sr-only">Micrófono</span>`;
+    }
+
+    function micOffIcon() {
+      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9v3a3 3 0 0 0 5.1 2.1"></path><path d="M15 9.3V5a3 3 0 0 0-5.1-2.1"></path><path d="M19 10v2a7 7 0 0 1-.7 3"></path><path d="M5 10v2a7 7 0 0 0 7 7v3"></path><path d="m2 2 20 20"></path></svg><span class="sr-only">Micrófono no disponible</span>`;
+    }
+
+    function stopIcon() {
+      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg><span class="sr-only">Parar dictado</span>`;
+    }
+
+    add("agent", "Vamos a hacerlo rápido, pero no rígido. Iré adaptando las preguntas a lo que me cuentes hasta tener suficiente confianza para recomendar procesos automatizables.\n\nPrimera pregunta: ¿a qué se dedica tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué parte te gustaría que funcionara con menos intervención tuya?", "Agente diagnóstico");
+    updateProgress();
+  </script>
+</body>
+</html>
