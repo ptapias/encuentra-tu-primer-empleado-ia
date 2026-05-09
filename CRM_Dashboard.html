@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRM - Primer Empleado IA</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --ink: #171717;
+      --muted: #62645f;
+      --line: #d8d1c2;
+      --panel: #fffdf8;
+      --accent: #1f7a5b;
+      --accent-dark: #11513b;
+      --soft: #e8f3ed;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    header {
+      padding: 28px 32px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #faf8f1;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(30px, 4vw, 48px); letter-spacing: 0; line-height: 1; }
+    p { color: var(--muted); line-height: 1.45; }
+    button, a.button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 8px;
+      font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    button:hover, a.button:hover { background: var(--accent-dark); }
+    main {
+      padding: 24px 32px 34px;
+      display: grid;
+      grid-template-columns: minmax(520px, 1.1fr) minmax(360px, .9fr);
+      gap: 18px;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      min-width: 0;
+    }
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .table-wrap { overflow: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      background: #faf8f1;
+      position: sticky;
+      top: 0;
+    }
+    tr { cursor: pointer; }
+    tr:hover td { background: #f8f5eb; }
+    .badge {
+      display: inline-flex;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .detail {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      max-height: calc(100vh - 180px);
+      overflow: auto;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 5px;
+    }
+    .card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .message {
+      border-left: 3px solid var(--line);
+      padding: 8px 0 8px 10px;
+      color: #30322f;
+      white-space: pre-wrap;
+    }
+    .message.user { border-left-color: var(--accent); }
+    .empty {
+      padding: 20px;
+      color: var(--muted);
+    }
+    @media (max-width: 980px) {
+      header, main { padding-left: 18px; padding-right: 18px; }
+      header { align-items: start; flex-direction: column; }
+      main, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <p>CRM interno</p>
+      <h1>Leads, outcomes y feedback</h1>
+    </div>
+    <a class="button" href="/Agente_Real_CRM.html">Volver al agente</a>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Leads capturados</h2>
+        <button id="refresh">Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Caso</th>
+              <th>Score</th>
+              <th>Oferta</th>
+              <th>Estado</th>
+              <th>Feedback</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Detalle</h2>
+        <span class="badge" id="selected">sin seleccionar</span>
+      </div>
+      <div class="detail" id="detail">
+        <div class="empty">Selecciona un lead para ver conversación, informe y feedback.</div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const rows = document.getElementById("rows");
+    const detail = document.getElementById("detail");
+    const selected = document.getElementById("selected");
+
+    function escapeHtml(text) {
+      return String(text || "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    async function api(path) {
+      const response = await fetch(path);
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || "Error de servidor");
+      return json;
+    }
+
+    async function loadLeads() {
+      const { leads } = await api("/api/leads");
+      rows.innerHTML = leads.map(lead => `<tr data-id="${escapeHtml(lead.id)}">
+        <td><strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong><br>${escapeHtml(new Date(lead.updated_at * 1000).toLocaleString())}</td>
+        <td>${escapeHtml(lead.recommended_employee || lead.use_case || "sin informe")}<br><span class="badge">${escapeHtml(lead.turns)} turnos</span></td>
+        <td>${escapeHtml(lead.score || 0)}</td>
+        <td>${escapeHtml(lead.offer || "pendiente")}</td>
+        <td>${escapeHtml(lead.status)}<br>${escapeHtml(lead.stage)}</td>
+        <td>${lead.has_feedback ? "sí" : "no"}</td>
+      </tr>`).join("");
+      rows.querySelectorAll("tr").forEach(row => row.addEventListener("click", () => loadLead(row.dataset.id)));
+    }
+
+    function list(items) {
+      return `<ul>${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    async function loadLead(id) {
+      const { lead } = await api(`/api/lead?id=${encodeURIComponent(id)}`);
+      selected.textContent = id.slice(0, 8);
+      const report = lead.outcome || {};
+      const crm = report.crm_summary || {};
+      const opportunities = (report.opportunities || []).map(opp => `<div class="card">
+        <span>${escapeHtml(opp.triage)}</span>
+        <h3>${escapeHtml(opp.name)}</h3>
+        <p>${escapeHtml(opp.problem)}</p>
+        <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
+      </div>`).join("");
+      const transcript = (lead.transcript || []).map(item => `<div class="message ${escapeHtml(item.role)}"><strong>${escapeHtml(item.role)}:</strong> ${escapeHtml(item.content)}</div>`).join("");
+      detail.innerHTML = `<div class="grid">
+        <div class="card"><span>Email</span>${escapeHtml(lead.email || "sin email")}</div>
+        <div class="card"><span>Estado</span>${escapeHtml(lead.status)} · ${escapeHtml(lead.stage)}</div>
+        <div class="card"><span>Score</span>${escapeHtml(crm.score || 0)}</div>
+        <div class="card"><span>Oferta</span>${escapeHtml(crm.offer || "pendiente")}</div>
+        <div class="card"><span>Urgencia</span>${escapeHtml(crm.urgency || "no detectada")}</div>
+        <div class="card"><span>Presupuesto</span>${escapeHtml(crm.budget || "no detectado")}</div>
+      </div>
+      <div class="card"><span>Empleado IA recomendado</span><h3>${escapeHtml(report.recommended_employee || "sin informe todavía")}</h3><p>${escapeHtml(report.recommendation_reason || "")}</p></div>
+      <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
+      <div class="card"><span>Oportunidades</span>${opportunities || "<p>Sin oportunidades calculadas todavía.</p>"}</div>
+      <div class="card"><span>No automatizar todavía</span>${list(report.do_not_automate_yet)}</div>
+      <div class="card"><span>Feedback</span><p>${escapeHtml(lead.feedback?.text || "Sin feedback todavía.")}</p></div>
+      <div class="card"><span>Conversación</span>${transcript || "<p>Sin conversación.</p>"}</div>`;
+    }
+
+    document.getElementById("refresh").addEventListener("click", loadLeads);
+    loadLeads().catch(error => {
+      rows.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message)}</td></tr>`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encuentra Tu Primer Empleado IA - Agente Real</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --ink: #171717;
+      --muted: #62645f;
+      --line: #d8d1c2;
+      --panel: #fffdf8;
+      --agent: #ffffff;
+      --user: #173f32;
+      --accent: #1f7a5b;
+      --accent-dark: #11513b;
+      --soft: #e8f3ed;
+      --warn: #8b4b10;
+      --danger: #8b2f21;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(300px, 410px) 1fr;
+    }
+    aside {
+      padding: 32px;
+      border-right: 1px solid var(--line);
+      background: #faf8f1;
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
+    .eyebrow {
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: .98;
+      margin: 0;
+      letter-spacing: 0;
+    }
+    .lead {
+      font-size: 18px;
+      color: #383a36;
+      margin: 0;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .panel h2 {
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--ink);
+    }
+    button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      min-height: 44px;
+      padding: 0 15px;
+      border-radius: 8px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    button:hover { background: var(--accent-dark); }
+    button.secondary {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    button.icon {
+      width: 48px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+    }
+    button.icon svg {
+      width: 21px;
+      height: 21px;
+    }
+    button.listening {
+      background: var(--danger);
+      position: relative;
+      animation: pulseMic 1.05s ease-in-out infinite;
+    }
+    button.listening::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 2px solid rgba(139,47,33,.28);
+      border-radius: 10px;
+      animation: ringMic 1.05s ease-out infinite;
+    }
+    main {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+    }
+    .topbar {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+      background: rgba(250,248,241,.86);
+      backdrop-filter: blur(10px);
+    }
+    .toprow {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .stage {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      background: #e3ddcf;
+      overflow: hidden;
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 8%;
+      border-radius: 999px;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+    .chat {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .message {
+      display: grid;
+      gap: 6px;
+      max-width: 820px;
+    }
+    .message.agent { align-self: flex-start; }
+    .message.user { align-self: flex-end; }
+    .bubble {
+      border-radius: 8px;
+      padding: 14px 15px;
+      white-space: pre-wrap;
+    }
+    .agent .bubble {
+      background: var(--agent);
+      border: 1px solid var(--line);
+    }
+    .user .bubble {
+      background: var(--user);
+      color: white;
+    }
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+    .composer {
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--line);
+      background: #faf8f1;
+    }
+    .composer-grid {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .composer textarea {
+      min-height: 58px;
+      max-height: 180px;
+      resize: vertical;
+    }
+    .composer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .mic-status, .crm-status {
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .mic-status.active, .crm-status.ok {
+      color: var(--accent-dark);
+      font-weight: 900;
+    }
+    .mic-status.error, .crm-status.error {
+      color: var(--danger);
+      font-weight: 900;
+    }
+    .mic-status.loading::before, .thinking::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 2px solid #c9d7cf;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .mic-status.active::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulseDot 1s ease-in-out infinite;
+    }
+    .report {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+    .report h2, .report h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+    .report h2 { font-size: 28px; }
+    .report h3 { font-size: 19px; }
+    .report p { margin: 0; }
+    .score-grid, .opportunity-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .score-card, .opportunity {
+      border: 1px solid var(--line);
+      background: #fbfaf6;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .score-card strong {
+      display: block;
+      font-size: 24px;
+    }
+    .section-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 5px;
+    }
+    .section-list li { margin: 0; }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .mini-card {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 8px;
+      padding: 11px;
+    }
+    .mini-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .badge {
+      display: inline-flex;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .bars { display: grid; gap: 7px; margin-top: 10px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 92px 1fr 34px;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .rail {
+      height: 8px;
+      background: #e6dfd2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+    .fill.penalty { background: #b65b35; }
+    .lead-list {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow: auto;
+    }
+    .lead-item {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .lead-item strong { color: var(--ink); display: block; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    @keyframes pulseMic {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    @keyframes ringMic {
+      0% { opacity: .8; transform: scale(.96); }
+      100% { opacity: 0; transform: scale(1.18); }
+    }
+    @keyframes pulseDot {
+      0% { box-shadow: 0 0 0 0 rgba(31,122,91,.45); }
+      70% { box-shadow: 0 0 0 8px rgba(31,122,91,0); }
+      100% { box-shadow: 0 0 0 0 rgba(31,122,91,0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+      .composer-grid, .score-grid, .opportunity-grid, .mini-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="eyebrow">Agente real + CRM</div>
+      <h1>Encuentra tu primer empleado IA</h1>
+      <p class="lead">Diagnóstico conversacional con agente LLM, informe potente y CRM persistente en SQLite.</p>
+      <div class="panel">
+        <h2>Lead</h2>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="persona@empresa.com">
+        </div>
+        <button id="start">Iniciar diagnóstico</button>
+        <div class="crm-status" id="crmStatus">Sin sesión iniciada.</div>
+      </div>
+      <div class="panel">
+        <h2>Últimos leads</h2>
+        <button class="secondary" id="refreshLeads">Actualizar CRM</button>
+        <div class="lead-list" id="leadList"></div>
+      </div>
+    </aside>
+    <main>
+      <div class="topbar">
+        <div class="toprow">
+          <div class="status" id="status">Crea una sesión para empezar.</div>
+          <div class="stage" id="stage">Contexto</div>
+        </div>
+        <div class="progress"><span id="progress"></span></div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <div class="composer">
+        <div class="composer-grid">
+          <textarea id="input" placeholder="Cuéntame tu negocio o dicta con el micro." disabled></textarea>
+          <button class="secondary icon" id="mic" type="button" aria-label="Micrófono" title="Micrófono" disabled>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <path d="M12 19v3"></path>
+            </svg>
+            <span class="sr-only">Micrófono</span>
+          </button>
+          <button id="send" disabled>Enviar</button>
+        </div>
+        <div class="composer-actions">
+          <button class="secondary" id="report" disabled>Generar informe potente</button>
+          <button class="secondary" id="download" disabled>Descargar JSON</button>
+        </div>
+        <div class="mic-status" id="micStatus"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+    const start = document.getElementById("start");
+    const reportBtn = document.getElementById("report");
+    const downloadBtn = document.getElementById("download");
+    const micBtn = document.getElementById("mic");
+    const email = document.getElementById("email");
+    const crmStatus = document.getElementById("crmStatus");
+    const micStatus = document.getElementById("micStatus");
+    const statusEl = document.getElementById("status");
+    const stageEl = document.getElementById("stage");
+    const progress = document.getElementById("progress");
+    const leadList = document.getElementById("leadList");
+    let leadId = null;
+    let transcript = [];
+    let latestReport = null;
+    let mediaRecorder = null;
+    let activeStream = null;
+    let audioChunks = [];
+    let listening = false;
+
+    const stagePct = {
+      contexto: 12,
+      exploracion: 28,
+      profundizacion: 48,
+      evaluacion: 68,
+      recomendacion: 82,
+      informe: 100
+    };
+
+    function escapeHtml(text) {
+      return String(text || "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function setStage(stage) {
+      stageEl.textContent = stage || "contexto";
+      progress.style.width = `${stagePct[stage] || 12}%`;
+    }
+
+    function setCrm(message, type = "") {
+      crmStatus.textContent = message;
+      crmStatus.className = `crm-status ${type}`.trim();
+    }
+
+    function setMic(message, type = "") {
+      micStatus.textContent = message;
+      micStatus.className = `mic-status ${type}`.trim();
+    }
+
+    function addMessage(role, text, meta = "") {
+      transcript.push({ role, content: text, at: Date.now() });
+      const node = document.createElement("div");
+      node.className = `message ${role}`;
+      node.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
+      chat.appendChild(node);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addHtml(role, html, meta = "") {
+      const node = document.createElement("div");
+      node.className = `message ${role}`;
+      node.innerHTML = `<div class="bubble">${html}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
+      chat.appendChild(node);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function api(path, payload = null, method = "POST") {
+      const options = { method, headers: { "Content-Type": "application/json" } };
+      if (payload) options.body = JSON.stringify(payload);
+      const response = await fetch(path, options);
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || "Error de servidor");
+      return json;
+    }
+
+    async function startSession() {
+      setCrm("Creando sesión...", "");
+      const session = await api("/api/session", { email: email.value.trim() });
+      leadId = session.lead_id;
+      transcript = [];
+      latestReport = null;
+      input.disabled = false;
+      send.disabled = false;
+      micBtn.disabled = false;
+      reportBtn.disabled = false;
+      downloadBtn.disabled = false;
+      setCrm(`Sesión creada: ${leadId.slice(0, 8)}…`, "ok");
+      statusEl.textContent = "Agente preparado.";
+      setStage("contexto");
+      chat.innerHTML = "";
+      addMessage("agent", "Vamos a hacerlo bien. Cuéntame tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué proceso te gustaría automatizar o entender mejor.", "Agente real");
+      await refreshLeads();
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!leadId || !text) return;
+      addMessage("user", text, "Tú");
+      input.value = "";
+      send.disabled = true;
+      statusEl.innerHTML = '<span class="thinking">El agente está pensando…</span>';
+      try {
+        const result = await api("/api/chat", { lead_id: leadId, email: email.value.trim(), message: text });
+        addMessage("agent", result.reply, result.fallback ? "Agente fallback" : "Agente real");
+        setStage(result.stage);
+        statusEl.textContent = result.ready_for_report ? "Listo para informe." : `Confianza: ${Math.round((result.confidence || 0) * 100)}%`;
+        if (result.ready_for_report) reportBtn.classList.remove("secondary");
+      } catch (error) {
+        addMessage("agent", `Error del agente: ${error.message}`, "Sistema");
+        statusEl.textContent = "Error";
+      } finally {
+        send.disabled = false;
+      }
+    }
+
+    async function generateReport() {
+      if (!leadId) return;
+      reportBtn.disabled = true;
+      statusEl.innerHTML = '<span class="thinking">Generando informe potente…</span>';
+      try {
+        const result = await api("/api/report", { lead_id: leadId });
+        latestReport = result.report;
+        addHtml("agent", reportHtml(latestReport), "Informe");
+        setStage("informe");
+        statusEl.textContent = "Informe generado y guardado en CRM.";
+        setCrm("Lead actualizado en CRM SQLite.", "ok");
+        await refreshLeads();
+      } catch (error) {
+        addMessage("agent", `Error generando informe: ${error.message}`, "Sistema");
+      } finally {
+        reportBtn.disabled = false;
+      }
+    }
+
+    function reportHtml(report) {
+      const opportunities = (report.opportunities || []).map(opp => {
+        const pct = value => Math.max(0, Math.min(100, Number(value || 0) * 20));
+        const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+        return `<div class="opportunity">
+          <span class="badge">${escapeHtml(opp.triage)}</span>
+          <h3>${escapeHtml(opp.name)}</h3>
+          <p>${escapeHtml(opp.problem)}</p>
+          <p><strong>Empleado IA:</strong> ${escapeHtml(opp.ai_employee)}</p>
+          <p><strong>Qué haría:</strong></p>
+          ${list(opp.what_it_would_do)}
+          <div class="bars">
+            <div class="bar-row"><span>Impacto</span><div class="rail"><div class="fill" style="width:${pct(opp.impact_score)}%"></div></div><strong>${opp.impact_score}/5</strong></div>
+            <div class="bar-row"><span>Factibilidad</span><div class="rail"><div class="fill" style="width:${pct(opp.feasibility_score)}%"></div></div><strong>${opp.feasibility_score}/5</strong></div>
+            <div class="bar-row"><span>Escalabilidad</span><div class="rail"><div class="fill" style="width:${pct(opp.scalability_score)}%"></div></div><strong>${opp.scalability_score}/5</strong></div>
+            <div class="bar-row"><span>Sensibilidad</span><div class="rail"><div class="fill penalty" style="width:${pct(opp.data_sensitivity_score)}%"></div></div><strong>${opp.data_sensitivity_score}/5</strong></div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-card"><span>Proceso actual</span>${escapeHtml(opp.current_process)}</div>
+            <div class="mini-card"><span>Datos necesarios</span>${escapeHtml((opp.data_needed || []).join(", "))}</div>
+            <div class="mini-card"><span>Herramientas</span>${escapeHtml((opp.tools || []).join(", ") || "Por definir")}</div>
+            <div class="mini-card"><span>Riesgos</span>${escapeHtml((opp.risks || []).join(", "))}</div>
+          </div>
+          <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
+        </div>`;
+      }).join("");
+      const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      return `<div class="report">
+        <span class="badge">${escapeHtml(report.readiness)}</span>
+        <h2>${escapeHtml(report.recommended_employee)}</h2>
+        <p>${escapeHtml(report.summary)}</p>
+        <div class="mini-card"><span>Snapshot del negocio</span>${escapeHtml(report.business_snapshot)}</div>
+        <p><strong>Por qué:</strong> ${escapeHtml(report.recommendation_reason)}</p>
+        <div class="score-grid">
+          <div class="score-card"><strong>${escapeHtml(report.crm_summary?.score || "")}</strong><span>Score CRM</span></div>
+          <div class="score-card"><strong>${escapeHtml(report.cta?.segment || "")}</strong><span>Segmento</span></div>
+          <div class="score-card"><strong>${escapeHtml(report.crm_summary?.offer || "")}</strong><span>Oferta</span></div>
+        </div>
+        <h3>Top oportunidades</h3>
+        <div class="opportunity-grid">${opportunities}</div>
+        <h3>No automatizar todavía</h3>
+        ${list(report.do_not_automate_yet)}
+        <h3>Plan de 7 días</h3>
+        ${list(report.seven_day_plan)}
+        <h3>Plan de 30 días</h3>
+        ${list(report.thirty_day_plan)}
+        <h3>Siguiente paso</h3>
+        <p>${escapeHtml(report.cta?.message || "")}</p>
+        <div class="field">
+          <label>Feedback para mejorar el diagnóstico</label>
+          <textarea id="feedbackText" placeholder="¿Qué te faltó? ¿Qué te dio claridad?"></textarea>
+        </div>
+        <button onclick="saveFeedback()">Guardar feedback</button>
+      </div>`;
+    }
+
+    async function saveFeedback() {
+      const feedback = { text: document.getElementById("feedbackText")?.value || "" };
+      await api("/api/feedback", { lead_id: leadId, feedback });
+      setCrm("Feedback guardado en CRM.", "ok");
+    }
+
+    async function refreshLeads() {
+      try {
+        const result = await api("/api/leads", null, "GET");
+        leadList.innerHTML = result.leads.map(lead => `<div class="lead-item">
+          <strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong>
+          ${escapeHtml(lead.status)} · ${escapeHtml(lead.stage)}<br>
+          ${escapeHtml(lead.recommended_employee || "sin informe todavía")}
+        </div>`).join("");
+      } catch (error) {
+        leadList.innerHTML = `<div class="lead-item">No pude cargar CRM: ${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function downloadJson() {
+      const blob = new Blob([JSON.stringify({ lead_id: leadId, transcript, report: latestReport }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `diagnostico-ia-${leadId || Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function micIcon() {
+      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg><span class="sr-only">Micrófono</span>`;
+    }
+
+    function stopIcon() {
+      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg><span class="sr-only">Parar grabación</span>`;
+    }
+
+    function supportedAudioMimeType() {
+      const options = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+      return options.find(type => MediaRecorder.isTypeSupported?.(type)) || "";
+    }
+
+    async function startRecording() {
+      activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const mimeType = supportedAudioMimeType();
+      mediaRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
+      mediaRecorder.ondataavailable = event => {
+        if (event.data?.size) audioChunks.push(event.data);
+      };
+      mediaRecorder.onstop = transcribeRecording;
+      mediaRecorder.start();
+      listening = true;
+      micBtn.classList.add("listening");
+      micBtn.innerHTML = stopIcon();
+      setMic("Grabando... pulsa el cuadrado para transcribir.", "active");
+    }
+
+    async function stopRecording() {
+      if (!mediaRecorder || mediaRecorder.state === "inactive") return;
+      setMic("Procesando audio...", "loading");
+      mediaRecorder.stop();
+      activeStream?.getTracks().forEach(track => track.stop());
+    }
+
+    async function transcribeRecording() {
+      listening = false;
+      micBtn.classList.remove("listening");
+      micBtn.innerHTML = micIcon();
+      try {
+        const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
+        setMic("Transcribiendo con Whisper local...", "loading");
+        const response = await fetch("/transcribe", { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "No se pudo transcribir");
+        input.value = `${input.value.trim()} ${(result.text || "").trim()}`.trim();
+        setMic("Transcripción añadida. Revisa y envía.", "active");
+      } catch (error) {
+        setMic(`Fallo de transcripción: ${error.message}`, "error");
+      } finally {
+        audioChunks = [];
+        activeStream = null;
+        mediaRecorder = null;
+      }
+    }
+
+    start.addEventListener("click", startSession);
+    send.addEventListener("click", sendMessage);
+    reportBtn.addEventListener("click", generateReport);
+    downloadBtn.addEventListener("click", downloadJson);
+    document.getElementById("refreshLeads").addEventListener("click", refreshLeads);
+    micBtn.addEventListener("click", async () => {
+      if (listening) await stopRecording();
+      else await startRecording();
+    });
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) sendMessage();
+    });
+    refreshLeads();
+  </script>
+</body>
+</html>

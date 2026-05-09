@@ -15,6 +15,9 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Prompt_Investigacion_Procesos.md`: prompt de fondo para el agente investigador de procesos automatizables.
 - `Prompt_Agente_Diagnostico.md`: prompt listo para usar en un agente conversacional.
 - `Scoring_y_CRM.csv`: criterios de scoring y campos internos recomendados.
+- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, informe potente y feedback.
+- `CRM_Dashboard.html`: dashboard interno para revisar leads, conversación, outcome, oferta recomendada y feedback.
+- `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` y `/transcribe`.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.
 - `Prototipo_Diagnostico.html`: prototipo antiguo tipo formulario. Mantener solo como referencia secundaria.
 - `Plan_Prueba_y_Hosting.md`: cómo probarlo, publicarlo gratis al inicio y qué hacer con la parte de Codex/API.
@@ -25,12 +28,24 @@ Lanzar primero la versión gratuita como experiencia conversacional adaptativa: 
 
 La versión actual incluye grabación por micrófono con transcripción local vía Whisper cuando se sirve con `app_server.py`, indicador de fase, matriz de evaluación basada en el framework `AI Use Case Evaluation Framework v0.2` e informe con iniciativas priorizadas.
 
-Para probar el micrófono usa:
+## Probar la versión real
+
+Para arrancar la versión con agente + CRM:
 
 ```bash
 python3 app_server.py
 ```
 
-Luego abre `http://localhost:8787/Prototipo_Conversacional.html`. Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir y añadir el texto al campo.
+Luego abre:
+
+- Agente: `http://localhost:8787/Agente_Real_CRM.html`
+- CRM interno: `http://localhost:8787/CRM_Dashboard.html`
+- Prototipo anterior: `http://localhost:8787/Prototipo_Conversacional.html`
+
+Si defines `OPENAI_API_KEY`, el endpoint `/api/chat` usa un agente LLM real y `/api/report` genera el informe completo con el modelo configurado en `OPENAI_MODEL` o `gpt-4.1-mini` por defecto. Si no hay clave, el sistema entra en modo fallback local para poder probar flujo, CRM, informe y feedback sin romper la experiencia.
+
+Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
+
+Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo.
 
 Nota clave: una web pública no puede usar directamente tu suscripción personal de Codex como API. Sí puedes usar Codex para pruebas locales o para procesar manualmente conversaciones recogidas por la web durante la validación.
