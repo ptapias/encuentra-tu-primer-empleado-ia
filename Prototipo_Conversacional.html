@@ -660,7 +660,18 @@ Comportamiento:
 
     function isVague(text) {
       const clean = normalize(text);
-      return text.trim().length < 45 || ["no se", "depende", "varias cosas", "muchas cosas", "todo", "un poco"].some(x => clean.includes(x));
+      if (hasDiagnosticSignal(text)) return false;
+      return text.trim().length < 32 || ["depende", "varias cosas", "muchas cosas", "todo", "un poco"].some(x => clean.includes(x));
+    }
+
+    function hasDiagnosticSignal(text) {
+      const clean = normalize(text);
+      const usefulPatterns = [
+        "email", "correo", "outlook", "gmail", "lead", "cliente", "problema", "presenta",
+        "entra", "hago", "deberia", "debería", "no respondi", "no respondí", "sin respuesta",
+        "todos los dias", "todos los días", "10", "15", "profesor", "newsletter", "lector"
+      ];
+      return usefulPatterns.some(pattern => clean.includes(normalize(pattern)));
     }
 
     function strongestSignal() {
@@ -709,7 +720,7 @@ Comportamiento:
       const bySignal = {
         sales: "Veo que puede haber algo comercial. Cuéntame cómo funciona hoy tu flujo de venta: de dónde entra el lead, qué haces tú después y dónde suelen enfriarse o perderse oportunidades.",
         whatsapp: "Parece que WhatsApp o mensajería puede ser importante. ¿Qué tipo de conversaciones se repiten ahí, cuántas llegan aproximadamente y cuáles sí o sí debería revisar una persona?",
-        email: "Parece que el email pesa en tu operación. ¿Qué tipos de correos se repiten, cuáles te roban más tiempo y cuáles podrían clasificarse o prepararse con ayuda?",
+        email: "Parece que el email pesa en tu operación. Para no quedarnos en 'responder correos', dime qué tipos se repiten: presentaciones de lectores, oportunidades comerciales, dudas, colaboraciones, soporte, propuestas u otros. ¿Cuáles se quedan sin respuesta y por qué?",
         support: "Suena a que atención al cliente puede tener potencial. ¿Qué dudas o incidencias se repiten, dónde está la respuesta correcta y cuándo habría que escalar a humano?",
         bookings: "Parece que reservas/citas pueden ser un cuello de botella. ¿Cómo se agenda hoy, qué cambios o no-shows se repiten y qué datos necesita el equipo antes de la cita?",
         reporting: "Veo señales de reporting/datos. ¿Qué informe o revisión haces de forma recurrente, de dónde salen los datos y qué decisión debería facilitar?",
@@ -720,18 +731,30 @@ Comportamiento:
     }
 
     function exampleQuestion(signal) {
+      if (signal === "email") {
+        return "Este caso ya apunta a una bandeja de entrada que contiene oportunidades ocultas.\n\nCuéntame un email real reciente: quién te escribió, qué quería, qué valor podía tener para ti y qué habría sido una buena salida: responder, clasificar, convertir en lead, guardarlo como insight, derivarlo o descartarlo.";
+      }
       return `Quiero bajarlo a tierra en ${areaName(signal)}.\n\nCuéntame un caso real reciente: qué entró, qué tuviste que mirar, qué decidiste, qué respuesta/documento/acción salió y qué parte te gustaría no repetir manualmente.`;
     }
 
     function volumeQuestion(signal) {
+      if (signal === "email") {
+        return "Aquí no solo importa el tiempo: también el valor que se queda enterrado.\n\n¿Cuántos emails así recibes a la semana y qué pierdes si no los procesas: relaciones, ventas, ideas de contenido, feedback de audiencia, oportunidades o simplemente foco?";
+      }
       return `Para priorizar bien necesito magnitud.\n\nEn ${areaName(signal)}, ¿con qué frecuencia ocurre, cuánto tiempo consume y qué pierdes si sigue igual 3 meses: ventas, clientes, calidad, foco o dinero?`;
     }
 
     function toolsQuestion(signal) {
+      if (signal === "email") {
+        return "Para ver si esto se puede automatizar: ¿usas Outlook, Gmail u otra herramienta? ¿Tienes etiquetas/carpetas? ¿Dónde debería guardarse lo importante: CRM, Notion, Sheets, newsletter ideas, lista de leads u otro sitio?";
+      }
       return `Ahora necesito saber si se puede construir.\n\n¿Qué herramientas usas para ${areaName(signal)}, dónde están los datos o ejemplos reales y quién tendría que aprobar o supervisar una primera versión?`;
     }
 
     function riskQuestion(signal) {
+      if (signal === "email") {
+        return "Buen límite. En email el riesgo típico es contestar inventando, sonar raro o prometer algo que no toca.\n\n¿Qué correos podría preparar la IA como borrador y cuáles no debería responder nunca sin tu revisión?";
+      }
       return `Antes de recomendar nada, miremos límites.\n\n¿Qué sería peligroso que una IA hiciera mal en ${areaName(signal)}? ¿Qué decisiones o mensajes deberían quedar siempre en revisión humana?`;
     }
 
@@ -788,7 +811,7 @@ Comportamiento:
 
       if (vague && state.clarifications < state.maxClarifications) {
         state.clarifications += 1;
-        return "Te sigo, pero necesito un poco más de carne para no inventarme el diagnóstico. Dame un ejemplo concreto con: qué entra, qué haces tú y qué resultado debería salir.";
+        return smartClarification(signal);
       }
 
       if (!state.facts.process) {
@@ -843,6 +866,13 @@ Comportamiento:
       return buildReport();
     }
 
+    function smartClarification(signal) {
+      if (signal === "email") {
+        return "Vale, ya tengo la dirección. Te ayudo a concretar: cuando entra uno de esos emails, ¿qué debería pasar idealmente? Elige una o varias: responder con borrador, clasificar, detectar oportunidad, guardarlo como idea de contenido, pasarlo a CRM/lista, o descartarlo.";
+      }
+      return "Te sigo. Para avanzar sin hacerlo eterno, dime solo esto: qué entra, qué haces tú ahora y qué salida ideal debería producir el sistema.";
+    }
+
     function scoreInitiative(signal, rank) {
       const text = normalize(Object.values(state.facts).join(" "));
       const signalStrength = state.signals[signal] || 1;
@@ -886,8 +916,8 @@ Comportamiento:
       const best = initiatives.sort((a, b) => b.priorityScore - a.priorityScore)[0];
       const signal = best.signal;
       const employee = employeeFor(signal);
-      const clarity = state.facts.example.length > 80 ? 4 : 2;
-      const data = state.facts.tools.length > 60 ? 4 : 2;
+      const clarity = state.facts.example.length > 80 ? 4 : signal === "email" && state.facts.example.length > 35 ? 3 : 2;
+      const data = state.facts.tools.length > 60 ? 4 : signal === "email" && state.facts.tools.length > 5 ? 3 : 2;
       const riskText = normalize(state.facts.risk);
       const risk = riskText.includes("legal") || riskText.includes("salud") || riskText.includes("dinero") || riskText.includes("cliente enfad") ? 4 : 2;
       const impact = state.facts.impact.length > 70 ? 4 : 3;
@@ -947,12 +977,7 @@ Comportamiento:
   </div>
 
   <h3>Lo que haría este empleado IA</h3>
-  <ul>
-    <li>Recoger y ordenar la información de entrada.</li>
-    <li>Preparar respuestas, resúmenes o siguientes pasos.</li>
-    <li>Detectar cuándo debe intervenir una persona.</li>
-    <li>Guardar aprendizajes para mejorar el proceso con el tiempo.</li>
-  </ul>
+  ${actionsFor(signal)}
 
   <h3>Lo que no automatizaría todavía</h3>
   <p>No automatizaría decisiones delicadas, promesas a clientes ni envíos sin revisión hasta tener ejemplos, reglas y límites claros.</p>
@@ -974,6 +999,24 @@ Comportamiento:
     <button onclick="saveFeedback()">Guardar feedback</button>
   </div>
 </div>`;
+    }
+
+    function actionsFor(signal) {
+      if (signal === "email") {
+        return `<ul>
+    <li>Clasificar correos de lectores por intención: presentación, problema, oportunidad comercial, feedback, colaboración o soporte.</li>
+    <li>Preparar un borrador de respuesta con tono personal, sin enviarlo automáticamente.</li>
+    <li>Extraer oportunidades: posibles alumnos, casos de contenido, testimonios, leads o ideas para newsletter.</li>
+    <li>Crear una tarea o etiqueta para seguimiento cuando el correo tenga valor.</li>
+    <li>Resumir cada día qué correos merecen tu atención y cuáles pueden archivarse.</li>
+  </ul>`;
+      }
+      return `<ul>
+    <li>Recoger y ordenar la información de entrada.</li>
+    <li>Preparar respuestas, resúmenes o siguientes pasos.</li>
+    <li>Detectar cuándo debe intervenir una persona.</li>
+    <li>Guardar aprendizajes para mejorar el proceso con el tiempo.</li>
+  </ul>`;
     }
 
     function handleSend() {
