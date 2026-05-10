@@ -489,6 +489,13 @@
       }[char]));
     }
 
+    function readable(value) {
+      if (value === null || value === undefined) return "";
+      if (Array.isArray(value)) return value.join(", ");
+      if (typeof value === "object") return Object.values(value).filter(Boolean).join(" ");
+      return value;
+    }
+
     function setStage(stage) {
       stageEl.textContent = stage || "contexto";
       progress.style.width = `${stagePct[stage] || 12}%`;
@@ -617,7 +624,7 @@
       }).join("");
       const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
       return `<div class="report">
-        <span class="badge">${escapeHtml(report.readiness)}</span>
+        <span class="badge">${escapeHtml(readable(report.readiness))}</span>
         <h2>${escapeHtml(report.recommended_employee)}</h2>
         <p>${escapeHtml(report.summary)}</p>
         <div class="mini-card"><span>Snapshot del negocio</span>${escapeHtml(report.business_snapshot)}</div>

@@ -42,7 +42,18 @@ Luego abre:
 - CRM interno: `http://localhost:8787/CRM_Dashboard.html`
 - Prototipo anterior: `http://localhost:8787/Prototipo_Conversacional.html`
 
-Si defines `OPENAI_API_KEY`, el endpoint `/api/chat` usa un agente LLM real y `/api/report` genera el informe completo con el modelo configurado en `OPENAI_MODEL` o `gpt-4.1-mini` por defecto. Si no hay clave, el sistema entra en modo fallback local para poder probar flujo, CRM, informe y feedback sin romper la experiencia.
+Por defecto el backend intenta usar `AI_PROVIDER=codex`, que llama a Codex CLI autenticado localmente con tu cuenta de ChatGPT/Codex. Esto sirve para pruebas internas en tu máquina o en un servidor donde hayas iniciado sesión con Codex CLI. No es la vía recomendada para una web pública con tráfico abierto.
+
+En pruebas locales, un turno de conversación con Codex CLI tarda alrededor de 9-15 segundos y un informe puede tardar 30-60 segundos. Es suficiente para validar internamente el producto y enseñar demos controladas, pero conviene medirlo antes de abrirlo a mucho tráfico.
+
+También puedes usar:
+
+```bash
+AI_PROVIDER=openai OPENAI_API_KEY=... python3 app_server.py
+AI_PROVIDER=fallback python3 app_server.py
+```
+
+Si el proveedor elegido falla, el sistema entra en modo fallback local para poder probar flujo, CRM, informe y feedback sin romper la experiencia.
 
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
 

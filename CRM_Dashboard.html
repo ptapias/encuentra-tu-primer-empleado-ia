@@ -199,6 +199,13 @@
       }[char]));
     }
 
+    function readable(value) {
+      if (value === null || value === undefined) return "";
+      if (Array.isArray(value)) return value.join(", ");
+      if (typeof value === "object") return Object.values(value).filter(Boolean).join(" ");
+      return value;
+    }
+
     async function api(path) {
       const response = await fetch(path);
       const json = await response.json();
@@ -211,7 +218,7 @@
       rows.innerHTML = leads.map(lead => `<tr data-id="${escapeHtml(lead.id)}">
         <td><strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong><br>${escapeHtml(new Date(lead.updated_at * 1000).toLocaleString())}</td>
         <td>${escapeHtml(lead.recommended_employee || lead.use_case || "sin informe")}<br><span class="badge">${escapeHtml(lead.turns)} turnos</span></td>
-        <td>${escapeHtml(lead.score || 0)}</td>
+        <td>${escapeHtml(readable(lead.score || 0))}</td>
         <td>${escapeHtml(lead.offer || "pendiente")}</td>
         <td>${escapeHtml(lead.status)}<br>${escapeHtml(lead.stage)}</td>
         <td>${lead.has_feedback ? "sí" : "no"}</td>
@@ -238,7 +245,7 @@
       detail.innerHTML = `<div class="grid">
         <div class="card"><span>Email</span>${escapeHtml(lead.email || "sin email")}</div>
         <div class="card"><span>Estado</span>${escapeHtml(lead.status)} · ${escapeHtml(lead.stage)}</div>
-        <div class="card"><span>Score</span>${escapeHtml(crm.score || 0)}</div>
+        <div class="card"><span>Score</span>${escapeHtml(readable(crm.score || 0))}</div>
         <div class="card"><span>Oferta</span>${escapeHtml(crm.offer || "pendiente")}</div>
         <div class="card"><span>Urgencia</span>${escapeHtml(crm.urgency || "no detectada")}</div>
         <div class="card"><span>Presupuesto</span>${escapeHtml(crm.budget || "no detectado")}</div>

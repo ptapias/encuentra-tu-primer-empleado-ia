@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib import request, error, parse
 import json
 import os
+import shutil
 import sqlite3
 import subprocess
 import tempfile
@@ -18,6 +19,8 @@ DB_FILE = ROOT / "crm.sqlite3"
 JSONL_FILE = ROOT / "crm_leads.jsonl"
 OPENAI_URL = "https://api.openai.com/v1/responses"
 DEFAULT_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "codex").lower()
+CODEX_BIN = os.environ.get("CODEX_BIN") or shutil.which("codex") or "/Applications/Codex.app/Contents/Resources/codex"
 
 
 AGENT_INSTRUCTIONS = """
@@ -40,6 +43,7 @@ Composite = (Impacto x 0.40) + (Factibilidad x 0.30) + (Escalabilidad x 0.15) - 
 Triage: PROCEED >= 3.5, REFINE 2.0-3.4, PARK < 2.0.
 
 Devuelve siempre JSON válido con esta forma:
+No copies este esquema literalmente. Rellena cada campo con información inferida de la conversación y escribe una respuesta natural adaptada al usuario.
 {
   "reply": "mensaje natural al usuario",
   "stage": "contexto|exploracion|profundizacion|evaluacion|recomendacion|informe",
@@ -81,6 +85,7 @@ Genera un informe potente y accionable en español para "Encuentra Tu Primer Emp
 Usa la conversación y facts disponibles. Si falta algo, explícitalo como "confianza media/baja", no inventes.
 
 Devuelve JSON válido:
+No copies este esquema literalmente. Rellena cada campo con un diagnóstico específico, incluso si marcas confianza media o baja donde falten datos.
 {
   "summary": "resumen ejecutivo",
   "business_snapshot": "lo que entendimos del negocio",
@@ -265,17 +270,123 @@ def extract_response_text(payload: dict) -> str:
     return "\n".join(parts).strip() or payload.get("output_text", "")
 
 
+def extract_balanced_json(text: str) -> str:
+    in_string = False
+    escaped = False
+    depth = 0
+    start = -1
+    for index, char in enumerate(text):
+        if start < 0:
+            if char == "{":
+                start = index
+                depth = 1
+            continue
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\" and in_string:
+            escaped = True
+            continue
+        if char == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : index + 1]
+    raise ValueError("No se encontró JSON válido en la respuesta")
+
+
 def parse_json_text(text: str) -> dict:
     text = text.strip()
     if text.startswith("```"):
         text = text.strip("`")
         if text.startswith("json"):
             text = text[4:].strip()
-    start = text.find("{")
-    end = text.rfind("}")
-    if start >= 0 and end >= start:
-        text = text[start : end + 1]
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return json.loads(extract_balanced_json(text))
+
+
+def call_codex_cli(instructions: str, input_text: str) -> dict:
+    if not CODEX_BIN or not Path(CODEX_BIN).exists():
+        raise RuntimeError("Codex CLI no está disponible")
+    if instructions == AGENT_INSTRUCTIONS:
+        codex_instructions = """
+Eres un consultor conversacional de automatización para personas no técnicas.
+Tu trabajo: entender el negocio, detectar procesos automatizables y hacer la siguiente pregunta más útil.
+No eres un formulario. No repitas preguntas ya respondidas. Si falta concreción, pide un ejemplo real.
+Normalmente debes avanzar en 7-10 minutos y cerrar cuando haya suficiente confianza.
+
+Responde solo con JSON. Tipos obligatorios:
+- reply: string con la siguiente intervención concreta al usuario.
+- stage: uno de contexto, exploracion, profundizacion, evaluacion, recomendacion, informe.
+- ready_for_report: boolean.
+- confidence: número entre 0 y 1.
+- facts: objeto con claves opcionales business, customer, channels, main_processes, selected_process, example, frequency, impact, tools, data, risk, preference, budget, urgency.
+- signals: objeto con puntuaciones numéricas para email, sales, whatsapp, support, bookings, reporting, documentation, operations.
+"""
+    elif instructions == REPORT_INSTRUCTIONS:
+        codex_instructions = """
+Eres un estratega de automatización. Genera un informe accionable para una persona no técnica.
+Usa solo la conversación disponible. Si falta algo, dilo como confianza media o baja, sin inventar.
+
+Responde solo con JSON. Debe incluir:
+- summary, business_snapshot, recommended_employee, recommendation_reason, readiness.
+- opportunities: array de 1-3 oportunidades con name, current_process, problem, ai_employee, what_it_would_do, impact_score, feasibility_score, scalability_score, data_sensitivity_score, composite_score, triage, tools, data_needed, risks, first_step.
+- do_not_automate_yet, seven_day_plan, thirty_day_plan.
+- cta con segment y message.
+- crm_summary con sector, use_case, score, urgency, budget, offer, status.
+"""
+    else:
+        codex_instructions = instructions
+    prompt = (
+        f"{codex_instructions}\n\n"
+        "IMPORTANTE: responde exclusivamente con un único objeto JSON válido. "
+        "No escribas Markdown, explicación, comandos ni texto adicional.\n\n"
+        "Actúa sobre el caso real del INPUT. No repitas valores de ejemplo, nombres de campos ni placeholders del esquema. "
+        "El campo reply debe contener la siguiente intervención concreta que dirías al usuario.\n\n"
+        f"INPUT:\n{input_text}"
+    )
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-codex-") as tmp:
+        output_file = Path(tmp) / "last-message.json"
+        subprocess.run(
+            [
+                CODEX_BIN,
+                "exec",
+                "--skip-git-repo-check",
+                "--ephemeral",
+                "--sandbox",
+                "read-only",
+                "--output-last-message",
+                str(output_file),
+                prompt,
+            ],
+            cwd=str(ROOT),
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=180,
+        )
+        if not output_file.exists():
+            raise RuntimeError("Codex CLI no generó respuesta final")
+        return parse_json_text(output_file.read_text(encoding="utf-8"))
+
+
+def call_ai(instructions: str, input_text: str) -> dict:
+    if AI_PROVIDER == "codex":
+        return call_codex_cli(instructions, input_text)
+    if AI_PROVIDER == "openai":
+        return call_openai(instructions, input_text)
+    if os.environ.get("OPENAI_API_KEY"):
+        return call_openai(instructions, input_text)
+    return call_codex_cli(instructions, input_text)
 
 
 def call_openai(instructions: str, input_text: str) -> dict:
@@ -431,7 +542,7 @@ class Handler(SimpleHTTPRequestHandler):
         lead["transcript"] = transcript
         prompt = json.dumps({"lead": lead, "latest_user_message": user_text}, ensure_ascii=False)
         try:
-            result = call_openai(AGENT_INSTRUCTIONS, prompt)
+            result = call_ai(AGENT_INSTRUCTIONS, prompt)
         except Exception as exc:
             result = fallback_agent(lead, user_text)
             result["api_error"] = str(exc)
@@ -456,7 +567,7 @@ class Handler(SimpleHTTPRequestHandler):
         lead = get_lead(lead_id)
         prompt = json.dumps({"lead": lead}, ensure_ascii=False)
         try:
-            report = call_openai(REPORT_INSTRUCTIONS, prompt)
+            report = call_ai(REPORT_INSTRUCTIONS, prompt)
         except Exception as exc:
             report = fallback_report(lead)
             report["api_error"] = str(exc)
@@ -613,6 +724,7 @@ def main():
     print("Serving MVP on http://localhost:8787/Agente_Real_CRM.html")
     print("Legacy prototype available at http://localhost:8787/Prototipo_Conversacional.html")
     print("SQLite CRM:", DB_FILE)
+    print("AI provider:", AI_PROVIDER)
     print("Local transcription endpoint enabled at /transcribe")
     server.serve_forever()
 
