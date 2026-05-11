@@ -1,0 +1,16 @@
+[Unit]
+Description=Encuentra Tu Primer Empleado IA
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/primer-empleado-ia
+EnvironmentFile=/opt/primer-empleado-ia/.env
+ExecStart=/usr/bin/python3 /opt/primer-empleado-ia/app_server.py
+Restart=always
+RestartSec=5
+User=primeria
+Group=primeria
+
+[Install]
+WantedBy=multi-user.target

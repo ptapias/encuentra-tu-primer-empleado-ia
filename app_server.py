@@ -2,6 +2,7 @@
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib import request, error, parse
+import base64
 import json
 import os
 import shutil
@@ -21,6 +22,15 @@ OPENAI_URL = "https://api.openai.com/v1/responses"
 DEFAULT_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "codex").lower()
 CODEX_BIN = os.environ.get("CODEX_BIN") or shutil.which("codex") or "/Applications/Codex.app/Contents/Resources/codex"
+HOST = os.environ.get("HOST", "localhost")
+PORT = int(os.environ.get("PORT", "8787"))
+ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+MAX_BODY_BYTES = int(os.environ.get("MAX_BODY_BYTES", "1200000"))
+MAX_PUBLIC_EVENTS_PER_HOUR = int(os.environ.get("MAX_PUBLIC_EVENTS_PER_HOUR", "80"))
+MAX_MESSAGE_CHARS = int(os.environ.get("MAX_MESSAGE_CHARS", "3500"))
+MAX_USER_TURNS = int(os.environ.get("MAX_USER_TURNS", "14"))
+RATE_BUCKETS: dict[str, list[int]] = {}
 
 
 AGENT_INSTRUCTIONS = """
@@ -135,6 +145,33 @@ def now() -> int:
     return int(time.time())
 
 
+def client_ip(handler) -> str:
+    forwarded = handler.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return handler.client_address[0]
+
+
+def rate_limited(key: str, limit: int, window_seconds: int = 3600) -> bool:
+    current = now()
+    bucket = [stamp for stamp in RATE_BUCKETS.get(key, []) if current - stamp < window_seconds]
+    if len(bucket) >= limit:
+        RATE_BUCKETS[key] = bucket
+        return True
+    bucket.append(current)
+    RATE_BUCKETS[key] = bucket
+    return False
+
+
+def valid_email(email: str) -> bool:
+    if not email:
+        return False
+    if len(email) > 254 or "@" not in email:
+        return False
+    local, _, domain = email.partition("@")
+    return bool(local and "." in domain and not any(char.isspace() for char in email))
+
+
 def db():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
@@ -175,6 +212,8 @@ def init_db():
 
 def read_json(handler) -> dict:
     length = int(handler.headers.get("Content-Length", "0"))
+    if length > MAX_BODY_BYTES:
+        raise ValueError("Payload demasiado grande")
     if length <= 0:
         return {}
     return json.loads(handler.rfile.read(length).decode("utf-8"))
@@ -380,6 +419,8 @@ Responde solo con JSON. Debe incluir:
 
 
 def call_ai(instructions: str, input_text: str) -> dict:
+    if AI_PROVIDER == "fallback":
+        raise RuntimeError("AI_PROVIDER=fallback")
     if AI_PROVIDER == "codex":
         return call_codex_cli(instructions, input_text)
     if AI_PROVIDER == "openai":
@@ -501,6 +542,16 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         route = parse.urlparse(self.path)
+        if route.path in ("", "/"):
+            self.send_response(302)
+            self.send_header("Location", "/Agente_Real_CRM.html")
+            self.end_headers()
+            return
+        if route.path == "/healthz":
+            self._json({"ok": True, "provider": AI_PROVIDER})
+            return
+        if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead") and not self._require_admin():
+            return
         if route.path == "/api/leads":
             self._handle_list_leads()
             return
@@ -510,6 +561,12 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
+        if rate_limited(f"post:{client_ip(self)}", MAX_PUBLIC_EVENTS_PER_HOUR):
+            self._json({"error": "Demasiadas peticiones. Inténtalo más tarde."}, 429)
+            return
+        if int(self.headers.get("Content-Length", "0")) > MAX_BODY_BYTES:
+            self._json({"error": "Payload demasiado grande"}, 413)
+            return
         routes = {
             "/api/session": self._handle_session,
             "/api/chat": self._handle_chat,
@@ -524,9 +581,38 @@ class Handler(SimpleHTTPRequestHandler):
             return
         handler()
 
+    def _require_admin(self) -> bool:
+        if not ADMIN_PASSWORD:
+            return True
+        auth = self.headers.get("Authorization", "")
+        if not auth.startswith("Basic "):
+            self._auth_required()
+            return False
+        try:
+            decoded = base64.b64decode(auth.removeprefix("Basic ").strip()).decode("utf-8")
+        except Exception:
+            self._auth_required()
+            return False
+        user, _, password = decoded.partition(":")
+        if user == ADMIN_USER and password == ADMIN_PASSWORD:
+            return True
+        self._auth_required()
+        return False
+
+    def _auth_required(self):
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="Primer Empleado IA CRM"')
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write("Autenticación requerida".encode("utf-8"))
+
     def _handle_session(self):
         payload = read_json(self)
-        lead = create_lead(payload.get("email", ""))
+        email = (payload.get("email", "") or "").strip().lower()
+        if not valid_email(email):
+            self._json({"error": "Introduce un email válido para empezar el diagnóstico."}, 400)
+            return
+        lead = create_lead(email)
         insert_event(lead["lead_id"], "session_created", payload)
         self._json(lead)
 
@@ -537,7 +623,14 @@ class Handler(SimpleHTTPRequestHandler):
         if not lead_id or not user_text:
             self._json({"error": "lead_id and message are required"}, 400)
             return
+        if len(user_text) > MAX_MESSAGE_CHARS:
+            self._json({"error": "Mensaje demasiado largo. Resume la respuesta y vuelve a intentarlo."}, 400)
+            return
         lead = get_lead(lead_id)
+        user_turns = len([m for m in lead["transcript"] if m.get("role") == "user"])
+        if user_turns >= MAX_USER_TURNS:
+            self._json({"error": "Ya hay suficiente información. Genera el informe para cerrar el diagnóstico."}, 400)
+            return
         transcript = lead["transcript"] + [{"role": "user", "content": user_text, "at": now()}]
         lead["transcript"] = transcript
         prompt = json.dumps({"lead": lead, "latest_user_message": user_text}, ensure_ascii=False)
@@ -720,11 +813,12 @@ def transcribe_audio(body: bytes) -> str:
 def main():
     init_db()
     os.chdir(ROOT)
-    server = ThreadingHTTPServer(("localhost", 8787), Handler)
-    print("Serving MVP on http://localhost:8787/Agente_Real_CRM.html")
-    print("Legacy prototype available at http://localhost:8787/Prototipo_Conversacional.html")
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
+    print(f"Serving MVP on http://{HOST}:{PORT}/Agente_Real_CRM.html")
+    print(f"CRM dashboard on http://{HOST}:{PORT}/CRM_Dashboard.html")
     print("SQLite CRM:", DB_FILE)
     print("AI provider:", AI_PROVIDER)
+    print("CRM auth:", "enabled" if ADMIN_PASSWORD else "disabled")
     print("Local transcription endpoint enabled at /transcribe")
     server.serve_forever()
 

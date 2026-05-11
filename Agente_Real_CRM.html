@@ -405,15 +405,18 @@
         <h2>Lead</h2>
         <div class="field">
           <label for="email">Email</label>
-          <input id="email" type="email" placeholder="persona@empresa.com">
+          <input id="email" type="email" placeholder="persona@empresa.com" autocomplete="email" required>
         </div>
         <button id="start">Iniciar diagnóstico</button>
         <div class="crm-status" id="crmStatus">Sin sesión iniciada.</div>
       </div>
       <div class="panel">
-        <h2>Últimos leads</h2>
-        <button class="secondary" id="refreshLeads">Actualizar CRM</button>
-        <div class="lead-list" id="leadList"></div>
+        <h2>Qué recibirás</h2>
+        <div class="lead-list">
+          <div class="lead-item"><strong>Top 3 oportunidades</strong>Procesos concretos que podrías automatizar.</div>
+          <div class="lead-item"><strong>Primer empleado IA recomendado</strong>Qué debería hacer, con qué datos y con qué riesgos.</div>
+          <div class="lead-item"><strong>Plan de 7 días</strong>Primeros pasos realistas sin lenguaje técnico.</div>
+        </div>
       </div>
     </aside>
     <main>
@@ -461,7 +464,6 @@
     const statusEl = document.getElementById("status");
     const stageEl = document.getElementById("stage");
     const progress = document.getElementById("progress");
-    const leadList = document.getElementById("leadList");
     let leadId = null;
     let transcript = [];
     let latestReport = null;
@@ -538,22 +540,35 @@
     }
 
     async function startSession() {
+      const leadEmail = email.value.trim();
+      if (!email.checkValidity() || !leadEmail) {
+        email.focus();
+        setCrm("Introduce un email válido para recibir el diagnóstico.", "error");
+        return;
+      }
       setCrm("Creando sesión...", "");
-      const session = await api("/api/session", { email: email.value.trim() });
-      leadId = session.lead_id;
-      transcript = [];
-      latestReport = null;
-      input.disabled = false;
-      send.disabled = false;
-      micBtn.disabled = false;
-      reportBtn.disabled = false;
-      downloadBtn.disabled = false;
-      setCrm(`Sesión creada: ${leadId.slice(0, 8)}…`, "ok");
-      statusEl.textContent = "Agente preparado.";
-      setStage("contexto");
-      chat.innerHTML = "";
-      addMessage("agent", "Vamos a hacerlo bien. Cuéntame tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué proceso te gustaría automatizar o entender mejor.", "Agente real");
-      await refreshLeads();
+      start.disabled = true;
+      try {
+        const session = await api("/api/session", { email: leadEmail });
+        leadId = session.lead_id;
+        transcript = [];
+        latestReport = null;
+        input.disabled = false;
+        send.disabled = false;
+        micBtn.disabled = false;
+        reportBtn.disabled = false;
+        downloadBtn.disabled = false;
+        email.disabled = true;
+        setCrm(`Sesión creada: ${leadId.slice(0, 8)}…`, "ok");
+        statusEl.textContent = "Agente preparado.";
+        setStage("contexto");
+        chat.innerHTML = "";
+        addMessage("agent", "Vamos a hacerlo bien. Cuéntame tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué proceso te gustaría automatizar o entender mejor.", "Agente real");
+      } catch (error) {
+        setCrm(error.message, "error");
+      } finally {
+        start.disabled = false;
+      }
     }
 
     async function sendMessage() {
@@ -588,7 +603,6 @@
         setStage("informe");
         statusEl.textContent = "Informe generado y guardado en CRM.";
         setCrm("Lead actualizado en CRM SQLite.", "ok");
-        await refreshLeads();
       } catch (error) {
         addMessage("agent", `Error generando informe: ${error.message}`, "Sistema");
       } finally {
@@ -656,19 +670,6 @@
       const feedback = { text: document.getElementById("feedbackText")?.value || "" };
       await api("/api/feedback", { lead_id: leadId, feedback });
       setCrm("Feedback guardado en CRM.", "ok");
-    }
-
-    async function refreshLeads() {
-      try {
-        const result = await api("/api/leads", null, "GET");
-        leadList.innerHTML = result.leads.map(lead => `<div class="lead-item">
-          <strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong>
-          ${escapeHtml(lead.status)} · ${escapeHtml(lead.stage)}<br>
-          ${escapeHtml(lead.recommended_employee || "sin informe todavía")}
-        </div>`).join("");
-      } catch (error) {
-        leadList.innerHTML = `<div class="lead-item">No pude cargar CRM: ${escapeHtml(error.message)}</div>`;
-      }
     }
 
     function downloadJson() {
@@ -742,7 +743,6 @@
     send.addEventListener("click", sendMessage);
     reportBtn.addEventListener("click", generateReport);
     downloadBtn.addEventListener("click", downloadJson);
-    document.getElementById("refreshLeads").addEventListener("click", refreshLeads);
     micBtn.addEventListener("click", async () => {
       if (listening) await stopRecording();
       else await startRecording();
@@ -750,7 +750,6 @@
     input.addEventListener("keydown", event => {
       if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) sendMessage();
     });
-    refreshLeads();
   </script>
 </body>
 </html>

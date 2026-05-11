@@ -18,6 +18,9 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, informe potente y feedback.
 - `CRM_Dashboard.html`: dashboard interno para revisar leads, conversación, outcome, oferta recomendada y feedback.
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` y `/transcribe`.
+- `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
+- `DEPLOYMENT_VPS.md`: guía para desplegar en VPS con Codex CLI, systemd y Caddy.
+- `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.
 - `Prototipo_Diagnostico.html`: prototipo antiguo tipo formulario. Mantener solo como referencia secundaria.
 - `Plan_Prueba_y_Hosting.md`: cómo probarlo, publicarlo gratis al inicio y qué hacer con la parte de Codex/API.
@@ -58,5 +61,11 @@ Si el proveedor elegido falla, el sistema entra en modo fallback local para pode
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
 
 Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo.
+
+## Producción beta
+
+Para enseñarlo a público real, usa `.env.example` como base y define `ADMIN_PASSWORD` para proteger el CRM. La página pública ya no muestra leads internos; el dashboard queda separado en `CRM_Dashboard.html`.
+
+La guía de VPS está en `DEPLOYMENT_VPS.md`.
 
 Nota clave: una web pública no puede usar directamente tu suscripción personal de Codex como API. Sí puedes usar Codex para pruebas locales o para procesar manualmente conversaciones recogidas por la web durante la validación.
