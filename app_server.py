@@ -569,6 +569,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
         routes = {
             "/api/session": self._handle_session,
+            "/api/email": self._handle_email,
             "/api/chat": self._handle_chat,
             "/api/report": self._handle_report,
             "/api/feedback": self._handle_feedback,
@@ -609,12 +610,27 @@ class Handler(SimpleHTTPRequestHandler):
     def _handle_session(self):
         payload = read_json(self)
         email = (payload.get("email", "") or "").strip().lower()
-        if not valid_email(email):
-            self._json({"error": "Introduce un email válido para empezar el diagnóstico."}, 400)
+        if email and not valid_email(email):
+            self._json({"error": "Introduce un email válido."}, 400)
             return
         lead = create_lead(email)
         insert_event(lead["lead_id"], "session_created", payload)
         self._json(lead)
+
+    def _handle_email(self):
+        payload = read_json(self)
+        lead_id = payload.get("lead_id")
+        email = (payload.get("email", "") or "").strip().lower()
+        if not lead_id:
+            self._json({"error": "lead_id is required"}, 400)
+            return
+        if not valid_email(email):
+            self._json({"error": "Introduce un email válido para recibir el informe."}, 400)
+            return
+        get_lead(lead_id)
+        update_lead(lead_id, email=email)
+        insert_event(lead_id, "email_captured", {"email": email})
+        self._json({"ok": True, "email": email})
 
     def _handle_chat(self):
         payload = read_json(self)

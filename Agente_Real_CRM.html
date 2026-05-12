@@ -295,10 +295,45 @@
       color: var(--accent-dark);
     }
     .starter-start {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .typing .bubble::after {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 1.1em;
+      margin-left: 2px;
+      background: var(--accent);
+      vertical-align: -2px;
+      animation: caretBlink .85s steps(2, start) infinite;
+    }
+    .email-gate {
+      background: #f7fbf8;
+      border: 1px solid #cfe1d8;
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .email-gate h3 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+    .email-gate p { margin: 0; color: #3a4f46; }
+    .email-gate-row {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 10px;
-      align-items: end;
+    }
+    .email-error {
+      min-height: 18px;
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 800;
     }
     .composer {
       padding: 16px 20px 20px;
@@ -482,10 +517,14 @@
       100% { box-shadow: 0 0 0 0 rgba(31,122,91,0); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes caretBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
     @media (max-width: 980px) {
       .shell { grid-template-columns: 1fr; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
-      .composer-grid, .score-grid, .opportunity-grid, .mini-grid, .starter-start { grid-template-columns: 1fr; }
+      .composer-grid, .score-grid, .opportunity-grid, .mini-grid, .email-gate-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -496,14 +535,10 @@
       <h1>Encuentra tu primer empleado IA</h1>
       <p class="lead">En menos de 10 minutos, detectamos qué proceso de tu negocio tiene más sentido automatizar primero.</p>
       <div class="panel">
-        <h2>Empieza aquí</h2>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" type="email" placeholder="persona@empresa.com" autocomplete="email" required>
-        </div>
+        <h2>Empieza sin registro</h2>
         <button id="start">Empezar diagnóstico gratis</button>
-        <div class="crm-status" id="crmStatus">Sin sesión iniciada.</div>
-        <p class="privacy-note">Te enviaremos el resultado y usaremos tus respuestas para mejorar el diagnóstico.</p>
+        <div class="crm-status" id="crmStatus">No necesitas dejar tu email hasta ver el resultado.</div>
+        <p class="privacy-note">Al final te pediremos el email solo si quieres recibir el informe.</p>
       </div>
       <div class="panel">
         <h2>Qué recibirás</h2>
@@ -545,8 +580,8 @@
               <span class="starter-pill">Informe personalizado</span>
             </div>
             <div class="starter-start">
-              <p class="privacy-note">Deja tu email en la izquierda y empieza. Si puedes, responde hablando: suele salir más natural y con más contexto.</p>
-              <button type="button" onclick="email.focus()">Dejar email</button>
+              <button type="button" onclick="startSession()">Empezar ahora</button>
+              <p class="privacy-note">Si puedes, responde hablando: suele salir más natural y con más contexto.</p>
             </div>
           </div>
         </section>
@@ -582,7 +617,6 @@
     const reportBtn = document.getElementById("report");
     const downloadBtn = document.getElementById("download");
     const micBtn = document.getElementById("mic");
-    const email = document.getElementById("email");
     const crmStatus = document.getElementById("crmStatus");
     const micStatus = document.getElementById("micStatus");
     const statusEl = document.getElementById("status");
@@ -595,6 +629,8 @@
     let activeStream = null;
     let audioChunks = [];
     let listening = false;
+    let capturedEmail = "";
+    let pendingReport = false;
 
     const stagePct = {
       contexto: 12,
@@ -646,6 +682,33 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function addTypingMessage(role, text, meta = "") {
+      transcript.push({ role, content: text, at: Date.now() });
+      const node = document.createElement("div");
+      node.className = `message ${role} typing`;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      const metaNode = document.createElement("div");
+      metaNode.className = "meta";
+      metaNode.textContent = meta;
+      node.appendChild(bubble);
+      if (meta) node.appendChild(metaNode);
+      chat.appendChild(node);
+      const safeText = String(text || "");
+      for (let i = 0; i < safeText.length; i += 3) {
+        bubble.textContent = safeText.slice(0, i + 3);
+        chat.scrollTop = chat.scrollHeight;
+        await delay(12);
+      }
+      bubble.textContent = safeText;
+      node.classList.remove("typing");
+      chat.scrollTop = chat.scrollHeight;
+    }
+
     function addHtml(role, html, meta = "") {
       const node = document.createElement("div");
       node.className = `message ${role}`;
@@ -664,31 +727,26 @@
     }
 
     async function startSession() {
-      const leadEmail = email.value.trim();
-      if (!email.checkValidity() || !leadEmail) {
-        email.focus();
-        setCrm("Introduce un email válido para recibir el diagnóstico.", "error");
-        return;
-      }
-      setCrm("Creando sesión...", "");
+      setCrm("Preparando el diagnóstico...", "");
       start.disabled = true;
       try {
-        const session = await api("/api/session", { email: leadEmail });
+        const session = await api("/api/session", {});
         leadId = session.lead_id;
         transcript = [];
         latestReport = null;
+        capturedEmail = "";
+        pendingReport = false;
         input.disabled = false;
         send.disabled = false;
         micBtn.disabled = false;
         reportBtn.disabled = false;
         downloadBtn.disabled = false;
-        email.disabled = true;
-        setCrm(`Sesión creada: ${leadId.slice(0, 8)}…`, "ok");
+        setCrm("Diagnóstico iniciado. El email lo pediremos al final.", "ok");
         statusEl.textContent = "Diagnóstico iniciado. Puedes escribir o usar el micro.";
         setStage("contexto");
         chat.innerHTML = "";
         input.placeholder = "Cuéntame a qué te dedicas, cómo llegan los clientes y qué proceso te gustaría automatizar.";
-        addMessage("agent", "Perfecto. Para empezar, cuéntame con tus palabras: ¿a qué se dedica tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué parte te gustaría que funcionara con menos intervención tuya?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
+        await addTypingMessage("agent", "Perfecto. Para empezar, cuéntame con tus palabras: ¿a qué se dedica tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué parte te gustaría que funcionara con menos intervención tuya?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
         input.focus();
       } catch (error) {
         setCrm(error.message, "error");
@@ -705,10 +763,10 @@
       send.disabled = true;
       statusEl.innerHTML = '<span class="thinking">El agente está pensando…</span>';
       try {
-        const result = await api("/api/chat", { lead_id: leadId, email: email.value.trim(), message: text });
-        addMessage("agent", result.reply, result.fallback ? "Agente fallback" : "Agente real");
+        const result = await api("/api/chat", { lead_id: leadId, email: capturedEmail, message: text });
+        await addTypingMessage("agent", result.reply, result.fallback ? "Agente fallback" : "Agente diagnóstico");
         setStage(result.stage);
-        statusEl.textContent = result.ready_for_report ? "Listo para informe." : `Confianza: ${Math.round((result.confidence || 0) * 100)}%`;
+        statusEl.textContent = result.ready_for_report ? "Ya puedo preparar tu informe." : `Avanzando: ${Math.round((result.confidence || 0) * 100)}% de confianza`;
         if (result.ready_for_report) reportBtn.classList.remove("secondary");
       } catch (error) {
         addMessage("agent", `Error del agente: ${error.message}`, "Sistema");
@@ -720,6 +778,15 @@
 
     async function generateReport() {
       if (!leadId) return;
+      if (!capturedEmail) {
+        pendingReport = true;
+        showEmailGate();
+        return;
+      }
+      await runReport();
+    }
+
+    async function runReport() {
       reportBtn.disabled = true;
       statusEl.innerHTML = '<span class="thinking">Generando informe potente…</span>';
       try {
@@ -733,6 +800,45 @@
         addMessage("agent", `Error generando informe: ${error.message}`, "Sistema");
       } finally {
         reportBtn.disabled = false;
+      }
+    }
+
+    function showEmailGate() {
+      const html = `<div class="email-gate">
+        <h3>Ya tengo suficiente para preparar tu informe.</h3>
+        <p>Déjanos tu email y generamos el diagnóstico completo: oportunidades, primer empleado IA recomendado, riesgos y plan de 7 días.</p>
+        <div class="email-gate-row">
+          <input id="finalEmail" type="email" placeholder="persona@empresa.com" autocomplete="email">
+          <button onclick="captureEmailAndReport()">Recibir informe</button>
+        </div>
+        <div class="email-error" id="emailError"></div>
+      </div>`;
+      addHtml("agent", html, "Entrega del informe");
+      statusEl.textContent = "Solo falta el email para preparar el informe.";
+      setCrm("Email pendiente para entregar el informe.", "");
+      document.getElementById("finalEmail")?.focus();
+    }
+
+    async function captureEmailAndReport() {
+      const field = document.getElementById("finalEmail");
+      const error = document.getElementById("emailError");
+      const value = field?.value.trim() || "";
+      if (!field?.checkValidity() || !value) {
+        if (error) error.textContent = "Introduce un email válido.";
+        field?.focus();
+        return;
+      }
+      try {
+        if (error) error.textContent = "";
+        await api("/api/email", { lead_id: leadId, email: value });
+        capturedEmail = value;
+        setCrm("Email guardado. Generando informe...", "ok");
+        if (pendingReport) {
+          pendingReport = false;
+          await runReport();
+        }
+      } catch (err) {
+        if (error) error.textContent = err.message;
       }
     }
 
