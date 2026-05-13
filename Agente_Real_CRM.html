@@ -288,6 +288,12 @@
       color: #363832;
       font-size: clamp(18px, 2vw, 23px);
     }
+    .starter-proof {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+      gap: 18px;
+      align-items: stretch;
+    }
     .starter-prompt {
       border: 1px solid #cfd9d3;
       background: rgba(238,246,241,.92);
@@ -304,6 +310,60 @@
     .starter-prompt p {
       color: #375046;
       margin: 0;
+    }
+    .live-map {
+      border: 1px solid rgba(23,23,23,.12);
+      background: rgba(255,253,248,.84);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 11px;
+      box-shadow: 0 14px 34px rgba(23,23,23,.08);
+    }
+    .live-map-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(31,122,91,.35);
+      animation: pulseDot 1.4s ease-in-out infinite;
+    }
+    .map-row {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding-top: 10px;
+      border-top: 1px solid rgba(216,209,194,.85);
+    }
+    .map-row:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .map-row span {
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .map-row strong {
+      display: block;
+      color: #171717;
+      font-size: 14px;
+    }
+    .map-row p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px;
     }
     .starter-signal {
       display: grid;
@@ -1017,7 +1077,7 @@
       aside { order: 2; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       aside > .panel:first-of-type { display: none; }
-      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid { grid-template-columns: 1fr; }
+      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid, .starter-proof { grid-template-columns: 1fr; }
       .priority-map-canvas { min-height: 300px; }
       .priority-label { max-width: 150px; }
     }
@@ -1088,13 +1148,33 @@
             <div class="starter-kicker">Diagnóstico IA gratuito · 7-10 minutos</div>
             <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
             <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: escucha, repregunta, detecta patrones y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
-            <div class="starter-prompt">
-              <strong>Empieza hablando normal</strong>
-              <p>No hace falta que lo tengas ordenado. Cuenta qué vendes, a quién ayudas y qué tarea se te queda atascada cada semana. El agente irá bajándolo a procesos concretos.</p>
-            </div>
             <div class="starter-start">
               <button class="start-primary" type="button" onclick="startSession()">Analizar mi negocio</button>
               <p class="privacy-note" id="microAdvice">Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.</p>
+            </div>
+            <div class="starter-proof">
+              <div class="starter-prompt">
+                <strong>No necesitas saber qué automatizar</strong>
+                <p>No hace falta que lo tengas ordenado. Empieza hablando normal: qué vendes, a quién ayudas, cómo llegan clientes o tareas, y qué parte se queda atascada. El agente irá convirtiendo lo que cuentas en procesos, señales y prioridades.</p>
+              </div>
+              <div class="live-map" aria-label="Ejemplo de mapa que construye el agente">
+                <div class="live-map-head">
+                  <span>Mapa vivo del diagnóstico</span>
+                  <span class="live-dot" aria-hidden="true"></span>
+                </div>
+                <div class="map-row">
+                  <span>Entrada</span>
+                  <div><strong>Mensajes, leads o tareas repetidas</strong><p>Qué llega cada semana y dónde se acumula.</p></div>
+                </div>
+                <div class="map-row">
+                  <span>Decisión</span>
+                  <div><strong>Qué miras antes de responder</strong><p>Reglas, contexto, datos y criterio humano.</p></div>
+                </div>
+                <div class="map-row">
+                  <span>IA viable</span>
+                  <div><strong>Borrador, clasificación o siguiente paso</strong><p>Con revisión humana cuando haya riesgo.</p></div>
+                </div>
+              </div>
             </div>
             <div class="starter-signal" aria-label="Qué va a analizar el agente">
               <div class="signal-line">
