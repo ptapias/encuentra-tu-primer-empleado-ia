@@ -2,7 +2,11 @@
 
 ## Definición de "enseñable"
 
-La versión enseñable debe permitir que una persona no técnica entre desde YouTube/newsletter, deje su email, converse con un agente, reciba un informe útil y deje feedback. Internamente, el equipo debe ver el lead en CRM con conversación, score, recomendación y siguiente paso.
+La versión enseñable debe permitir que una persona no técnica entre desde YouTube/newsletter, empiece sin fricción, converse con un agente, deje su email solo cuando el diagnóstico esté listo, reciba un informe útil y deje feedback. Internamente, el equipo debe ver el lead en CRM con conversación, score, recomendación y siguiente paso.
+
+## Posicionamiento de producto
+
+El producto no debe sentirse como "otro chat con IA". La promesa de entrada es: "¿Dónde se te escapa tiempo, dinero o clientes?". El encuadre correcto es una discovery session ligera: un agente que analiza el negocio como lo haría un consultor, entiende procesos, repregunta con criterio y detecta qué tendría sentido automatizar primero.
 
 ## Definición de "vendible"
 
