@@ -36,6 +36,7 @@ MAX_MESSAGE_CHARS = int(os.environ.get("MAX_MESSAGE_CHARS", "3500"))
 MAX_USER_TURNS = int(os.environ.get("MAX_USER_TURNS", "14"))
 MAX_AI_CONCURRENCY = max(1, int(os.environ.get("MAX_AI_CONCURRENCY", "1")))
 AI_QUEUE_WAIT_SECONDS = max(0.0, float(os.environ.get("AI_QUEUE_WAIT_SECONDS", "8")))
+BETA_NOINDEX = os.environ.get("BETA_NOINDEX", "true").lower() in {"1", "true", "yes", "on"}
 RATE_BUCKETS: dict[str, list[int]] = {}
 AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
 
@@ -852,6 +853,26 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
+    def end_headers(self):
+        if BETA_NOINDEX:
+            self.send_header("X-Robots-Tag", "noindex, nofollow")
+        super().end_headers()
+
+    def do_HEAD(self):
+        route = parse.urlparse(self.path)
+        if route.path == "/robots.txt":
+            text = "User-agent: *\nDisallow: /\n" if BETA_NOINDEX else "User-agent: *\nAllow: /\n"
+            encoded = text.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            return
+        if forbidden_static_path(route.path):
+            self.send_error(404, "Not found")
+            return
+        super().do_HEAD()
+
     def do_GET(self):
         route = parse.urlparse(self.path)
         if route.path in ("", "/"):
@@ -865,7 +886,11 @@ class Handler(SimpleHTTPRequestHandler):
                 "provider": AI_PROVIDER,
                 "transcription": transcription_status()["available"],
                 "ai_concurrency": MAX_AI_CONCURRENCY,
+                "beta_noindex": BETA_NOINDEX,
             })
+            return
+        if route.path == "/robots.txt":
+            self._text("User-agent: *\nDisallow: /\n" if BETA_NOINDEX else "User-agent: *\nAllow: /\n", "text/plain; charset=utf-8")
             return
         if route.path == "/api/capabilities":
             self._json({"transcription": transcription_status()})
@@ -1347,6 +1372,14 @@ class Handler(SimpleHTTPRequestHandler):
         encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        self.wfile.write(encoded)
+
+    def _text(self, text: str, content_type="text/plain; charset=utf-8", status=200):
+        encoded = text.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)

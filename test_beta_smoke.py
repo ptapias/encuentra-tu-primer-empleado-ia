@@ -26,6 +26,16 @@ def request(base, path, *, auth=None, method="GET", payload=None, timeout=30):
         return response.status, raw
 
 
+def request_raw(base, path, *, auth=None, timeout=30):
+    headers = {}
+    if auth:
+        token = base64.b64encode(f"{auth[0]}:{auth[1]}".encode("utf-8")).decode("ascii")
+        headers["Authorization"] = f"Basic {token}"
+    req = urllib.request.Request(base.rstrip("/") + path, headers=headers, method="GET")
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        return response.status, dict(response.headers), response.read().decode("utf-8", errors="replace")
+
+
 def expect(condition, message):
     if not condition:
         raise AssertionError(message)
@@ -43,14 +53,24 @@ def main():
 
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")
-    checks.append({"check": "health", "provider": health.get("provider"), "transcription": health.get("transcription")})
+    beta_noindex = bool(health.get("beta_noindex", True))
+    checks.append({"check": "health", "provider": health.get("provider"), "transcription": health.get("transcription"), "beta_noindex": beta_noindex})
+
+    status, robots_headers, robots = request_raw(args.base, "/robots.txt")
+    expect(status == 200 and "User-agent: *" in robots, "robots.txt no responde correctamente")
+    if beta_noindex:
+        expect("Disallow: /" in robots, "robots.txt debería bloquear indexación en beta")
+        expect("noindex" in robots_headers.get("X-Robots-Tag", ""), "falta X-Robots-Tag en robots.txt")
+    checks.append({"check": "robots", "noindex": beta_noindex})
 
     status, capabilities = request(args.base, "/api/capabilities")
     expect(status == 200 and "transcription" in capabilities, "capabilities no devuelve estado de transcripción")
     checks.append({"check": "capabilities", "transcription": capabilities["transcription"].get("available")})
 
-    status, public_html = request(args.base, "/Agente_Real_CRM.html")
+    status, public_headers, public_html = request_raw(args.base, "/Agente_Real_CRM.html")
     expect(status == 200, "la página pública no carga")
+    if beta_noindex:
+        expect("noindex" in public_headers.get("X-Robots-Tag", ""), "falta X-Robots-Tag en página pública")
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")

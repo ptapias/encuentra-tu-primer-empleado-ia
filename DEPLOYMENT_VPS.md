@@ -38,6 +38,7 @@ ADMIN_USER=admin
 ADMIN_PASSWORD=una-password-larga
 MAX_AI_CONCURRENCY=1
 AI_QUEUE_WAIT_SECONDS=8
+BETA_NOINDEX=true
 WHISPER_BIN=/usr/local/bin/whisper
 FFMPEG_BIN=/usr/bin/ffmpeg
 ```
@@ -124,6 +125,7 @@ python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --
 - Revisa el CRM una vez al día.
 - Mira las métricas superiores del CRM: inicio de conversación, captura de email, informes generados, feedback y media de turnos.
 - Mantén `MAX_AI_CONCURRENCY=1` en beta con Codex CLI para evitar que varios diagnósticos simultáneos saturen el VPS. Si el agente está ocupado, el usuario verá un mensaje para reintentar en unos segundos.
+- Mantén `BETA_NOINDEX=true` mientras sea beta privada o semi-privada. Cuando quieras que Google indexe la herramienta, cámbialo a `false` y reinicia el servicio.
 - Si alguien pide eliminar sus datos, abre el CRM, selecciona el lead y usa `Borrar lead`; esto elimina el lead y sus eventos asociados.
 - Haz backup de CRM antes de cambios importantes. El timer diario debería cubrir el respaldo rutinario:
 

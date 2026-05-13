@@ -43,6 +43,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight y smoke test locales OK; despliegue real no ejecutado | Parcial |
 | Gate de release para VPS | `release_check.py` | Agrupa sintaxis, copy público, privacidad beta, preflight y smoke test contra URL local/dominio | Hecho base |
 | Bloqueo de archivos sensibles por HTTP | `forbidden_static_path()` en `app_server.py`, `test_beta_smoke.py` | Impide descargar `.env`, SQLite, JSONL, scripts Python, backups y directorios internos | Hecho base |
+| Noindex de beta | `BETA_NOINDEX`, `/robots.txt`, `X-Robots-Tag` en `app_server.py` | Smoke test valida robots y cabecera noindex cuando la beta lo tiene activo | Hecho base |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin degradación silenciosa a fallback | `ALLOW_AI_FALLBACK=false`, errores `502` e evento `ai_error` cuando falla el proveedor real | Preflight exige fallback desactivado para beta pública | Hecho |

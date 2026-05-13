@@ -61,6 +61,8 @@ En pruebas locales, un turno de conversación con Codex CLI tarda alrededor de 9
 
 En beta con Codex CLI, el backend limita por defecto la IA a un diagnóstico concurrente (`MAX_AI_CONCURRENCY=1`). Si dos personas piden respuesta a la vez, la segunda espera unos segundos y, si no hay hueco, recibe un mensaje de reintento en lugar de lanzar procesos ilimitados en el VPS.
 
+La beta también arranca con `BETA_NOINDEX=true`: sirve `robots.txt` con `Disallow: /` y añade `X-Robots-Tag: noindex, nofollow` para evitar indexación accidental mientras se valida el producto y la privacidad.
+
 También puedes usar:
 
 ```bash
