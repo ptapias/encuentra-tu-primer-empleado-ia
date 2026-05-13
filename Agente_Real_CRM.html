@@ -838,6 +838,8 @@
     let capturedEmail = "";
     let pendingReport = false;
     let transcriptionAvailable = true;
+    let restoringSession = false;
+    const storageKey = "primerEmpleadoIaSession";
 
     const stagePct = {
       contexto: 12,
@@ -880,6 +882,22 @@
       micStatus.className = `mic-status ${type}`.trim();
     }
 
+    function saveSessionState(extra = {}) {
+      if (!leadId || restoringSession) return;
+      localStorage.setItem(storageKey, JSON.stringify({
+        leadId,
+        capturedEmail,
+        stage: stageEl.textContent,
+        status: statusEl.textContent,
+        transcript,
+        ...extra
+      }));
+    }
+
+    function clearSessionState() {
+      localStorage.removeItem(storageKey);
+    }
+
     function listHtml(items, fallback) {
       const safeItems = Array.isArray(items) && items.length ? items : [fallback];
       return safeItems.slice(0, 4).map(item => `<li>${escapeHtml(readable(item))}</li>`).join("");
@@ -903,6 +921,7 @@
       node.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
       chat.appendChild(node);
       chat.scrollTop = chat.scrollHeight;
+      saveSessionState();
     }
 
     function delay(ms) {
@@ -930,6 +949,7 @@
       bubble.textContent = safeText;
       node.classList.remove("typing");
       chat.scrollTop = chat.scrollHeight;
+      saveSessionState();
     }
 
     function addHtml(role, html, meta = "") {
@@ -969,6 +989,7 @@
         const session = await api("/api/session", {});
         leadId = session.lead_id;
         transcript = [];
+        clearSessionState();
         latestReport = null;
         capturedEmail = "";
         pendingReport = false;
@@ -991,6 +1012,7 @@
         input.placeholder = "Cuéntame a qué te dedicas, cómo llegan los clientes y qué proceso te gustaría automatizar.";
         await addTypingMessage("agent", "Vamos a hacerlo como una mini sesión de diagnóstico.\n\nCuéntame con tus palabras: ¿a qué se dedica tu negocio, cómo llegan clientes o trabajo, y dónde notas que se te escapa más tiempo, dinero o clientes?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
         await refreshCapabilities();
+        saveSessionState();
         input.focus();
       } catch (error) {
         setCrm(error.message, "error");
@@ -1011,6 +1033,7 @@
         await addTypingMessage("agent", result.reply, "Agente diagnóstico");
         setStage(result.stage);
         updateDiscovery(result);
+        saveSessionState({ lastDiscovery: result });
         if (result.ready_for_report) {
           statusEl.textContent = "Ya puedo preparar tu diagnóstico.";
           reportBtn.hidden = false;
@@ -1020,6 +1043,7 @@
           input.disabled = true;
           micBtn.disabled = true;
           await addTypingMessage("agent", "Ya tengo suficiente para prepararte un diagnóstico útil. Puedo pasar de la conversación al informe.", "Cierre de discovery");
+          saveSessionState({ readyForReport: true });
         }
       } catch (error) {
         await addTypingMessage("agent", `Ahora mismo no puedo continuar con garantías.\n\n${error.message}\n\nTu respuesta no se ha perdido: puedes intentarlo de nuevo en unos segundos.`, "Agente diagnóstico");
@@ -1051,6 +1075,7 @@
         setStage("informe");
         statusEl.textContent = "Diagnóstico generado.";
         setCrm("Diagnóstico listo.", "ok");
+        saveSessionState({ reportGenerated: true });
       } catch (error) {
         await addTypingMessage("agent", `No he podido generar el informe con garantías.\n\n${error.message}\n\nPuedes volver a intentarlo en unos segundos.`, "Agente diagnóstico");
         statusEl.textContent = "Informe pendiente de reintento.";
@@ -1090,6 +1115,7 @@
         if (error) error.textContent = "";
         await api("/api/email", { lead_id: leadId, email: value });
         capturedEmail = value;
+        saveSessionState();
         setCrm("Perfecto. Preparando informe...", "ok");
         if (pendingReport) {
           pendingReport = false;
@@ -1166,6 +1192,38 @@
       setCrm("Feedback recibido. Gracias.", "ok");
     }
 
+    function restoreSession() {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      let saved;
+      try {
+        saved = JSON.parse(raw);
+      } catch (error) {
+        clearSessionState();
+        return;
+      }
+      if (!saved?.leadId || !Array.isArray(saved.transcript)) return;
+      leadId = saved.leadId;
+      capturedEmail = saved.capturedEmail || "";
+      transcript = [];
+      chat.innerHTML = "";
+      starter?.remove();
+      input.disabled = false;
+      send.disabled = false;
+      micBtn.disabled = true;
+      reportBtn.hidden = !saved.readyForReport && saved.stage !== "recomendacion";
+      reportBtn.disabled = reportBtn.hidden;
+      setStage(saved.stage || "contexto");
+      statusEl.textContent = saved.status || "Diagnóstico recuperado.";
+      setCrm("He recuperado tu diagnóstico en este navegador.", "ok");
+      restoringSession = true;
+      saved.transcript.forEach(item => addMessage(item.role, item.content, item.role === "user" ? "Tú" : "Agente diagnóstico"));
+      restoringSession = false;
+      if (saved.lastDiscovery) updateDiscovery(saved.lastDiscovery);
+      saveSessionState(saved);
+      refreshCapabilities();
+    }
+
     function micIcon() {
       return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg><span class="sr-only">Micrófono</span>`;
     }
@@ -1237,6 +1295,7 @@
     input.addEventListener("keydown", event => {
       if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) sendMessage();
     });
+    restoreSession();
   </script>
 </body>
 </html>

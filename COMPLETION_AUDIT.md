@@ -44,6 +44,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Sin UI mediocre ni términos internos | Búsqueda pública eliminó JSON, fallback, CRM, "informe potente" | `test_beta_smoke.py` comprueba gancho y ausencia de textos internos básicos | Hecho base |
 | Micrófono | `MediaRecorder`, `/transcribe`, `WHISPER_BIN`, `FFMPEG_BIN`, `/api/capabilities` | Smoke test cubre disponibilidad del servicio; permisos/grabación real siguen siendo prueba manual | Parcial |
 | Feedback al final | UI de informe con textarea y `/api/feedback` | Endpoint y dashboard leen feedback; hay 1 feedback registrado en métricas | Hecho |
+| Recuperación ante recarga | `localStorage` en `Agente_Real_CRM.html` conserva `lead_id`, conversación, email y estado de discovery | JS validado; smoke test no cubre recarga real | Hecho base |
 
 ## Evidencia de comandos recientes
 
