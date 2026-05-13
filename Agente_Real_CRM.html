@@ -520,6 +520,29 @@
     .report-actions button {
       width: fit-content;
     }
+    .next-step-card {
+      border: 1px solid #cfe1d8;
+      background: #fffdf8;
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .next-step-card h3 {
+      margin: 0;
+    }
+    .next-step-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .intent-saved {
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 900;
+      min-height: 18px;
+    }
     .feedback-box {
       border: 1px solid #cfe1d8;
       background: #f7fbf8;
@@ -1384,6 +1407,16 @@
       const composite = score(mainOpportunity.composite_score);
       const scoreText = composite ? `${composite.toFixed(1)}/5` : "En revisión";
       const triageText = mainOpportunity.triage || "Prioridad por validar";
+      const ctaSegment = report.cta?.segment || "resource";
+      const ctaLabel = {
+        cohort: "Me interesa hacerlo acompañado",
+        implementation_call: "Quiero hablar de implementarlo",
+        premium_service: "Quiero que me ayudéis a montarlo",
+        newsletter: "Quiero más recursos como este",
+        resource: "Quiero el recurso recomendado",
+        not_ready: "Quiero ordenar el proceso primero"
+      }[ctaSegment] || "Me interesa este siguiente paso";
+      const ctaSegmentLiteral = JSON.stringify(ctaSegment);
       const safeScore = value => Math.max(1, Math.min(5, Number(value || 1)));
       const mapDots = (report.opportunities || []).slice(0, 3).map((opp, index) => {
         const impact = safeScore(opp.impact_score);
@@ -1483,8 +1516,14 @@
         ${list(report.seven_day_plan)}
         <h3>Plan de 30 días</h3>
         ${list(report.thirty_day_plan)}
-        <h3>Siguiente paso</h3>
-        <p>${escapeHtml(report.cta?.message || "")}</p>
+        <div class="next-step-card">
+          <h3>Siguiente paso</h3>
+          <p>${escapeHtml(report.cta?.message || "")}</p>
+          <div class="next-step-actions">
+            <button type="button" onclick='saveCtaInterest(${escapeHtml(ctaSegmentLiteral)})'>${escapeHtml(ctaLabel)}</button>
+            <span class="intent-saved" id="intentSaved"></span>
+          </div>
+        </div>
         <div class="feedback-box">
           <h3>Ayúdanos a mejorar este diagnóstico</h3>
           <p>Esto nos ayuda a saber si el agente está entendiendo negocios reales o si se queda corto.</p>
@@ -1578,6 +1617,17 @@
       setCrm("Feedback recibido. Gracias.", "ok");
       const saved = document.getElementById("feedbackSaved");
       if (saved) saved.textContent = "Feedback guardado. Gracias.";
+    }
+
+    async function saveCtaInterest(segment) {
+      const saved = document.getElementById("intentSaved");
+      try {
+        await api("/api/cta", { lead_id: leadId, segment, source: "report_next_step" });
+        if (saved) saved.textContent = "Interés guardado. Lo tendremos en cuenta para el siguiente paso.";
+        setCrm("Interés en siguiente paso guardado.", "ok");
+      } catch (error) {
+        if (saved) saved.textContent = error.message;
+      }
     }
 
     function restoreSession() {

@@ -112,6 +112,7 @@ def main():
     expect("Guardar PDF" in public_html and "printLatestReport" in public_html, "el informe no permite guardar/imprimir PDF")
     expect("Generar informe" in public_html and "Recibir informe" not in public_html, "el email-gate promete entrega por correo sin integración")
     expect("Ver mi diagnóstico" not in public_html, "el cierre usa un CTA demasiado pasivo")
+    expect("Me interesa este siguiente paso" in public_html or "Quiero hablar de implementarlo" in public_html, "el informe no captura intención de siguiente paso")
     expect("Qué echaste en falta" in public_html and "Utilidad del diagnóstico" in public_html, "falta feedback estructurado al final")
     expect("sales_intelligence" not in public_html, "la página pública expone términos internos de ventas")
     expect("/PRIVACY_BETA.html" in public_html, "la página pública no enlaza a la privacidad HTML")
@@ -121,6 +122,7 @@ def main():
     status, dashboard_headers, dashboard_html = request_raw(args.base, "/CRM_Dashboard.html", auth=auth)
     expect(status == 200 and "offerFilter" in dashboard_html and "sourceFilter" in dashboard_html, "el CRM no incluye filtros operativos")
     expect("Consentimiento" in dashboard_html, "el CRM no muestra consentimiento del lead")
+    expect("Interés CTA" in dashboard_html, "el CRM no muestra intención de CTA")
     checks.append({"check": "dashboard_filters", "ok": True})
 
     status, privacy_headers, privacy_html = request_raw(args.base, "/PRIVACY_BETA.html")
@@ -185,6 +187,10 @@ def main():
     expect(status == 200 and email_saved.get("email") == "smoke@example.com", "no se guarda email con consentimiento")
     checks.append({"check": "email_consent", "ok": True})
 
+    status, cta_saved = request(args.base, "/api/cta", payload={"lead_id": session["lead_id"], "segment": "cohort", "source": "smoke"})
+    expect(status == 200 and cta_saved.get("cta_interest", {}).get("segment") == "cohort", "no se guarda intención de CTA")
+    checks.append({"check": "cta_interest", "ok": True})
+
     status, delete_session = request(args.base, "/api/session", payload={})
     expect(status == 200 and delete_session.get("lead_id"), "no se puede crear sesión de borrado")
 
@@ -226,6 +232,7 @@ def main():
     expect(saved_feedback.get("rating") == 4 and saved_feedback.get("missing") == "Costes estimados", "el feedback estructurado no queda guardado en CRM")
     expect(lead_detail.get("lead", {}).get("facts", {}).get("attribution", {}).get("campaign") == "whatsapp_ia", "la atribución no queda disponible en CRM")
     expect(lead_detail.get("lead", {}).get("facts", {}).get("consent", {}).get("accepted") is True, "el consentimiento no queda guardado en CRM")
+    expect(lead_detail.get("lead", {}).get("facts", {}).get("cta_interest", {}).get("segment") == "cohort", "la intención de CTA no queda guardada en CRM")
     checks.append({"check": "structured_feedback", "ok": True})
 
     try:
@@ -297,6 +304,7 @@ def main():
     export_header = export_csv.splitlines()[0]
     expect("source,medium,campaign,video,ref" in export_header, "el export CSV no incluye atribución")
     expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
+    expect("cta_interest,cta_clicked_at" in export_header, "el export CSV no incluye intención de CTA")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
     checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
 

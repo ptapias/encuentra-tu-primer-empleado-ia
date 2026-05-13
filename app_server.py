@@ -1102,6 +1102,7 @@ class Handler(SimpleHTTPRequestHandler):
             "/api/email": self._handle_email,
             "/api/chat": self._handle_chat,
             "/api/report": self._handle_report,
+            "/api/cta": self._handle_cta_interest,
             "/api/feedback": self._handle_feedback,
             "/api/lead/update": self._handle_update_lead_admin,
             "/api/lead/delete": self._handle_delete_lead_admin,
@@ -1250,6 +1251,44 @@ class Handler(SimpleHTTPRequestHandler):
         insert_event(lead_id, "report_generated", report)
         append_jsonl({"event": "report_generated", "lead_id": lead_id, "email": lead["email"], "outcome": report, "transcript": lead["transcript"]})
         self._json({"lead_id": lead_id, "report": report})
+
+    def _handle_cta_interest(self):
+        payload = read_json(self)
+        lead_id = payload.get("lead_id")
+        if not lead_id:
+            self._json({"error": "lead_id is required"}, 400)
+            return
+        lead = get_lead(lead_id)
+        segment = humanize(payload.get("segment")).strip() or "resource"
+        source = humanize(payload.get("source")).strip() or "report_next_step"
+        status_by_segment = {
+            "cohort": "invite_cohort",
+            "implementation_call": "invite_call",
+            "premium_service": "invite_call",
+            "newsletter": "send_resource",
+            "resource": "send_resource",
+            "not_ready": "send_resource",
+        }
+        facts = lead["facts"]
+        facts["cta_interest"] = {
+            "segment": segment,
+            "source": source,
+            "clicked_at": now(),
+        }
+        outcome = lead["outcome"] if isinstance(lead["outcome"], dict) else {}
+        crm_summary = outcome.get("crm_summary") if isinstance(outcome.get("crm_summary"), dict) else {}
+        if crm_summary is not None:
+            crm_summary["cta_interest"] = segment
+            crm_summary["status"] = status_by_segment.get(segment, lead["status"])
+            outcome["crm_summary"] = crm_summary
+        update_lead(
+            lead_id,
+            facts=facts,
+            outcome=outcome if outcome else lead["outcome"],
+            status=status_by_segment.get(segment, lead["status"]),
+        )
+        insert_event(lead_id, "cta_interest_saved", facts["cta_interest"])
+        self._json({"ok": True, "lead_id": lead_id, "cta_interest": facts["cta_interest"]})
 
     def _handle_feedback(self):
         payload = read_json(self)
@@ -1509,6 +1548,8 @@ class Handler(SimpleHTTPRequestHandler):
             "consent_accepted",
             "consent_accepted_at",
             "privacy_version",
+            "cta_interest",
+            "cta_clicked_at",
             "sector",
             "use_case",
             "score",
@@ -1535,6 +1576,7 @@ class Handler(SimpleHTTPRequestHandler):
             transcript = json.loads(row["transcript_json"] or "[]")
             attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
             consent = facts.get("consent") if isinstance(facts.get("consent"), dict) else {}
+            cta_interest = facts.get("cta_interest") if isinstance(facts.get("cta_interest"), dict) else {}
             crm = outcome.get("crm_summary", {})
             sales_intelligence = outcome.get("sales_intelligence") if isinstance(outcome.get("sales_intelligence"), dict) else {}
             writer.writerow(
@@ -1553,6 +1595,8 @@ class Handler(SimpleHTTPRequestHandler):
                     "consent_accepted": "yes" if consent.get("accepted") else "no",
                     "consent_accepted_at": consent.get("accepted_at") or "",
                     "privacy_version": humanize(consent.get("privacy_version")),
+                    "cta_interest": humanize(cta_interest.get("segment")),
+                    "cta_clicked_at": cta_interest.get("clicked_at") or "",
                     "sector": humanize(crm.get("sector")),
                     "use_case": humanize(crm.get("use_case")) or humanize(facts.get("selected_process")),
                     "score": score_0_to_100(crm.get("score"), 0) if outcome else 0,
