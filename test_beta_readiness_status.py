@@ -91,6 +91,24 @@ def test_complete_artifacts_are_ready_for_public_go_no_go():
     assert_true("listo para go/no-go público" in beta_readiness_status.plain_report(result), "La salida legible debería explicar el estado listo")
 
 
+def test_valid_inputs_recommend_deploy_command_generator():
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
+        base = Path(tmp)
+        inputs = base / "VPS_INPUTS.local.md"
+        inputs.write_text(VALID_INPUTS, encoding="utf-8")
+        result = beta_readiness_status.readiness(
+            inputs,
+            base / "MANUAL_PRODUCTION_TEST.local.md",
+            base / ".env.generated",
+            base / "privacy_config.json",
+        )
+    assert_true(result["status"] == "ready_to_generate_launch_files", result)
+    assert_true(
+        any("print_vps_deploy_commands.py" in action for action in result["next_actions"]),
+        "Con inputs válidos debería recomendar imprimir comandos SSH/SCP",
+    )
+
+
 def test_complete_answers_json_state_is_ok():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
         answers = Path(tmp) / "VPS_ANSWERS.local.json"
@@ -108,5 +126,6 @@ if __name__ == "__main__":
     test_default_repo_is_blocked_on_launch_inputs()
     test_existing_answers_json_is_reported_and_prioritized()
     test_complete_artifacts_are_ready_for_public_go_no_go()
+    test_valid_inputs_recommend_deploy_command_generator()
     test_complete_answers_json_state_is_ok()
     print("beta_readiness_status ok")
