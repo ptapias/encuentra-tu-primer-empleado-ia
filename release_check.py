@@ -241,6 +241,7 @@ def main():
                 "beta_readiness_status.py",
                 "sync_crm_webhook.py",
                 "launch_go_no_go.py",
+                "local_acceptance_check.py",
             ],
         ),
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),

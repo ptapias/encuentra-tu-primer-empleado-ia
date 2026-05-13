@@ -47,6 +47,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
 - `release_check.py --with-browser --with-transcription`: añade pruebas de navegador y audio real contra una URL local o VPS ya arrancada.
 - `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
+- `local_acceptance_check.py`: semáforo local de una sola orden; comprueba servidor, release check y navegador antes de enseñar la demo o pasar al VPS.
 - `launch_go_no_go.py`: veredicto operativo final antes de enseñar la beta, combinando release check, navegador/transcripción y confirmaciones manuales.
 - `validate_vps_inputs.py`: valida que `VPS_INPUTS.md` esté completo antes de tocar el VPS.
 - `prepare_vps_launch_files.py`: genera `.env.generated` y `privacy_config.json` desde `VPS_INPUTS.local.md`.
@@ -101,8 +102,15 @@ AI_PROVIDER=fallback python3 app_server.py
 Para validar el producto antes del VPS:
 
 ```bash
+python3 local_acceptance_check.py
 python3 test_public_ui_flow.py --base http://localhost:8787
 python3 test_discovery_flow.py
+```
+
+Si quieres una validación más cercana a una demo real antes de invitar testers, usa:
+
+```bash
+python3 local_acceptance_check.py --with-transcription --with-real-agent
 ```
 
 Checklist completo en `VALIDACION_LOCAL.md`.
