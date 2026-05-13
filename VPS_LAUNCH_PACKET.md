@@ -17,6 +17,16 @@ Este documento convierte el despliegue en una operación corta y verificable. La
 - Plazo de conservación de leads y conversaciones.
 - Decisión sobre newsletter: si el diagnóstico solo guarda lead o también suscribe a una lista.
 
+Con esos datos, en el VPS:
+
+```bash
+cp privacy_config.example.json privacy_config.json
+nano privacy_config.json
+python3 render_privacy.py --config privacy_config.json
+```
+
+El generador actualiza `PRIVACY_BETA.md` y `PRIVACY_BETA.html`. Si queda algún `Completar`, se detiene.
+
 ## 2. Decisión de proveedor IA para la beta
 
 Recomendación inicial: `AI_PROVIDER=codex` solo para beta privada o semi-privada con poco tráfico.

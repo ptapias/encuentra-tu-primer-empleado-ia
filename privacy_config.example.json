@@ -1,0 +1,14 @@
+{
+  "controller_name": "Pablo Tapias / Tu Primer Empleado IA",
+  "controller_legal_id": "Completar NIF/CIF o razón social",
+  "contact_email": "privacidad@tu-dominio.com",
+  "hosting_provider": "Completar proveedor VPS/hosting",
+  "ai_provider": "Codex/OpenAI ejecutado desde la cuenta configurada en el servidor",
+  "transcription_provider": "Whisper local en el servidor, si se activa el micrófono",
+  "crm_provider": "SQLite local en el VPS y CRM interno de la aplicación",
+  "webhook_destination": "Sin webhook externo configurado",
+  "email_provider": "Completar proveedor de email si se envían informes o secuencias",
+  "retention_period": "6 meses desde la última interacción, salvo solicitud de supresión previa",
+  "newsletter_use": "El diagnóstico no suscribe automáticamente a la newsletter salvo consentimiento separado.",
+  "last_updated": "2026-05-13"
+}

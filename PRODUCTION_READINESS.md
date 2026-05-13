@@ -25,6 +25,14 @@ Completar antes de usar `--public-beta`:
 - Si los leads entran también a newsletter o solo al diagnóstico.
 - Actualizar también `PRIVACY_BETA.html`; el gate falla si la página pública conserva notas de beta como “antes de abrir tráfico público amplio”.
 
+Para evitar editar dos archivos a mano:
+
+```bash
+cp privacy_config.example.json privacy_config.json
+nano privacy_config.json
+python3 render_privacy.py --config privacy_config.json
+```
+
 Mientras esto no esté completo, `release_check.py --public-beta` debe fallar.
 
 ## Variables esperadas en `.env`

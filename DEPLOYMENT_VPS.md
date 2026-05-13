@@ -62,6 +62,16 @@ FFMPEG_BIN=/usr/bin/ffmpeg
 
 Si no vas a usar micrófono en la primera beta, la app seguirá funcionando por texto. El endpoint `/api/capabilities` indicará si la transcripción está disponible y la UI desactivará el botón de micro si faltan binarios.
 
+Antes de abrir tráfico externo, genera la privacidad pública con datos reales:
+
+```bash
+cp privacy_config.example.json privacy_config.json
+nano privacy_config.json
+python3 render_privacy.py --config privacy_config.json
+```
+
+No uses el ejemplo tal cual: si conserva `Completar`, el generador falla.
+
 Antes de arrancar el servicio, ejecuta el preflight:
 
 ```bash

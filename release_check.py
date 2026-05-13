@@ -16,6 +16,8 @@ BACKUP_TIMER = ROOT / "deploy" / "primer-empleado-ia-backup.timer"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
+PRIVACY_RENDERER = ROOT / "render_privacy.py"
+PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 
 
 def load_env(path: Path) -> dict:
@@ -82,9 +84,9 @@ def privacy_check(require_final: bool) -> dict:
     placeholders = ["Completar", "Definir", "revisarse antes de publicación definitiva"]
     public_beta_markers = [
         "Antes de abrir tráfico público amplio",
+        "política legal definitiva",
         "datos fiscales",
         "proveedores concretos",
-        "plazo de conservación",
     ]
     found = [item for item in placeholders if item.lower() in text.lower()]
     public_found = [item for item in public_beta_markers if item.lower() in public_text.lower()]
@@ -124,6 +126,8 @@ def deploy_config_check() -> dict:
         "verify_script_executable": VERIFY_SCRIPT.exists() and bool(VERIFY_SCRIPT.stat().st_mode & 0o111),
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
         "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
+        "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
+        "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
     }
     missing = [name for name, ok in required.items() if not ok]
     return {
@@ -187,6 +191,7 @@ def main():
                 "test_agent_quality_guard.py",
                 "test_server_guards.py",
                 "test_backup_crm.py",
+                "render_privacy.py",
             ],
         ),
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
