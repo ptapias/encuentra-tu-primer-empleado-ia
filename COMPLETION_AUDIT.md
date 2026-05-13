@@ -63,6 +63,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Guardas antiabuso básicos | `MAX_PUBLIC_EVENTS_PER_HOUR`, `rate_limited()`, `client_ip()`, `MAX_BODY_BYTES`, `test_server_guards.py` | POST públicos tienen rate limit por IP y tamaño máximo de payload; `X-Forwarded-For` solo se respeta cuando la petición viene del proxy local; release check ejecuta prueba de rate limit, cabecera proxy y emails inválidos | Hecho base |
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `VPS_LAUNCH_PACKET.md`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight, release check, instalador no-root, verificador VPS y smoke test locales OK; checklist operativo preparado; despliegue real no ejecutado | Parcial |
 | Gate de release para VPS | `release_check.py`, `deploy/verify_vps.sh` | Agrupa sintaxis, copy público, privacidad beta, test del generador de privacidad, preflight y smoke test contra URL local/dominio; `--public-beta` exige HTTPS, no localhost, credenciales CRM, privacidad final y Codex live | Hecho base |
+| Gate opcional de experiencia real | `release_check.py --with-browser --with-transcription`, `test_public_ui_flow.py`, `test_public_report_flow.py`, `test_transcription_local.py` | Permite sumar pruebas de navegador, cierre de informe y audio real al release check contra una URL arrancada; falla si se piden sin `--base` | Hecho base |
 | Codex verificado como usuario systemd | `preflight_vps.py`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `test_server_guards.py`, docs VPS | El preflight puede recibir `--service-user primeria`; si se usa `--check-codex-live`, ejecuta Codex como ese usuario, evitando el falso positivo de login como `root` | Hecho base |
 | Preparación de producción | `PRODUCTION_READINESS.md` | Lista datos necesarios, variables `.env`, gate final, prueba manual obligatoria y criterios de no apertura | Hecho base |
 | Plan de beta externa | `BETA_TEST_PLAN.md` | Define muestra mínima, mensaje para testers, variables a observar en CRM, criterios de éxito y experimentos por canal | Hecho base |
@@ -100,6 +101,7 @@ python3 test_crm_webhook_sync.py
 python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
+python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription
 python3 release_check.py --env /tmp/primer-empleado-valid.env --service-user "$(whoami)" --base http://localhost:8787
 APP_DIR="$PWD" CHECK_CODEX_LIVE=false ./deploy/verify_vps.sh
 curl http://localhost:8787/healthz

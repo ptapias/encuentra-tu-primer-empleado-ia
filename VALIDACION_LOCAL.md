@@ -89,3 +89,4 @@ Antes de subirlo:
 - Codex CLI funciona en la máquina destino o se decide usar API.
 - `python3 test_public_ui_flow.py --base http://localhost:8787` pasa.
 - `python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787` pasa en local.
+- Para una validación más cercana a usuario real: `python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription`.

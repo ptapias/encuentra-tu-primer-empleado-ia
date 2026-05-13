@@ -37,6 +37,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_transcription_local.py`: prueba local opcional que genera audio real, lo manda a `/transcribe` y comprueba que vuelve texto.
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
+- `release_check.py --with-browser --with-transcription`: añade pruebas de navegador y audio real contra una URL local o VPS ya arrancada.
 - `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.

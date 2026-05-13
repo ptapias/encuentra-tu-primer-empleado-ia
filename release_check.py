@@ -166,6 +166,8 @@ def main():
     parser.add_argument("--admin-user", default="")
     parser.add_argument("--admin-password", default="")
     parser.add_argument("--check-codex-live", action="store_true")
+    parser.add_argument("--with-browser", action="store_true", help="Ejecuta pruebas Playwright de UI pública si --base está definido")
+    parser.add_argument("--with-transcription", action="store_true", help="Ejecuta prueba local de audio real contra /transcribe si --base está definido")
     parser.add_argument("--service-user", default="", help="Usuario systemd para comprobar Codex en VPS")
     parser.add_argument("--require-privacy-final", action="store_true", help="Falla si PRIVACY_BETA.md sigue con placeholders")
     parser.add_argument("--public-beta", action="store_true", help="Gate estricto antes de abrir la beta pública en VPS")
@@ -230,6 +232,19 @@ def main():
         if args.admin_user and args.admin_password:
             smoke_cmd += ["--admin-user", args.admin_user, "--admin-password", args.admin_password]
         steps.append(run_step("smoke", smoke_cmd, timeout=60))
+        if args.with_browser:
+            steps.append(run_step("public_ui_flow", [sys.executable, "test_public_ui_flow.py", "--base", args.base], timeout=60))
+            steps.append(run_step("public_report_flow", [sys.executable, "test_public_report_flow.py", "--base", args.base], timeout=60))
+        if args.with_transcription:
+            steps.append(run_step("transcription_local", [sys.executable, "test_transcription_local.py", "--base", args.base], timeout=240))
+    elif args.with_browser or args.with_transcription:
+        steps.append(
+            {
+                "name": "interactive_checks_requested",
+                "ok": False,
+                "output": "--with-browser y --with-transcription necesitan --base para saber qué servidor probar.",
+            }
+        )
 
     hard_failures = [step for step in steps if not step.get("ok") and step.get("level") != "warning"]
     result = {
