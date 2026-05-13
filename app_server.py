@@ -1259,6 +1259,10 @@ class Handler(SimpleHTTPRequestHandler):
             self._json({"error": "lead_id is required"}, 400)
             return
         lead = get_lead(lead_id)
+        consent = lead.get("facts", {}).get("consent") if isinstance(lead.get("facts", {}).get("consent"), dict) else {}
+        if not valid_email(lead.get("email", "")) or consent.get("accepted") is not True:
+            self._json({"error": "Para guardar interés necesitamos email y consentimiento explícito."}, 400)
+            return
         segment = humanize(payload.get("segment")).strip() or "resource"
         source = humanize(payload.get("source")).strip() or "report_next_step"
         status_by_segment = {
