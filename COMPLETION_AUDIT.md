@@ -27,6 +27,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 |---|---|---|---|
 | "Ontora-lite" para pymes españolas | `Agente_Real_CRM.html`, `app_server.py`, `Sistema_Completo.md` | Copy y prompts orientados a pymes, autónomos y personas no técnicas | Parcial: falta beta externa |
 | Agente de discovery adaptativo | `AGENT_INSTRUCTIONS` y `call_codex_cli()` en `app_server.py` | Prueba real con caso newsletter/email en `AI_PROVIDER=codex`: siguió el caso y cerró en 4 turnos | Hecho local |
+| Antibloqueo conversacional | `repair_repetitive_reply()` en `app_server.py` | Si la IA repite una petición de ejemplo o el usuario se frustra, el backend reconoce el atasco y avanza a impacto, herramientas, riesgo o cierre; `test_agent_quality_guard.py` lo valida | Hecho base |
 | Entrevista en lenguaje natural | UI chat en `Agente_Real_CRM.html` | Navegador local muestra inicio conversacional y typewriter | Hecho |
 | Entiende procesos reales | Campos `facts`, `signals`, `candidate_processes`, `current_focus` | Test de clínica, inmobiliaria, consultor B2B; prueba real de email | Hecho local |
 | Progreso e insights vivos | Sidebar "Lo que estoy entendiendo" en `Agente_Real_CRM.html` | DOM verificado en navegador; `updateDiscovery()` actualiza claridad, foco, señales y gaps | Hecho |
@@ -66,6 +67,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 
 ```bash
 python3 -m py_compile app_server.py test_discovery_flow.py test_beta_smoke.py
+python3 test_agent_quality_guard.py
 python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787

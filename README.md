@@ -31,6 +31,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
+- `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
 - `backup_crm.py`: copia segura de `crm.sqlite3` y `crm_leads.jsonl` para operación de beta.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.

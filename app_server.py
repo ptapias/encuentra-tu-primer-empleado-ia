@@ -7,6 +7,7 @@ import csv
 import io
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -476,6 +477,94 @@ def normalize_agent_result(result: dict, lead: dict) -> dict:
         "signals": signals,
     }
     return normalized
+
+
+def normalize_for_similarity(text: str) -> set[str]:
+    words = re.findall(r"[a-záéíóúüñ0-9]+", (text or "").lower())
+    stopwords = {
+        "que", "para", "pero", "con", "por", "una", "uno", "del", "los", "las", "hay",
+        "esto", "este", "esta", "como", "cuando", "donde", "dónde", "necesito", "quiero",
+        "cuentame", "cuéntame", "dime", "algo", "más", "mas", "bien", "ahora",
+    }
+    return {word for word in words if len(word) > 2 and word not in stopwords}
+
+
+def text_similarity(left: str, right: str) -> float:
+    a = normalize_for_similarity(left)
+    b = normalize_for_similarity(right)
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def user_supplied_example(text: str) -> bool:
+    text = (text or "").lower()
+    markers = [
+        "por ejemplo", "caso real", "entra", "entró", "recibo", "recibimos", "hago",
+        "sale", "debería salir", "deberia salir", "me cuenta", "se presenta",
+    ]
+    return len(text) > 120 or any(marker in text for marker in markers)
+
+
+def repair_repetitive_reply(result: dict, lead: dict, user_text: str) -> dict:
+    reply = result.get("reply", "")
+    previous_assistant = [
+        item.get("content", "")
+        for item in lead.get("transcript", [])
+        if item.get("role") == "assistant"
+    ][-3:]
+    repeated = any(text_similarity(reply, previous) >= 0.62 for previous in previous_assistant)
+    frustrated = any(marker in (user_text or "").lower() for marker in ["te lo estoy diciendo", "ya te lo he dicho", "ya lo dije", "joder"])
+    asks_same_example = user_supplied_example(user_text) and any(
+        marker in reply.lower()
+        for marker in ["ejemplo concreto", "caso real", "qué entra", "que entra"]
+    )
+    if not (repeated or frustrated or asks_same_example):
+        return result
+
+    focus = result.get("current_focus") or result.get("facts", {}).get("selected_process") or "ese proceso"
+    gaps = [str(gap) for gap in ensure_list(result.get("open_gaps"))]
+    lowered_history = " ".join(previous_assistant).lower()
+    usable_gaps = [
+        gap for gap in gaps
+        if not ("ejemplo" in gap.lower() and user_supplied_example(user_text))
+    ]
+    if "frecuencia" not in lowered_history and "impacto" not in lowered_history:
+        next_question = (
+            f"Vale, entonces tomo ese caso como ejemplo. Para priorizar {focus}: "
+            "¿cuántas veces ocurre a la semana, cuánto tiempo o valor se pierde y qué pasaría si siguiera igual tres meses?"
+        )
+        stage = "evaluacion"
+    elif "herramient" not in lowered_history and "datos" not in lowered_history:
+        next_question = (
+            f"Entendido. Para saber si {focus} se puede construir sin complicarlo: "
+            "¿en qué herramienta ocurre hoy, dónde están los ejemplos buenos y quién revisaría la primera versión?"
+        )
+        stage = "evaluacion"
+    elif "riesgo" not in lowered_history and "peligroso" not in lowered_history:
+        next_question = (
+            f"Perfecto, ya no necesito otro ejemplo. Pongamos límites: "
+            f"¿qué sería peligroso que una IA hiciera mal en {focus} y qué debería quedar siempre en revisión humana?"
+        )
+        stage = "evaluacion"
+    else:
+        next_question = (
+            "Con lo que me has contado ya puedo preparar un diagnóstico preliminar. "
+            "No voy a seguir rascando por rascar: pasemos al informe y marco las partes con confianza media donde falten datos."
+        )
+        result["ready_for_report"] = True
+        stage = "recomendacion"
+
+    if frustrated:
+        next_question = "Tienes razón, me estaba quedando atascado. " + next_question
+    result["reply"] = next_question
+    result["stage"] = stage
+    result["open_gaps"] = usable_gaps
+    result["live_insights"] = ensure_list(result.get("live_insights")) + [
+        "El agente ha evitado repetir una pregunta y ha avanzado al siguiente dato útil."
+    ]
+    result["progress_label"] = "Desbloqueando la entrevista"
+    return result
 
 
 def stagePctBackend():
@@ -1086,6 +1175,7 @@ class Handler(SimpleHTTPRequestHandler):
             result = fallback_agent(lead, user_text)
             result["api_error"] = str(exc)
         result = normalize_agent_result(result, lead)
+        result = repair_repetitive_reply(result, lead, user_text)
         transcript.append({"role": "assistant", "content": result.get("reply", ""), "at": now()})
         update_lead(
             lead_id,
