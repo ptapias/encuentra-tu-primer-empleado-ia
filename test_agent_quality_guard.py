@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from app_server import AGENT_INSTRUCTIONS, attach_discovery_state, enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply, report_readiness
+from app_server import AGENT_INSTRUCTIONS, CODEX_AGENT_INSTRUCTIONS, attach_discovery_state, enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply, report_readiness
 
 
 def assert_true(condition, message):
@@ -259,6 +259,15 @@ def test_agent_prompt_prioritizes_adaptive_discovery():
     assert_true("clasificación" in prompt and "registro en crm" in prompt, "El prompt debe rescatar respuestas tipo 'no sé' con opciones")
 
 
+def test_codex_agent_prompt_matches_consultative_positioning():
+    prompt = CODEX_AGENT_INSTRUCTIONS.lower()
+    assert_true("analiza tu negocio como lo haría un consultor" in prompt, "El prompt de Codex debe llevar la promesa pública a la conversación")
+    assert_true("no hay guion fijo" in prompt and "preguntas predefinidas" in prompt, "El prompt de Codex debe bloquear comportamiento de formulario")
+    assert_true("hipótesis" in prompt and "evidencia" in prompt and "única variable" in prompt, "El prompt de Codex debe forzar el bucle consultivo")
+    assert_true("7-10 minutos" in prompt, "El prompt de Codex debe optimizar para una discovery comprimida")
+    assert_true("más carne" in prompt and "cuéntame más" in prompt, "El prompt de Codex debe prohibir repreguntas vagas")
+
+
 if __name__ == "__main__":
     test_repeated_example_request_is_repaired()
     test_frustration_is_acknowledged()
@@ -269,4 +278,5 @@ if __name__ == "__main__":
     test_report_readiness_blocks_empty_discovery()
     test_report_readiness_allows_evidenced_discovery()
     test_agent_prompt_prioritizes_adaptive_discovery()
+    test_codex_agent_prompt_matches_consultative_positioning()
     print("agent_quality_guard ok")
