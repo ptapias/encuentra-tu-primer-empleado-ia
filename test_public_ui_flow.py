@@ -116,6 +116,8 @@ def main() -> int:
             page.get_by_text("Explorando email con valor comercial").wait_for(timeout=8000)
             page.get_by_text("Veo una señal clara en email").wait_for(timeout=8000)
             page.get_by_text("email y oportunidades sin responder").wait_for(timeout=5000)
+            assert_true(page.get_by_text("Profundizando").count() >= 1, "La etapa interna debe traducirse a lenguaje humano")
+            assert_true(page.get_by_text("deep_dive").count() == 0, "La UI no debe enseñar estados internos del agente")
             result["checks"].append("adaptive_chat_wait_state")
             if screenshot_dir:
                 page.screenshot(path=str(screenshot_dir / "chat-wait-tested.png"), full_page=True)

@@ -969,6 +969,7 @@
       main { order: 1; }
       aside { order: 2; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
+      aside > .panel:first-of-type { display: none; }
       .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid { grid-template-columns: 1fr; }
       .priority-map-canvas { min-height: 300px; }
       .priority-label { max-width: 150px; }
@@ -1040,7 +1041,7 @@
             </div>
             <div class="starter-start">
               <button class="start-primary" type="button" onclick="startSession()">Analizar mi negocio</button>
-              <p class="privacy-note">Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.</p>
+              <p class="privacy-note" id="microAdvice">Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.</p>
             </div>
             <div class="starter-signal" aria-label="Qué va a analizar el agente">
               <div class="signal-line">
@@ -1057,7 +1058,7 @@
               </div>
             </div>
             <div class="starter-row">
-              <span class="starter-pill">
+              <span class="starter-pill" id="microPill">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -1121,6 +1122,8 @@
     const micBtn = document.getElementById("mic");
     const crmStatus = document.getElementById("crmStatus");
     const micStatus = document.getElementById("micStatus");
+    const microAdvice = document.getElementById("microAdvice");
+    const microPill = document.getElementById("microPill");
     const statusEl = document.getElementById("status");
     const stageEl = document.getElementById("stage");
     const progress = document.getElementById("progress");
@@ -1151,6 +1154,14 @@
       recomendacion: 82,
       informe: 100
     };
+    const stageLabels = {
+      contexto: "Contexto",
+      exploracion: "Explorando",
+      profundizacion: "Profundizando",
+      evaluacion: "Evaluando",
+      recomendacion: "Recomendación",
+      informe: "Informe"
+    };
 
     function escapeHtml(text) {
       return String(text || "").replace(/[&<>"']/g, char => ({
@@ -1170,8 +1181,9 @@
     }
 
     function setStage(stage) {
-      stageEl.textContent = stage || "contexto";
-      progress.style.width = `${stagePct[stage] || 12}%`;
+      const safeStage = stagePct[stage] ? stage : "profundizacion";
+      stageEl.textContent = stageLabels[safeStage] || "Profundizando";
+      progress.style.width = `${stagePct[safeStage] || 48}%`;
     }
 
     function setCrm(message, type = "") {
@@ -1309,6 +1321,11 @@
       micBtn.disabled = !leadId || !transcriptionAvailable;
       if (!transcriptionAvailable) {
         setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
+        if (microAdvice) microAdvice.textContent = "También puedes hacerlo por texto: responde como si lo estuvieras contando en una llamada.";
+        if (microPill) microPill.hidden = true;
+      } else {
+        if (microAdvice) microAdvice.textContent = "Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.";
+        if (microPill) microPill.hidden = false;
       }
     }
 
@@ -1863,6 +1880,7 @@
       if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) sendMessage();
     });
     restoreSession();
+    refreshCapabilities();
   </script>
 </body>
 </html>
