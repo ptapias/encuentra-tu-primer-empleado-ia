@@ -147,18 +147,22 @@ HOST_VALUE="$(env_value HOST)"
 PORT_VALUE="$(env_value PORT)"
 PORT_VALUE="${PORT_VALUE:-8787}"
 LOCAL_BASE="http://${HOST_VALUE:-127.0.0.1}:${PORT_VALUE}"
+APP_VERSION_VALUE="$(env_value APP_VERSION)"
+EXPECTED_VERSION="${APP_VERSION_VALUE:-${AFTER}}"
 
 echo "8/8 Smoke local (${LOCAL_BASE})"
 python3 test_beta_smoke.py \
   --base "${LOCAL_BASE}" \
   --admin-user "${ADMIN_USER}" \
-  --admin-password "${ADMIN_PASSWORD}"
+  --admin-password "${ADMIN_PASSWORD}" \
+  --expected-version "${EXPECTED_VERSION}"
 
 if [[ -n "${DOMAIN}" ]]; then
   echo "Verificación HTTPS con dominio ${DOMAIN}"
   DOMAIN="${DOMAIN}" \
   ADMIN_USER="${ADMIN_USER}" \
   ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+  EXPECTED_VERSION="${EXPECTED_VERSION}" \
   APP_USER="${APP_USER}" \
   CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE}" \
   BROWSER_CHECKS="${BROWSER_CHECKS}" \

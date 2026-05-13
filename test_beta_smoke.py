@@ -80,6 +80,7 @@ def main():
     parser.add_argument("--base", default="http://localhost:8787", help="URL base, por ejemplo https://diagnostico.tu-dominio.com")
     parser.add_argument("--admin-user", default="")
     parser.add_argument("--admin-password", default="")
+    parser.add_argument("--expected-version", default="", help="Versión esperada en /healthz para detectar servicios sin reiniciar")
     args = parser.parse_args()
     auth = (args.admin_user, args.admin_password) if args.admin_user and args.admin_password else None
 
@@ -99,6 +100,11 @@ def main():
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")
     expect(bool(health.get("version")), "healthz debería exponer la versión/commit desplegado")
+    if args.expected_version:
+        expect(
+            str(health.get("version")) == args.expected_version,
+            f"/healthz.version={health.get('version')} no coincide con la versión esperada {args.expected_version}; reinicia el servicio o revisa el deploy",
+        )
     beta_noindex = bool(health.get("beta_noindex", True))
     checks.append({"check": "health", "provider": health.get("provider"), "transcription": health.get("transcription"), "beta_noindex": beta_noindex, "version": health.get("version")})
 

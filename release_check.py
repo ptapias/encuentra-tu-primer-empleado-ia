@@ -78,6 +78,27 @@ def run_step(name: str, command: list[str], *, timeout=120) -> dict:
     }
 
 
+def git_head_short() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+    except Exception:
+        return ""
+    if result.returncode != 0:
+        return ""
+    return (result.stdout or "").strip()
+
+
+def expected_health_version(env: dict) -> str:
+    return (env.get("APP_VERSION") or "").strip() or git_head_short()
+
+
 def static_page_check() -> dict:
     html = PUBLIC_PAGE.read_text(encoding="utf-8")
     required = [
@@ -398,13 +419,13 @@ def deploy_config_check() -> dict:
         "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
         "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
         "install_script_uses_generated_env": ".env.generated" in install_script and "cp .env.generated .env" in install_script,
-        "install_script_smoke": "test_beta_smoke.py" in install_script,
+        "install_script_smoke": "test_beta_smoke.py" in install_script and "--expected-version" in install_script,
         "install_script_preflight_service_user": "--service-user" in install_script and "CHECK_CODEX_LIVE" in install_script,
         "install_script_preserves_git_repo": '--exclude ".git"' not in install_script and "--exclude '.git'" not in install_script,
         "install_script_renders_systemd_units": "render_systemd_units.sh" in install_script and "systemctl daemon-reload" in install_script,
         "verify_script_executable": VERIFY_SCRIPT.exists() and bool(VERIFY_SCRIPT.stat().st_mode & 0o111),
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
-        "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
+        "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script and "--expected-version" in verify_script,
         "verify_script_preflight_service_user": "--service-user" in verify_script and "APP_USER" in verify_script,
         "verify_script_runs_go_no_go_for_public_beta": "launch_go_no_go.py" in verify_script and "MANUAL_PRODUCTION_TESTED" in verify_script and "CRM_REVIEWED" in verify_script,
         "update_script_executable": UPDATE_SCRIPT.exists() and bool(UPDATE_SCRIPT.stat().st_mode & 0o111),
@@ -414,7 +435,7 @@ def deploy_config_check() -> dict:
         "update_script_regenerates_privacy": "privacy_config.json" in update_script and "render_privacy.py --config privacy_config.json" in update_script and "checkout -- PRIVACY_BETA.md PRIVACY_BETA.html" in update_script,
         "update_script_rollback": "reset --hard" in update_script and "ROLLBACK_ENABLED" in update_script,
         "update_script_renders_systemd_units": "render_systemd_units" in update_script and "systemctl daemon-reload" in update_script,
-        "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script,
+        "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script and "--expected-version" in update_script,
         "launch_from_inputs_script_executable": LAUNCH_FROM_INPUTS_SCRIPT.exists() and bool(LAUNCH_FROM_INPUTS_SCRIPT.stat().st_mode & 0o111),
         "launch_from_inputs_validates_inputs": "validate_vps_inputs.py" in launch_from_inputs_script and "prepare_vps_launch_files.py" in launch_from_inputs_script,
         "launch_from_inputs_installs": "install_vps.sh" in launch_from_inputs_script and "render_privacy.py" in launch_from_inputs_script,
@@ -573,6 +594,9 @@ def main():
 
     if args.base:
         smoke_cmd = [sys.executable, "test_beta_smoke.py", "--base", args.base]
+        expected_version = expected_health_version(env)
+        if expected_version:
+            smoke_cmd += ["--expected-version", expected_version]
         if args.admin_user and args.admin_password:
             smoke_cmd += ["--admin-user", args.admin_user, "--admin-password", args.admin_password]
         steps.append(run_step("smoke", smoke_cmd, timeout=60))

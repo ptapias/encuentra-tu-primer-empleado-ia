@@ -85,6 +85,10 @@ if [[ -n "${DOMAIN}" ]]; then
 fi
 
 sleep 2
-python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user "${ADMIN_USER}" --admin-password "$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)"
+EXPECTED_VERSION="$(grep '^APP_VERSION=' .env | cut -d= -f2-)"
+if [[ -z "${EXPECTED_VERSION}" ]] && command -v git >/dev/null 2>&1; then
+  EXPECTED_VERSION="$(git rev-parse --short HEAD)"
+fi
+python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user "${ADMIN_USER}" --admin-password "$(grep '^ADMIN_PASSWORD=' .env | cut -d= -f2-)" --expected-version "${EXPECTED_VERSION}"
 
 echo "Instalación local en VPS lista. Ejecuta el smoke test contra el dominio HTTPS cuando DNS/Caddy estén activos."

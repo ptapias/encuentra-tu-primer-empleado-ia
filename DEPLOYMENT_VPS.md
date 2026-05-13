@@ -140,11 +140,11 @@ Comprueba:
 
 ```bash
 curl http://127.0.0.1:8787/healthz
-python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
+python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga --expected-version "$(git rev-parse --short HEAD)"
 python3 release_check.py --env .env --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
 ```
 
-La respuesta de `/healthz` incluye `version`. Déjalo como `APP_VERSION=` en `.env` para que use el commit corto de Git capturado al arrancar el servidor, o rellénalo con una etiqueta tipo `beta-2026-05-13` si quieres identificar despliegues manuales. Reinicia siempre el servicio después de actualizar código; el preflight avisa si `APP_VERSION` parece un commit antiguo y no coincide con el HEAD desplegado.
+La respuesta de `/healthz` incluye `version`. Déjalo como `APP_VERSION=` en `.env` para que use el commit corto de Git capturado al arrancar el servidor, o rellénalo con una etiqueta tipo `beta-2026-05-13` si quieres identificar despliegues manuales. Reinicia siempre el servicio después de actualizar código; el smoke test de VPS compara `--expected-version` para detectar servicios viejos y el preflight avisa si `APP_VERSION` parece un commit antiguo.
 
 Activa también el backup diario del CRM:
 

@@ -37,6 +37,11 @@ HOST_VALUE="$(env_value HOST)"
 PORT_VALUE="$(env_value PORT)"
 PORT_VALUE="${PORT_VALUE:-8787}"
 LOCAL_BASE="http://${HOST_VALUE:-127.0.0.1}:${PORT_VALUE}"
+APP_VERSION_VALUE="$(env_value APP_VERSION)"
+EXPECTED_VERSION="${EXPECTED_VERSION:-${APP_VERSION_VALUE}}"
+if [[ -z "${EXPECTED_VERSION}" ]] && command -v git >/dev/null 2>&1; then
+  EXPECTED_VERSION="$(git rev-parse --short HEAD)"
+fi
 
 if [[ -z "${ADMIN_PASSWORD}" || "${ADMIN_PASSWORD}" == "change-me" ]]; then
   echo "ADMIN_PASSWORD no está configurada con un valor real." >&2
@@ -55,7 +60,8 @@ echo "2/4 Smoke local (${LOCAL_BASE})"
 python3 test_beta_smoke.py \
   --base "${LOCAL_BASE}" \
   --admin-user "${ADMIN_USER}" \
-  --admin-password "${ADMIN_PASSWORD}"
+  --admin-password "${ADMIN_PASSWORD}" \
+  --expected-version "${EXPECTED_VERSION}"
 
 if [[ -z "${DOMAIN}" ]]; then
   echo "DOMAIN vacío: salto comprobaciones HTTPS públicas."
@@ -69,7 +75,8 @@ echo "3/4 Smoke HTTPS (${PUBLIC_BASE})"
 python3 test_beta_smoke.py \
   --base "${PUBLIC_BASE}" \
   --admin-user "${ADMIN_USER}" \
-  --admin-password "${ADMIN_PASSWORD}"
+  --admin-password "${ADMIN_PASSWORD}" \
+  --expected-version "${EXPECTED_VERSION}"
 
 RELEASE=(python3 release_check.py --env .env --base "${PUBLIC_BASE}" --admin-user "${ADMIN_USER}" --admin-password "${ADMIN_PASSWORD}")
 if [[ "${CHECK_CODEX_LIVE}" == "true" ]]; then
