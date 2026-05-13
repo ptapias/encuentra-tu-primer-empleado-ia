@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -14,6 +15,9 @@ def skip(message: str) -> int:
 def assert_true(condition, message: str):
     if not condition:
         raise AssertionError(message)
+
+
+TEST_IP = f"198.51.{os.getpid() % 250}.{int(time.time() * 1000) % 250 + 1}"
 
 
 def main() -> int:
@@ -46,7 +50,11 @@ def main() -> int:
             return skip(f"Chromium de Playwright no está instalado: {exc}")
 
         try:
-            page = browser.new_page(viewport={"width": 1440, "height": 950})
+            context = browser.new_context(
+                viewport={"width": 1440, "height": 950},
+                extra_http_headers={"X-Forwarded-For": TEST_IP},
+            )
+            page = context.new_page()
             page.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=desktop", wait_until="networkidle")
             page.get_by_text("¿Dónde se te escapa tiempo, dinero o clientes?").wait_for(timeout=5000)
             page.get_by_text("analiza tu negocio como lo haría un consultor").wait_for(timeout=5000)
@@ -55,7 +63,12 @@ def main() -> int:
             if screenshot_dir:
                 page.screenshot(path=str(screenshot_dir / "desktop-hero.png"), full_page=True)
 
-            mobile = browser.new_page(viewport={"width": 390, "height": 844}, is_mobile=True)
+            mobile_context = browser.new_context(
+                viewport={"width": 390, "height": 844},
+                is_mobile=True,
+                extra_http_headers={"X-Forwarded-For": f"198.51.{(os.getpid() + 1) % 250}.{int(time.time() * 1000) % 250 + 1}"},
+            )
+            mobile = mobile_context.new_page()
             mobile.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=mobile", wait_until="networkidle")
             hero_box = mobile.get_by_text("¿Dónde se te escapa tiempo, dinero o clientes?").bounding_box()
             cta_box = mobile.locator("section.starter button.start-primary").bounding_box()
@@ -64,7 +77,7 @@ def main() -> int:
             result["checks"].append("mobile_above_fold")
             if screenshot_dir:
                 mobile.screenshot(path=str(screenshot_dir / "mobile-hero.png"), full_page=True)
-            mobile.close()
+            mobile_context.close()
 
             page.locator("section.starter button.start-primary").click()
             page.wait_for_selector("textarea#input:not([disabled])", timeout=8000)

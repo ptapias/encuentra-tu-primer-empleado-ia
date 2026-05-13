@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import time
 
 
 def skip(message: str) -> int:
     print(json.dumps({"ok": True, "skipped": True, "reason": message}, ensure_ascii=False, indent=2))
     return 0
+
+
+TEST_IP = f"198.51.{os.getpid() % 250}.{int(time.time() * 1000) % 250 + 1}"
 
 
 def main() -> int:
@@ -29,7 +33,10 @@ def main() -> int:
         except PlaywrightError as exc:
             return skip(f"Chromium de Playwright no está instalado: {exc}")
         try:
-            context = browser.new_context(viewport={"width": 1280, "height": 900})
+            context = browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                extra_http_headers={"X-Forwarded-For": TEST_IP},
+            )
             page = context.new_page()
 
             def capabilities_handler(route):

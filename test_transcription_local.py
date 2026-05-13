@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from urllib import request
 
@@ -12,6 +14,9 @@ from urllib import request
 def skip(reason: str) -> int:
     print(json.dumps({"ok": True, "skipped": True, "reason": reason}, ensure_ascii=False, indent=2))
     return 0
+
+
+TEST_IP = f"198.51.{os.getpid() % 250}.{int(time.time() * 1000) % 250 + 1}"
 
 
 def main() -> int:
@@ -51,7 +56,7 @@ def main() -> int:
         req = request.Request(
             f"{args.base}/transcribe",
             data=webm.read_bytes(),
-            headers={"Content-Type": "audio/webm"},
+            headers={"Content-Type": "audio/webm", "X-Forwarded-For": TEST_IP},
             method="POST",
         )
         try:

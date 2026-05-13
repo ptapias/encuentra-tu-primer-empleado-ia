@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import time
 
 
@@ -12,6 +13,9 @@ def skip(message: str) -> int:
 def assert_true(condition, message: str):
     if not condition:
         raise AssertionError(message)
+
+
+TEST_IP = f"198.51.{os.getpid() % 250}.{int(time.time() * 1000) % 250 + 1}"
 
 
 def sample_report() -> dict:
@@ -91,7 +95,11 @@ def main() -> int:
         except PlaywrightError as exc:
             return skip(f"Chromium de Playwright no está instalado: {exc}")
         try:
-            page = browser.new_page(viewport={"width": 1280, "height": 920})
+            context = browser.new_context(
+                viewport={"width": 1280, "height": 920},
+                extra_http_headers={"X-Forwarded-For": TEST_IP},
+            )
+            page = context.new_page()
 
             def chat_handler(route):
                 time.sleep(0.6)
@@ -159,7 +167,11 @@ def main() -> int:
             result["checks"].append("feedback_saved")
 
             page.evaluate("localStorage.clear()")
-            retry_page = browser.new_page(viewport={"width": 1280, "height": 920})
+            retry_context = browser.new_context(
+                viewport={"width": 1280, "height": 920},
+                extra_http_headers={"X-Forwarded-For": f"198.51.{(os.getpid() + 1) % 250}.{int(time.time() * 1000) % 250 + 1}"},
+            )
+            retry_page = retry_context.new_page()
 
             def report_needs_more_handler(route):
                 route.fulfill(
@@ -191,7 +203,7 @@ def main() -> int:
             retry_page.wait_for_selector("textarea#input:not([disabled])", timeout=5000)
             assert_true(not retry_page.locator("#report").is_visible(), "El botón de informe debería ocultarse si falta discovery")
             result["checks"].append("report_quality_gate_returns_to_chat")
-            retry_page.close()
+            retry_context.close()
 
             result["ok"] = True
             print(json.dumps(result, ensure_ascii=False, indent=2))
