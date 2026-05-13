@@ -902,6 +902,10 @@ def allowed_static_path(path: str) -> bool:
     return clean_path in PUBLIC_STATIC_FILES or clean_path in ADMIN_STATIC_FILES
 
 
+def diagnostic_location(route) -> str:
+    return "/Agente_Real_CRM.html" + (f"?{route.query}" if route.query else "")
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -915,7 +919,7 @@ class Handler(SimpleHTTPRequestHandler):
         route = parse.urlparse(self.path)
         if route.path in ("", "/"):
             self.send_response(302)
-            self.send_header("Location", "/Agente_Real_CRM.html")
+            self.send_header("Location", diagnostic_location(route))
             self.end_headers()
             return
         if route.path == "/robots.txt":
@@ -935,7 +939,7 @@ class Handler(SimpleHTTPRequestHandler):
         route = parse.urlparse(self.path)
         if route.path in ("", "/"):
             self.send_response(302)
-            self.send_header("Location", "/Agente_Real_CRM.html")
+            self.send_header("Location", diagnostic_location(route))
             self.end_headers()
             return
         if route.path == "/healthz":

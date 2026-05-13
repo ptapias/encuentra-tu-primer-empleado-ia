@@ -70,7 +70,12 @@ def main():
 
     status, root_headers = request_no_redirect(args.base, "/", method="HEAD")
     expect(status == 302 and root_headers.get("Location") == "/Agente_Real_CRM.html", "HEAD / debería redirigir al diagnóstico")
-    checks.append({"check": "root_redirect", "status": status})
+    status, root_utm_headers = request_no_redirect(args.base, "/?utm_source=youtube&utm_campaign=whatsapp_ia&video=agente-whatsapp", method="GET")
+    expect(
+        status == 302 and root_utm_headers.get("Location") == "/Agente_Real_CRM.html?utm_source=youtube&utm_campaign=whatsapp_ia&video=agente-whatsapp",
+        "GET / debería conservar UTMs al redirigir al diagnóstico",
+    )
+    checks.append({"check": "root_redirect", "status": status, "keeps_utm": True})
 
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")
