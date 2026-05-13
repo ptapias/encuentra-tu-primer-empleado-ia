@@ -373,6 +373,7 @@
       const report = lead.outcome || {};
       const crm = report.crm_summary || {};
       const attribution = lead.facts?.attribution || {};
+      const salesIntel = report.sales_intelligence || {};
       const currentOffer = crm.offer || "";
       const currentStatus = lead.status || crm.status || "new";
       const currentNotes = crm.internal_notes || "";
@@ -440,6 +441,9 @@
       </form>
       <div class="card"><span>Empleado IA recomendado</span><h3>${escapeHtml(report.recommended_employee || "sin informe todavía")}</h3><p>${escapeHtml(report.recommendation_reason || "")}</p></div>
       <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
+      <div class="card"><span>Frases útiles</span>${list(salesIntel.useful_quotes)}</div>
+      <div class="card"><span>Objeciones detectadas</span>${list(salesIntel.objections)}</div>
+      <div class="card"><span>Ideas de contenido</span>${list(salesIntel.content_ideas)}</div>
       <div class="card"><span>Oportunidades</span>${opportunities || "<p>Sin oportunidades calculadas todavía.</p>"}</div>
       <div class="card"><span>No automatizar todavía</span>${list(report.do_not_automate_yet)}</div>
       <div class="card"><span>Feedback</span>${feedbackHtml}</div>

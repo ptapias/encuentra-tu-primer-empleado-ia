@@ -104,6 +104,7 @@ def main():
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Qué echaste en falta" in public_html and "Utilidad del diagnóstico" in public_html, "falta feedback estructurado al final")
+    expect("sales_intelligence" not in public_html, "la página pública expone términos internos de ventas")
     expect("/PRIVACY_BETA.html" in public_html, "la página pública no enlaza a la privacidad HTML")
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
@@ -258,7 +259,9 @@ def main():
         expect(status == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde con autenticación")
     else:
         expect(export_without_auth == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde en entorno sin auth")
-    expect("source,medium,campaign,video,ref" in export_csv.splitlines()[0], "el export CSV no incluye atribución")
+    export_header = export_csv.splitlines()[0]
+    expect("source,medium,campaign,video,ref" in export_header, "el export CSV no incluye atribución")
+    expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
     checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
 
     print(json.dumps({"ok": True, "base": args.base, "checks": checks}, ensure_ascii=False, indent=2))

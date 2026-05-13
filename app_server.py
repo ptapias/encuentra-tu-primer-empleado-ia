@@ -173,6 +173,11 @@ No copies este esquema literalmente. Rellena cada campo con un diagnóstico espe
     "segment": "newsletter|cohort|implementation_call|resource|not_ready",
     "message": "siguiente paso recomendado"
   },
+  "sales_intelligence": {
+    "useful_quotes": ["frase literal o casi literal del usuario que explique dolor, objeción o oportunidad"],
+    "objections": ["objeción detectada"],
+    "content_ideas": ["idea concreta para YouTube/newsletter derivada del caso"]
+  },
   "crm_summary": {
     "sector": "",
     "use_case": "",
@@ -728,10 +733,15 @@ def fallback_report(lead: dict) -> dict:
         ],
         "do_not_automate_yet": ["envío automático sin revisión"],
         "seven_day_plan": ["reunir ejemplos", "etiquetar tipos", "definir salidas", "probar borradores"],
-        "thirty_day_plan": ["prototipo", "revisión humana", "integración CRM", "medición"],
-        "cta": {"segment": "cohort", "message": "Buen caso para hacerlo acompañado."},
-        "crm_summary": {"sector": "", "use_case": best, "score": 65, "urgency": "", "budget": "", "offer": "cohort", "status": "new"},
-    }
+    "thirty_day_plan": ["prototipo", "revisión humana", "integración CRM", "medición"],
+    "cta": {"segment": "cohort", "message": "Buen caso para hacerlo acompañado."},
+    "sales_intelligence": {
+        "useful_quotes": human_list(lead["facts"].get("pain_points"))[:3],
+        "objections": ["Necesita acompañamiento para no complicarse."],
+        "content_ideas": [f"Cómo automatizar {best or 'un proceso repetitivo'} sin perder control humano."],
+    },
+    "crm_summary": {"sector": "", "use_case": best, "score": 65, "urgency": "", "budget": "", "offer": "cohort", "status": "new"},
+}
 
 
 def humanize(value) -> str:
@@ -837,6 +847,7 @@ def normalize_report(report: dict, lead: dict) -> dict:
 
     crm_summary = report.get("crm_summary") if isinstance(report.get("crm_summary"), dict) else {}
     cta = report.get("cta") if isinstance(report.get("cta"), dict) else {}
+    sales_intelligence = report.get("sales_intelligence") if isinstance(report.get("sales_intelligence"), dict) else {}
     normalized = {
         "summary": humanize(report.get("summary")) or "Diagnóstico generado a partir de la conversación.",
         "business_snapshot": humanize(report.get("business_snapshot")) or humanize(lead.get("facts", {})),
@@ -850,6 +861,11 @@ def normalize_report(report: dict, lead: dict) -> dict:
         "cta": {
             "segment": humanize(cta.get("segment")) or "resource",
             "message": humanize(cta.get("message")) or "El siguiente paso es probar una primera versión pequeña con revisión humana.",
+        },
+        "sales_intelligence": {
+            "useful_quotes": human_list(sales_intelligence.get("useful_quotes"))[:5],
+            "objections": human_list(sales_intelligence.get("objections"))[:5],
+            "content_ideas": human_list(sales_intelligence.get("content_ideas"))[:5],
         },
         "crm_summary": {
             "sector": humanize(crm_summary.get("sector")),
@@ -1373,6 +1389,8 @@ class Handler(SimpleHTTPRequestHandler):
             "feedback_liked",
             "feedback_missing",
             "feedback_improve",
+            "objections",
+            "content_ideas",
             "summary",
         ]
         writer = csv.DictWriter(output, fieldnames=fieldnames)
@@ -1384,6 +1402,7 @@ class Handler(SimpleHTTPRequestHandler):
             transcript = json.loads(row["transcript_json"] or "[]")
             attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
             crm = outcome.get("crm_summary", {})
+            sales_intelligence = outcome.get("sales_intelligence") if isinstance(outcome.get("sales_intelligence"), dict) else {}
             writer.writerow(
                 {
                     "id": row["id"],
@@ -1410,6 +1429,8 @@ class Handler(SimpleHTTPRequestHandler):
                     "feedback_liked": humanize(feedback.get("liked") or feedback.get("text")) if feedback else "",
                     "feedback_missing": humanize(feedback.get("missing")) if feedback else "",
                     "feedback_improve": humanize(feedback.get("improve")) if feedback else "",
+                    "objections": humanize(sales_intelligence.get("objections")),
+                    "content_ideas": humanize(sales_intelligence.get("content_ideas")),
                     "summary": humanize(outcome.get("summary")),
                 }
             )
