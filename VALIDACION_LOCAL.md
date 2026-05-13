@@ -5,32 +5,45 @@
 Usa este modo para comprobar interfaz, email-gate, CRM e informe sin esperar a Codex:
 
 ```bash
-AI_PROVIDER=fallback HOST=localhost PORT=8787 python3 app_server.py
+PORT=8787 AI_PROVIDER=fallback ALLOW_AI_FALLBACK=true ./run_local_beta.sh
 ```
 
 Abre:
 
 ```text
-http://localhost:8787/Agente_Real_CRM.html?v=discovery
+http://localhost:8787/Agente_Real_CRM.html
 ```
 
 Comprueba:
 
 - La página empieza sin pedir email.
-- El botón visible es `Analizar mi negocio`.
-- No aparecen textos como `JSON`, `CRM`, `fallback` o `informe potente`.
-- Al empezar aparece `Lo que estoy entendiendo`.
+- El gancho principal es `¿Dónde se te escapa tiempo, dinero o clientes?`.
+- El texto de apoyo transmite que hablas con un agente que analiza el negocio como lo haría un consultor.
+- El botón visible es `Empezar diagnóstico`.
+- La primera pantalla invita a contar el negocio en bruto y recomienda usar el micrófono, sin mencionar que al final se pedirá email.
+- Aparece el bloque `Discovery en vivo` como preview de la experiencia.
+- No aparecen textos como `JSON`, `CRM`, `fallback`, `informe potente` o lenguaje interno de producto.
+- Al empezar aparece un panel vivo de discovery con lo que el agente está entendiendo, preguntas abiertas y oportunidades candidatas.
+- La conversación no se siente como 5 preguntas fijas: debe repreguntar según el caso, pedir ejemplos cuando falte evidencia y avanzar cuando ya tenga suficiente.
 - El botón `Generar informe` no aparece hasta que el agente decide que tiene suficiente.
 - El email se pide solo antes de generar el diagnóstico.
 - El email exige aceptar el uso de datos y enlaza a privacidad.
-- El informe incluye `Matriz de priorización`, `Por qué esta va primero` y feedback al final.
+- El informe incluye `Resumen de acción`, `Matriz de priorización`, `Por qué esta va primero` y feedback al final.
+- El informe evita frases vacías como `informe potente`: debe hablar de diagnóstico, oportunidades, empleado IA recomendado y primer paso.
+- El CRM guarda email, conversación, outcome, `first_opportunity`, `first_step` y feedback.
+
+Si ya tienes un servidor viejo en el puerto 8787 y quieres sustituirlo por la versión actual:
+
+```bash
+REPLACE=true ./run_local_beta.sh
+```
 
 ## 2. Arrancar con Codex real
 
 Usa este modo para probar calidad de conversación:
 
 ```bash
-AI_PROVIDER=codex HOST=localhost PORT=8787 python3 app_server.py
+AI_PROVIDER=codex ./run_local_beta.sh
 ```
 
 Cada turno puede tardar 9-20 segundos. El diagnóstico puede tardar 30-90 segundos.
