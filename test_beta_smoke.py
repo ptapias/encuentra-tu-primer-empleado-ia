@@ -88,6 +88,14 @@ def main():
     expect(status == 200 and "transcription" in capabilities, "capabilities no devuelve estado de transcripción")
     checks.append({"check": "capabilities", "transcription": capabilities["transcription"].get("available")})
 
+    try:
+        request(args.base, "/transcribe", method="POST", payload=None)
+        empty_transcribe_status = 200
+    except urllib.error.HTTPError as exc:
+        empty_transcribe_status = exc.code
+    expect(empty_transcribe_status == 400, "transcribe debería rechazar audio vacío con 400")
+    checks.append({"check": "transcribe_empty_audio", "status": empty_transcribe_status})
+
     status, public_headers, public_html = request_raw(args.base, "/Agente_Real_CRM.html")
     expect(status == 200, "la página pública no carga")
     if beta_noindex:

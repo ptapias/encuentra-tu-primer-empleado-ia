@@ -1407,19 +1407,30 @@
         setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
         return;
       }
-      activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunks = [];
-      const mimeType = supportedAudioMimeType();
-      mediaRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
-      mediaRecorder.ondataavailable = event => {
-        if (event.data?.size) audioChunks.push(event.data);
-      };
-      mediaRecorder.onstop = transcribeRecording;
-      mediaRecorder.start();
-      listening = true;
-      micBtn.classList.add("listening");
-      micBtn.innerHTML = stopIcon();
-      setMic("Grabando... pulsa el cuadrado para transcribir.", "active");
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+        setMic("Tu navegador no permite grabar aquí. Puedes escribir la respuesta.", "error");
+        return;
+      }
+      try {
+        activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        const mimeType = supportedAudioMimeType();
+        mediaRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
+        mediaRecorder.ondataavailable = event => {
+          if (event.data?.size) audioChunks.push(event.data);
+        };
+        mediaRecorder.onstop = transcribeRecording;
+        mediaRecorder.start();
+        listening = true;
+        micBtn.classList.add("listening");
+        micBtn.innerHTML = stopIcon();
+        setMic("Grabando... pulsa el cuadrado para transcribir.", "active");
+      } catch (error) {
+        activeStream?.getTracks().forEach(track => track.stop());
+        activeStream = null;
+        mediaRecorder = null;
+        setMic("No he podido activar el micro. Revisa permisos o escribe tu respuesta.", "error");
+      }
     }
 
     async function stopRecording() {
