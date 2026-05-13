@@ -1472,6 +1472,7 @@
           <div class="diagnosis-card"><span>Lo que he entendido</span>${escapeHtml(report.business_snapshot)}</div>
           <div class="diagnosis-card"><span>Por qué empezar aquí</span>${escapeHtml(report.recommendation_reason)}</div>
         </div>
+        ${report.evidence_summary?.length ? `<h3>Señales detectadas</h3>${list(report.evidence_summary)}` : ""}
         <div class="score-grid">
           <div class="score-card"><strong>${escapeHtml(readable(report.readiness) || "En revisión")}</strong><span>Preparación</span></div>
           <div class="score-card"><strong>${escapeHtml((report.opportunities || []).length || "1")}</strong><span>Oportunidades</span></div>
@@ -1580,6 +1581,7 @@
         <p>${escapeHtml(report.summary)}</p>
         <section><h2>Lo que he entendido</h2><p>${escapeHtml(report.business_snapshot)}</p></section>
         <section><h2>Por qué empezar aquí</h2><p>${escapeHtml(report.recommendation_reason)}</p></section>
+        ${report.evidence_summary?.length ? `<section><h2>Señales detectadas</h2>${list(report.evidence_summary)}</section>` : ""}
         <section><h2>Oportunidades prioritarias</h2>${opportunities}</section>
         <section><h2>No automatizar todavía</h2>${list(report.do_not_automate_yet)}</section>
         <section><h2>Plan de 7 días</h2>${list(report.seven_day_plan)}</section>

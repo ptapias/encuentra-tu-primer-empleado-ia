@@ -174,6 +174,9 @@ No copies este esquema literalmente. Rellena cada campo con un diagnóstico espe
     "segment": "newsletter|cohort|implementation_call|resource|not_ready",
     "message": "siguiente paso recomendado"
   },
+  "evidence_summary": [
+    "señal concreta de la conversación que justifica la recomendación"
+  ],
   "sales_intelligence": {
     "useful_quotes": ["frase literal o casi literal del usuario que explique dolor, objeción o oportunidad"],
     "objections": ["objeción detectada"],
@@ -633,6 +636,8 @@ Responde solo con JSON. Debe incluir:
 - opportunities: array de 1-3 oportunidades con name, current_process, problem, ai_employee, what_it_would_do, impact_score, feasibility_score, scalability_score, data_sensitivity_score, composite_score, triage, tools, data_needed, risks, first_step.
 - do_not_automate_yet, seven_day_plan, thirty_day_plan.
 - cta con segment y message.
+- evidence_summary: 3-5 señales concretas de la conversación que explican por qué recomiendas ese empleado IA.
+- sales_intelligence con useful_quotes, objections y content_ideas para uso interno.
 - crm_summary con sector, use_case, score, urgency, budget, offer, status.
 """
     else:
@@ -827,6 +832,11 @@ def fallback_report(lead: dict) -> dict:
         "recommended_employee": employee,
         "recommendation_reason": "Es el área con más señales en la conversación y puede empezar con revisión humana.",
         "readiness": "alto potencial con revisión",
+        "evidence_summary": [
+            "El proceso aparece varias veces en la conversación como fuente de fricción.",
+            "La primera versión puede trabajar con ejemplos reales y revisión humana.",
+            "El riesgo principal es controlable si la IA prepara borradores en vez de ejecutar sola.",
+        ],
         "opportunities": [
             {
                 "name": employee,
@@ -963,12 +973,31 @@ def normalize_report(report: dict, lead: dict) -> dict:
     crm_summary = report.get("crm_summary") if isinstance(report.get("crm_summary"), dict) else {}
     cta = report.get("cta") if isinstance(report.get("cta"), dict) else {}
     sales_intelligence = report.get("sales_intelligence") if isinstance(report.get("sales_intelligence"), dict) else {}
+    evidence_summary = human_list(report.get("evidence_summary"))[:5]
+    if not evidence_summary:
+        evidence_summary = human_list(sales_intelligence.get("useful_quotes"))[:3]
+    if not evidence_summary:
+        facts = lead.get("facts", {})
+        for key in ("selected_process", "frequency", "impact", "tools", "risk"):
+            text = humanize(facts.get(key))
+            if text:
+                labels = {
+                    "selected_process": "Proceso detectado",
+                    "frequency": "Frecuencia",
+                    "impact": "Impacto",
+                    "tools": "Herramientas actuales",
+                    "risk": "Riesgo a controlar",
+                }
+                evidence_summary.append(f"{labels[key]}: {text}")
+    if not evidence_summary:
+        evidence_summary = ["La recomendación se basa en los patrones detectados durante la conversación y debe validarse con ejemplos reales."]
     normalized = {
         "summary": humanize(report.get("summary")) or "Diagnóstico generado a partir de la conversación.",
         "business_snapshot": humanize(report.get("business_snapshot")) or humanize(lead.get("facts", {})),
         "recommended_employee": humanize(report.get("recommended_employee")) or normalized_opportunities[0]["ai_employee"],
         "recommendation_reason": humanize(report.get("recommendation_reason")) or "Es la oportunidad con mejor equilibrio entre impacto, factibilidad y riesgo.",
         "readiness": humanize(report.get("readiness")) or "alto potencial con revisión",
+        "evidence_summary": evidence_summary[:5],
         "opportunities": normalized_opportunities,
         "do_not_automate_yet": human_list(report.get("do_not_automate_yet")) or ["Envío automático sin revisión humana."],
         "seven_day_plan": human_list(report.get("seven_day_plan")) or ["Reunir ejemplos reales.", "Definir criterios.", "Probar una primera versión con revisión humana."],
@@ -1597,6 +1626,7 @@ class Handler(SimpleHTTPRequestHandler):
             "feedback_improve",
             "objections",
             "content_ideas",
+            "evidence_summary",
             "summary",
         ]
         writer = csv.DictWriter(output, fieldnames=fieldnames)
@@ -1644,6 +1674,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "feedback_improve": humanize(feedback.get("improve")) if feedback else "",
                     "objections": humanize(sales_intelligence.get("objections")),
                     "content_ideas": humanize(sales_intelligence.get("content_ideas")),
+                    "evidence_summary": humanize(outcome.get("evidence_summary")),
                     "summary": humanize(outcome.get("summary")),
                 }
             )

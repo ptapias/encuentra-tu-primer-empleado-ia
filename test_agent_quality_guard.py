@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from app_server import enforce_readiness_window, normalize_agent_result, repair_repetitive_reply
+from app_server import enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply
 
 
 def assert_true(condition, message):
@@ -105,8 +105,43 @@ def test_high_confidence_four_turns_can_close():
     assert_true("suficiente" in closed["reply"].lower(), "El cierre no explica que ya hay base para informe")
 
 
+def test_report_always_exposes_evidence_summary():
+    lead = {
+        "facts": {
+            "selected_process": "clasificación de emails",
+            "frequency": "10-15 emails al día",
+            "impact": "oportunidades comerciales sin responder",
+            "tools": "Outlook",
+            "risk": "que la IA invente respuestas",
+        },
+        "signals": {"email": 4},
+    }
+    raw_report = {
+        "summary": "Hay una oportunidad clara en email.",
+        "business_snapshot": "Newsletter con lectores que escriben por correo.",
+        "recommended_employee": "Asistente IA de bandeja de entrada",
+        "opportunities": [
+            {
+                "name": "Priorización de emails",
+                "impact_score": 4,
+                "feasibility_score": 4,
+                "scalability_score": 3,
+                "data_sensitivity_score": 3,
+            }
+        ],
+    }
+
+    report = normalize_report(raw_report, lead)
+    assert_true(report["evidence_summary"], "El informe normalizado debería incluir señales de evidencia")
+    assert_true(
+        any("10-15 emails" in item for item in report["evidence_summary"]),
+        "La evidencia debería aprovechar datos concretos del diagnóstico",
+    )
+
+
 if __name__ == "__main__":
     test_repeated_example_request_is_repaired()
     test_frustration_is_acknowledged()
     test_high_confidence_four_turns_can_close()
+    test_report_always_exposes_evidence_summary()
     print("agent_quality_guard ok")

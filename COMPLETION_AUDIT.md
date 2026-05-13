@@ -34,6 +34,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Progreso e insights vivos | Sidebar "Lo que estoy entendiendo" en `Agente_Real_CRM.html` | DOM verificado en navegador; `updateDiscovery()` actualiza claridad, foco, señales y gaps | Hecho |
 | Informe accionable y vendible | `/api/report`, `REPORT_INSTRUCTIONS`, `normalize_report()` | Informe real generado con empleado IA, oportunidades, riesgos y plan; normalización añadida tras detectar formato irregular | Hecho local |
 | Informe con decisión clara | `reportHtml()` en `Agente_Real_CRM.html` | Añade "Por qué esta va primero", prioridad inicial y flujo práctico Entrada -> Clasifica -> Prepara -> Revisión | Hecho base |
+| Informe con evidencia trazable | `evidence_summary` en `REPORT_INSTRUCTIONS`, `normalize_report()`, `Agente_Real_CRM.html`, `CRM_Dashboard.html`, CSV | El informe público/PDF muestra "Señales detectadas"; CRM muestra "Señales de decisión"; export CSV incluye `evidence_summary`; `test_agent_quality_guard.py` valida fallback de evidencia | Hecho base |
 | Matriz visual de priorización | `priority-map` en `Agente_Real_CRM.html` | El informe sitúa oportunidades en impacto frente a factibilidad y `test_beta_smoke.py` valida que la matriz esté presente | Hecho base |
 | Informe portable para usuario | `printLatestReport()` y `printableReportHtml()` en `Agente_Real_CRM.html` | Botón "Guardar PDF" abre versión imprimible; smoke test valida que está presente | Hecho base |
 | Guarda leads en CRM | SQLite `crm.sqlite3`, endpoints `/api/session`, `/api/email`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` | `test_discovery_flow.py` crea leads y reportes; dashboard lee datos | Hecho |
@@ -96,12 +97,13 @@ Resultado reciente:
 - Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
 - Preflight valida `MAX_AI_CONCURRENCY` y `AI_QUEUE_WAIT_SECONDS`; `healthz` expone `ai_concurrency`; `test_ai_concurrency.py` prueba el error de agente ocupado.
 - Smoke test valida que `HEAD /` redirige al diagnóstico para que checks externos no vean un falso 404.
+- El informe normalizado incluye `evidence_summary` aunque el modelo no lo devuelva explícitamente; lo deriva de frases útiles o facts como frecuencia, impacto, herramienta y riesgo.
 - `.env.example` usa `HOST=127.0.0.1`; `preflight_vps.py` avisa si la app queda expuesta públicamente sin pasar por Caddy.
 - Métricas locales: el CRM registra leads, conversaciones iniciadas, emails, informes y feedback; el CSV exporta rating, claridad, faltantes y mejora sugerida.
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
-- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK tras cambios de consentimiento/CTA; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector.
+- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK tras cambios de evidencia/consentimiento/CTA; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback, incluyeron `evidence_summary` y recomendaron empleados IA específicos por sector.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.

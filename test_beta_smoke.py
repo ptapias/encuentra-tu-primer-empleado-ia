@@ -110,6 +110,7 @@ def main():
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Matriz de priorización" in public_html and "Impacto frente a factibilidad" in public_html, "el informe no incluye matriz visual de priorización")
     expect("Guardar PDF" in public_html and "printLatestReport" in public_html, "el informe no permite guardar/imprimir PDF")
+    expect("Señales detectadas" in public_html, "el informe no explica la evidencia usada para recomendar")
     expect("Generar informe" in public_html and "Recibir informe" not in public_html, "el email-gate promete entrega por correo sin integración")
     expect("Ver mi diagnóstico" not in public_html, "el cierre usa un CTA demasiado pasivo")
     expect("Me interesa este siguiente paso" in public_html or "Quiero hablar de implementarlo" in public_html, "el informe no captura intención de siguiente paso")
@@ -321,6 +322,7 @@ def main():
     expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
     expect("cta_interest,cta_clicked_at" in export_header, "el export CSV no incluye intención de CTA")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
+    expect("evidence_summary" in export_header, "el export CSV no incluye señales de evidencia")
     checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
 
     print(json.dumps({"ok": True, "base": args.base, "checks": checks}, ensure_ascii=False, indent=2))

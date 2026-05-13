@@ -84,6 +84,7 @@ def run_case(case):
     report = post("/api/report", {"lead_id": lead_id})["report"]
     assert_true(report.get("recommended_employee"), "Falta recommended_employee")
     assert_true(report.get("opportunities"), "Faltan opportunities")
+    assert_true(report.get("evidence_summary"), "Faltan señales de evidencia en el informe")
     assert_true(report.get("seven_day_plan"), "Falta seven_day_plan")
 
     return {

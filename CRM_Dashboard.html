@@ -514,6 +514,7 @@
       </form>
       <div class="card"><span>Empleado IA recomendado</span><h3>${escapeHtml(report.recommended_employee || "sin informe todavía")}</h3><p>${escapeHtml(report.recommendation_reason || "")}</p></div>
       <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
+      <div class="card"><span>Señales de decisión</span>${list(report.evidence_summary)}</div>
       <div class="card"><span>Frases útiles</span>${list(salesIntel.useful_quotes)}</div>
       <div class="card"><span>Objeciones detectadas</span>${list(salesIntel.objections)}</div>
       <div class="card"><span>Ideas de contenido</span>${list(salesIntel.content_ideas)}</div>
