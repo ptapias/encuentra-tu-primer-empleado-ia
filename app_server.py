@@ -721,6 +721,23 @@ def score_0_to_100(value, fallback_score):
     return max(0, min(100, round(score, 1)))
 
 
+def normalize_triage(value, impact, feasibility, composite):
+    text = humanize(value).lower()
+    if any(term in text for term in ["park", "no recomendable", "no automatizar"]):
+        return "No recomendable todavía"
+    if any(term in text for term in ["ordenar", "refine", "refinar", "proceso"]):
+        return "Requiere ordenar proceso"
+    if any(term in text for term in ["quick", "rápid", "rapido", "ahora", "proceed"]):
+        return "Quick win"
+    if impact >= 4 and composite >= 3.3:
+        return "Alto impacto"
+    if feasibility >= 4 and composite >= 3.2:
+        return "Quick win"
+    if composite < 2:
+        return "No recomendable todavía"
+    return "Requiere ordenar proceso"
+
+
 def human_list(value) -> list[str]:
     return [text for text in (humanize(item) for item in ensure_list(value)) if text]
 
@@ -758,7 +775,7 @@ def normalize_report(report: dict, lead: dict) -> dict:
                 "scalability_score": scalability,
                 "data_sensitivity_score": sensitivity,
                 "composite_score": round(composite, 2),
-                "triage": humanize(opp.get("triage")) or ("PROCEED" if composite >= 3.5 else "REFINE"),
+                "triage": normalize_triage(opp.get("triage"), impact, feasibility, composite),
                 "tools": human_list(opp.get("tools")),
                 "data_needed": human_list(opp.get("data_needed")),
                 "risks": human_list(opp.get("risks")),
