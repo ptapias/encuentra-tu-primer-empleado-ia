@@ -94,7 +94,12 @@ python3 test_beta_smoke.py --base https://diagnostico.tu-dominio.com --admin-use
 
 - Revisa el CRM una vez al día.
 - Mira las métricas superiores del CRM: inicio de conversación, captura de email, informes generados, feedback y media de turnos.
-- Exporta manualmente `crm.sqlite3` como backup.
+- Haz backup de CRM antes de cambios o una vez al día durante beta:
+
+```bash
+python3 backup_crm.py
+```
+
 - Mira logs con `journalctl -u primer-empleado-ia -f`.
 - Si Codex CLI falla o tarda demasiado, cambia a `AI_PROVIDER=openai` temporalmente.
 

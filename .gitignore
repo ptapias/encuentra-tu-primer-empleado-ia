@@ -1,6 +1,7 @@
 crm_leads.jsonl
 crm.sqlite3
 crm.sqlite3-*
+backups/
 *.sqlite3
 __pycache__/
 .DS_Store
