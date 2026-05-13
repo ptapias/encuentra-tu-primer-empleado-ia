@@ -181,6 +181,22 @@ def main():
     expect(session.get("facts", {}).get("attribution", {}).get("source") == "youtube", "no se guarda la atribución inicial")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
 
+    missing_lead_statuses = {}
+    for endpoint, payload in {
+        "/api/chat": {"lead_id": "missing-lead", "message": "hola"},
+        "/api/email": {"lead_id": "missing-lead", "email": "smoke@example.com", "consent": True},
+        "/api/report": {"lead_id": "missing-lead"},
+        "/api/cta": {"lead_id": "missing-lead", "segment": "cohort"},
+        "/api/feedback": {"lead_id": "missing-lead", "feedback": {"rating": 5}},
+    }.items():
+        try:
+            request(args.base, endpoint, payload=payload, timeout=5)
+            missing_lead_statuses[endpoint] = 200
+        except urllib.error.HTTPError as exc:
+            missing_lead_statuses[endpoint] = exc.code
+    expect(all(status == 404 for status in missing_lead_statuses.values()), f"lead inexistente debería devolver 404: {missing_lead_statuses}")
+    checks.append({"check": "missing_lead_handling", "statuses": missing_lead_statuses})
+
     try:
         request(args.base, "/api/email", payload={"lead_id": session["lead_id"], "email": "smoke@example.com"})
         email_without_consent = 200

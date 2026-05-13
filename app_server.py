@@ -1272,6 +1272,13 @@ class Handler(SimpleHTTPRequestHandler):
         insert_event(lead["lead_id"], "session_created", {"email": email, "attribution": attribution})
         self._json(lead)
 
+    def _load_lead_or_404(self, lead_id: str):
+        try:
+            return get_lead(lead_id)
+        except KeyError:
+            self._json({"error": "No encuentro este diagnóstico. Empieza uno nuevo para continuar."}, 404)
+            return None
+
     def _handle_email(self):
         payload = read_json(self)
         lead_id = payload.get("lead_id")
@@ -1285,7 +1292,9 @@ class Handler(SimpleHTTPRequestHandler):
         if payload.get("consent") is not True:
             self._json({"error": "Necesitamos tu consentimiento para generar y guardar el diagnóstico."}, 400)
             return
-        lead = get_lead(lead_id)
+        lead = self._load_lead_or_404(lead_id)
+        if not lead:
+            return
         facts = lead["facts"]
         facts["consent"] = {
             "accepted": True,
@@ -1308,7 +1317,9 @@ class Handler(SimpleHTTPRequestHandler):
         if len(user_text) > MAX_MESSAGE_CHARS:
             self._json({"error": "Mensaje demasiado largo. Resume la respuesta y vuelve a intentarlo."}, 400)
             return
-        lead = get_lead(lead_id)
+        lead = self._load_lead_or_404(lead_id)
+        if not lead:
+            return
         user_turns = len([m for m in lead["transcript"] if m.get("role") == "user"])
         if user_turns >= MAX_USER_TURNS:
             self._json({"error": "Ya hay suficiente información. Genera el informe para cerrar el diagnóstico."}, 400)
@@ -1352,7 +1363,9 @@ class Handler(SimpleHTTPRequestHandler):
         if not lead_id:
             self._json({"error": "lead_id is required"}, 400)
             return
-        lead = get_lead(lead_id)
+        lead = self._load_lead_or_404(lead_id)
+        if not lead:
+            return
         consent = lead.get("facts", {}).get("consent") if isinstance(lead.get("facts", {}).get("consent"), dict) else {}
         if not valid_email(lead.get("email", "")) or consent.get("accepted") is not True:
             self._json({"error": "Para generar el informe necesitamos email y consentimiento explícito."}, 400)
@@ -1390,7 +1403,9 @@ class Handler(SimpleHTTPRequestHandler):
         if not lead_id:
             self._json({"error": "lead_id is required"}, 400)
             return
-        lead = get_lead(lead_id)
+        lead = self._load_lead_or_404(lead_id)
+        if not lead:
+            return
         consent = lead.get("facts", {}).get("consent") if isinstance(lead.get("facts", {}).get("consent"), dict) else {}
         if not valid_email(lead.get("email", "")) or consent.get("accepted") is not True:
             self._json({"error": "Para guardar interés necesitamos email y consentimiento explícito."}, 400)
@@ -1434,7 +1449,9 @@ class Handler(SimpleHTTPRequestHandler):
         if not lead_id:
             self._json({"error": "lead_id is required"}, 400)
             return
-        lead = get_lead(lead_id)
+        lead = self._load_lead_or_404(lead_id)
+        if not lead:
+            return
         consent = lead.get("facts", {}).get("consent") if isinstance(lead.get("facts", {}).get("consent"), dict) else {}
         if not valid_email(lead.get("email", "")) or consent.get("accepted") is not True:
             self._json({"error": "Para guardar feedback necesitamos email y consentimiento explícito."}, 400)
