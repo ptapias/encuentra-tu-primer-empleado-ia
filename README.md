@@ -173,7 +173,7 @@ python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 Si prefieres preparar las respuestas en un archivo local y revisarlo con calma:
 
 ```bash
-python3 generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json
+cp VPS_ANSWERS.example.json VPS_ANSWERS.local.json
 nano VPS_ANSWERS.local.json
 python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json
 ```

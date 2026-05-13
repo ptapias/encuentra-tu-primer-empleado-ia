@@ -224,6 +224,31 @@ def readme_positioning_check() -> dict:
     }
 
 
+def answers_example_check() -> dict:
+    try:
+        import generate_vps_inputs
+    except Exception as exc:
+        return {"name": "answers_example", "ok": False, "error": str(exc)}
+    path = ROOT / "VPS_ANSWERS.example.json"
+    if not path.exists():
+        return {"name": "answers_example", "ok": False, "error": "Falta VPS_ANSWERS.example.json"}
+    try:
+        example = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return {"name": "answers_example", "ok": False, "error": f"JSON inválido: {exc}"}
+    expected = generate_vps_inputs.answers_template()
+    missing = [key for key in expected if key not in example]
+    extra = [key for key in example if key not in expected]
+    changed = [key for key in expected if key in example and example[key] != expected[key]]
+    return {
+        "name": "answers_example",
+        "ok": not missing and not extra and not changed,
+        "missing": missing,
+        "extra": extra,
+        "changed_defaults": changed,
+    }
+
+
 def deployment_handoff_check() -> dict:
     path = ROOT / "NEXT_DEPLOYMENT_HANDOFF.md"
     text = path.read_text(encoding="utf-8") if path.exists() else ""
@@ -231,6 +256,7 @@ def deployment_handoff_check() -> dict:
         "python3 beta_readiness_status.py --plain",
         "Datos VPS completados",
         "Valores ya rellenados que también bloquean",
+        "cp VPS_ANSWERS.example.json VPS_ANSWERS.local.json",
         "python3 generate_vps_inputs.py --fill-missing-answers VPS_ANSWERS.local.json",
         "python3 validate_vps_inputs.py --path VPS_INPUTS.local.md",
         "python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md",
@@ -530,6 +556,7 @@ def main():
         testers_packet_check(),
         beta_test_plan_check(),
         readme_positioning_check(),
+        answers_example_check(),
         deployment_handoff_check(),
         local_validation_check(),
         deploy_config_check(),

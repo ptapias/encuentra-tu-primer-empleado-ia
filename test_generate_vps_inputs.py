@@ -59,6 +59,12 @@ def test_answers_template_has_all_fields_and_defaults():
     assert_true(template["Contraseña real CRM"] == "", "La plantilla no debería inventar contraseña")
 
 
+def test_committed_answers_example_matches_template():
+    example_path = generate_vps_inputs.ROOT / "VPS_ANSWERS.example.json"
+    example = json.loads(example_path.read_text(encoding="utf-8"))
+    assert_true(example == generate_vps_inputs.answers_template(), "VPS_ANSWERS.example.json debe coincidir con la plantilla generada")
+
+
 def test_fill_missing_answers_preserves_existing_values():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-vps-wizard-") as tmp:
         answers = Path(tmp) / "VPS_ANSWERS.local.json"
@@ -122,6 +128,7 @@ if __name__ == "__main__":
     test_generate_refuses_overwrite_without_force()
     test_cli_with_answers_json_generates_file()
     test_answers_template_has_all_fields_and_defaults()
+    test_committed_answers_example_matches_template()
     test_fill_missing_answers_preserves_existing_values()
     test_fill_missing_answers_reviews_blocking_values()
     test_deployment_handoff_uses_exact_json_keys()

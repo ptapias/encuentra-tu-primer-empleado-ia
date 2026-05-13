@@ -21,6 +21,12 @@ Ese comando es la fuente corta de verdad para saber qué falta. Si después de r
 
 Abre `VPS_ANSWERS.local.json` y completa solo lo que falta. Importante: no renombres las claves; deben quedar exactamente como aparecen en el JSON.
 
+Si no tienes todavía ese archivo local:
+
+```bash
+cp VPS_ANSWERS.example.json VPS_ANSWERS.local.json
+```
+
 Si prefieres que el asistente pregunte solo los campos pendientes o valores bloqueantes:
 
 ```bash
