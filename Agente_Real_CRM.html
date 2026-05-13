@@ -13,132 +13,133 @@
   </style>
   <style>
     :root {
-  /* === SUPERFICIES === */
-  --bg-deep:  #06081A;
-  --bg:       #0A0E26;
-  --bg-warm:  #0E1331;
-  --bg-elev:  #15214B;   /* IA al Día brand navy */
-  --bg-card:  #161E45;
+      /* === SUPERFICIES === */
+      --bg-deep:  #06081A;
+      --bg:       #0A0E26;
+      --bg-warm:  #0E1331;
+      --bg-elev:  #15214B;   /* IA al Día brand navy */
+      --bg-card:  #161E45;   /* card surface, slightly elevated */
 
-  /* === TINTA === */
-  --ink:        #F4EFE3;
-  --ink-soft:   #D9D3C2;
-  --ink-muted:  #75747E;  /* IA al Día brand grey */
-  --ink-faint:  #555C82;
+      /* === TINTA === */
+      --ink:        #F4EFE3;
+      --ink-soft:   #D9D3C2;
+      --ink-muted:  #75747E;  /* IA al Día brand grey */
+      --ink-faint:  #555C82;
 
-  /* === REGLAS === */
-  --rule:        rgba(160, 170, 210, 0.14);
-  --rule-strong: rgba(160, 170, 210, 0.28);
-  --rule-warm:   rgba(147, 133, 130, 0.20);  /* IA al Día brand taupe */
-  --rule-cyan:   rgba(4, 151, 225, 0.45);
+      /* === REGLAS === */
+      --rule:        rgba(160, 170, 210, 0.14);
+      --rule-strong: rgba(160, 170, 210, 0.28);
+      --rule-warm:   rgba(147, 133, 130, 0.20);  /* IA al Día brand taupe */
+      --rule-cyan:   rgba(4, 151, 225, 0.45);
 
-  /* === ACENTO + STATUS === */
-  --cyan:      #0497E1;  /* IA al Día brand cyan */
-  --cyan-deep: #048BCD;  /* IA al Día brand cyan deep */
-  --cyan-2:    #38C0FF;
-  --cyan-ink:  #7CD7FF;
-  --proceed:   #5EE39A;
-  --refine:    #F4C141;
-  --park:      #F08484;
+      /* === ACENTO + STATUS === */
+      --cyan:      #0497E1;  /* IA al Día brand cyan */
+      --cyan-deep: #048BCD;  /* IA al Día brand cyan deep */
+      --cyan-2:    #38C0FF;
+      --cyan-ink:  #7CD7FF;
+      --proceed:   #5EE39A;
+      --refine:    #F4C141;
+      --park:      #F08484;
 
-  /* === ESCALA TIPOGRÁFICA FLUIDA === */
-  --t-mega:    clamp(56px, 9vw, 132px);
-  --t-cover:   clamp(48px, 8vw, 96px);
-  --t-title:   clamp(40px, 6vw, 72px);
-  --t-h2:      clamp(32px, 4.5vw, 48px);
-  --t-sub:     clamp(22px, 2.6vw, 32px);
-  --t-lead:    clamp(18px, 2.2vw, 22px);
-  --t-body:    clamp(15px, 1.6vw, 18px);
-  --t-small:   clamp(13px, 1.4vw, 15px);
-  --t-eyebrow: clamp(11px, 1vw, 13px);
+      /* === ESCALA TIPOGRÁFICA FLUIDA === */
+      --t-mega:    clamp(56px, 9vw, 132px);
+      --t-cover:   clamp(48px, 8vw, 96px);
+      --t-title:   clamp(40px, 6vw, 72px);
+      --t-h2:      clamp(32px, 4.5vw, 48px);
+      --t-sub:     clamp(22px, 2.6vw, 32px);
+      --t-lead:    clamp(18px, 2.2vw, 22px);
+      --t-body:    clamp(15px, 1.6vw, 18px);
+      --t-small:   clamp(13px, 1.4vw, 15px);
+      --t-eyebrow: clamp(11px, 1vw, 13px);
 
-  /* === SPACING === */
-  --pad-x:      clamp(20px, 4vw, 64px);
-  --pad-y:      clamp(20px, 3vw, 48px);
-  --gap-1:      8px;
-  --gap-2:      16px;
-  --gap-3:      24px;
-  --gap-4:      40px;
-  --gap-5:      64px;
+      /* === SPACING === */
+      --pad-x:      clamp(20px, 4vw, 64px);
+      --pad-y:      clamp(20px, 3vw, 48px);
+      --gap-1:      8px;
+      --gap-2:      16px;
+      --gap-3:      24px;
+      --gap-4:      40px;
+      --gap-5:      64px;
 
-  /* === FAMILIAS === */
-  --font-display: "Libre Baskerville", "Source Serif 4", Georgia, serif;
-  --font-sans:    "IBM Plex Sans", system-ui, sans-serif;
-  --font-mono:    "IBM Plex Mono", ui-monospace, monospace;
+      /* === FAMILIAS === */
+      --font-display: "Libre Baskerville", "Source Serif 4", Georgia, serif;
+      --font-sans:    "IBM Plex Sans", system-ui, sans-serif;
+      --font-mono:    "IBM Plex Mono", ui-monospace, monospace;
 
-  /* === EASING === */
-  --ease:        cubic-bezier(0.2, 0.8, 0.2, 1);
-  --duration-1:  200ms;
-  --duration-2:  320ms;
-  --duration-3:  500ms;
-}
+      /* === EASING === */
+      --ease:        cubic-bezier(0.2, 0.8, 0.2, 1);
+      --duration-1:  200ms;
+      --duration-2:  320ms;
+      --duration-3:  500ms;
+    }
 
-* { box-sizing: border-box; }
+    * { box-sizing: border-box; }
 
-html, body {
-  background: var(--bg-deep);
-  color: var(--ink);
-  margin: 0;
-}
+    html, body {
+      background: var(--bg-deep);
+      color: var(--ink);
+      margin: 0;
+    }
 
-body {
-  font-family: var(--font-sans);
-  font-size: var(--t-body);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+    body {
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-/* Tipografía editorial reusable */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: var(--t-eyebrow);
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--cyan-2);
-  font-weight: 500;
-}
-.eyebrow.muted { color: var(--ink-muted); }
+    /* Tipografía editorial reusable. Nota: .body es una utility class para texto
+       de cuerpo; no confundir con el selector del elemento <body> declarado arriba. */
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--t-eyebrow);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--cyan-2);
+      font-weight: 500;
+    }
+    .eyebrow.muted { color: var(--ink-muted); }
 
-.display {
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin: 0;
-  text-wrap: balance;
-}
+    .display {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin: 0;
+      text-wrap: balance;
+    }
 
-.lead {
-  font-size: var(--t-lead);
-  font-style: italic;
-  line-height: 1.3;
-  color: var(--ink-soft);
-  margin: 0;
-  text-wrap: balance;
-}
+    .lead {
+      font-size: var(--t-lead);
+      font-style: italic;
+      line-height: 1.3;
+      color: var(--ink-soft);
+      margin: 0;
+      text-wrap: balance;
+    }
 
-.body { font-size: var(--t-body); color: var(--ink-soft); margin: 0; }
-.mono  { font-family: var(--font-mono); }
-.small { font-size: var(--t-small); color: var(--ink-muted); }
-.muted { color: var(--ink-muted); }
-.faint { color: var(--ink-faint); }
+    .body { font-size: var(--t-body); color: var(--ink-soft); margin: 0; }
+    .mono  { font-family: var(--font-mono); }
+    .small { font-size: var(--t-small); color: var(--ink-muted); }
+    .muted { color: var(--ink-muted); }
+    .faint { color: var(--ink-faint); }
 
-/* Focus universal */
-:where(button, a, input, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--cyan-2);
-  outline-offset: 2px;
-}
+    /* Focus universal */
+    :where(button, a, input, textarea, [tabindex]):focus-visible {
+      outline: 2px solid var(--cyan-2);
+      outline-offset: 2px;
+    }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
