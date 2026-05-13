@@ -100,6 +100,8 @@ python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --adm
 python3 release_check.py --env .env --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
 ```
 
+La respuesta de `/healthz` incluye `version`. Déjalo como `APP_VERSION=` en `.env` para que use el commit corto de Git, o rellénalo con una etiqueta tipo `beta-2026-05-13` si quieres identificar despliegues manuales.
+
 Activa también el backup diario del CRM:
 
 ```bash

@@ -84,8 +84,9 @@ def main():
 
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")
+    expect(bool(health.get("version")), "healthz debería exponer la versión/commit desplegado")
     beta_noindex = bool(health.get("beta_noindex", True))
-    checks.append({"check": "health", "provider": health.get("provider"), "transcription": health.get("transcription"), "beta_noindex": beta_noindex})
+    checks.append({"check": "health", "provider": health.get("provider"), "transcription": health.get("transcription"), "beta_noindex": beta_noindex, "version": health.get("version")})
 
     status, robots_headers, robots = request_raw(args.base, "/robots.txt")
     expect(status == 200 and "User-agent: *" in robots, "robots.txt no responde correctamente")

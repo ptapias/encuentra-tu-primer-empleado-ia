@@ -42,6 +42,7 @@ BETA_NOINDEX = os.environ.get("BETA_NOINDEX", "true").lower() in {"1", "true", "
 CRM_WEBHOOK_URL = os.environ.get("CRM_WEBHOOK_URL", "").strip()
 CRM_WEBHOOK_SECRET = os.environ.get("CRM_WEBHOOK_SECRET", "").strip()
 CRM_WEBHOOK_TIMEOUT = max(1.0, float(os.environ.get("CRM_WEBHOOK_TIMEOUT", "5")))
+APP_VERSION = os.environ.get("APP_VERSION", "").strip()
 RATE_BUCKETS: dict[str, list[int]] = {}
 AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
 PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.html"}
@@ -1097,6 +1098,25 @@ def diagnostic_location(route) -> str:
     return "/Agente_Real_CRM.html" + (f"?{route.query}" if route.query else "")
 
 
+def app_version() -> str:
+    if APP_VERSION:
+        return APP_VERSION
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -1144,6 +1164,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "transcription": transcription_status()["available"],
                 "ai_concurrency": MAX_AI_CONCURRENCY,
                 "beta_noindex": BETA_NOINDEX,
+                "version": app_version(),
             })
             return
         if route.path == "/robots.txt":
