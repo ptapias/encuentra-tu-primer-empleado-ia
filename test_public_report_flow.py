@@ -9,6 +9,11 @@ def skip(message: str) -> int:
     return 0
 
 
+def assert_true(condition, message: str):
+    if not condition:
+        raise AssertionError(message)
+
+
 def sample_report() -> dict:
     return {
         "summary": "Tu negocio pierde oportunidades porque el email mezcla lectores, posibles clientes y mensajes internos sin una prioridad clara.",
@@ -150,6 +155,40 @@ def main() -> int:
             page.get_by_role("button", name="Guardar feedback").click()
             page.get_by_text("Feedback guardado. Gracias.").wait_for(timeout=5000)
             result["checks"].append("feedback_saved")
+
+            page.evaluate("localStorage.clear()")
+            retry_page = browser.new_page(viewport={"width": 1280, "height": 920})
+
+            def report_needs_more_handler(route):
+                route.fulfill(
+                    status=409,
+                    content_type="application/json",
+                    body=json.dumps(
+                        {
+                            "error": "Aún no tengo suficiente evidencia para generar un diagnóstico útil. Continúa la conversación un poco más.",
+                            "missing": ["un proceso concreto a evaluar", "evidencia sobre frecuencia, impacto, herramientas o riesgos"],
+                        }
+                    ),
+                )
+
+            retry_page.route("**/api/chat", chat_handler)
+            retry_page.route("**/api/email", email_handler)
+            retry_page.route("**/api/report", report_needs_more_handler)
+            retry_page.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=report_retry", wait_until="networkidle")
+            retry_page.locator("section.starter button.start-primary").click()
+            retry_page.wait_for_selector("textarea#input:not([disabled])", timeout=8000)
+            retry_page.fill("#input", "Tengo correos importantes sin responder.")
+            retry_page.click("#send")
+            retry_page.locator("#report").wait_for(state="visible", timeout=5000)
+            retry_page.locator("#report").click()
+            retry_page.locator("#finalEmail").fill("tester@example.com")
+            retry_page.locator("#finalConsent").check()
+            retry_page.locator(".email-gate button").click()
+            retry_page.get_by_text("Todavía no quiero darte un informe flojo.").wait_for(timeout=10000)
+            retry_page.wait_for_selector("textarea#input:not([disabled])", timeout=5000)
+            assert_true(not retry_page.locator("#report").is_visible(), "El botón de informe debería ocultarse si falta discovery")
+            result["checks"].append("report_quality_gate_returns_to_chat")
+            retry_page.close()
 
             result["ok"] = True
             print(json.dumps(result, ensure_ascii=False, indent=2))

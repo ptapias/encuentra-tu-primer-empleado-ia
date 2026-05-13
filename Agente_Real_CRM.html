@@ -1283,8 +1283,13 @@
       const options = { method, headers: { "Content-Type": "application/json" } };
       if (payload) options.body = JSON.stringify(payload);
       const response = await fetch(path, options);
-      const json = await response.json();
-      if (!response.ok) throw new Error(json.error || "Error de servidor");
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(json.error || "Error de servidor");
+        error.status = response.status;
+        error.payload = json;
+        throw error;
+      }
       return json;
     }
 
@@ -1466,6 +1471,22 @@
         saveSessionState({ reportGenerated: true });
       } catch (error) {
         clearWaitStatus();
+        if (error.status === 409) {
+          const missing = Array.isArray(error.payload?.missing) ? error.payload.missing : [];
+          const missingText = missing.length ? `\n\nPara afinarlo necesito: ${missing.join(", ")}.` : "";
+          await addTypingMessage("agent", `Todavía no quiero darte un informe flojo.${missingText}\n\nSigamos un poco más: cuéntame un ejemplo real reciente del proceso, qué ocurrió, qué decidiste y qué resultado te habría gustado obtener.`, "Agente diagnóstico");
+          statusEl.textContent = "Necesito un poco más de evidencia.";
+          setCrm("Falta algo de discovery antes del informe.", "");
+          setStage("profundizacion");
+          reportBtn.hidden = true;
+          reportBtn.disabled = true;
+          input.disabled = false;
+          send.disabled = false;
+          micBtn.disabled = !transcriptionAvailable;
+          saveSessionState({ readyForReport: false });
+          input.focus();
+          return;
+        }
         await addTypingMessage("agent", `No he podido generar el informe con garantías.\n\n${error.message}\n\nPuedes volver a intentarlo en unos segundos.`, "Agente diagnóstico");
         statusEl.textContent = "Informe pendiente de reintento.";
         setCrm("Informe no generado. Reintenta en unos segundos.", "error");
