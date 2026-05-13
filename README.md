@@ -97,7 +97,7 @@ Si el puerto ya está ocupado por un servidor antiguo, el script lo dirá y no a
 REPLACE=true ./run_local_beta.sh
 ```
 
-También puedes arrancar a mano con `python3 app_server.py`, pero para demos y pruebas conviene usar `run_local_beta.sh` porque imprime `/healthz.version` y evita confundir una versión vieja con el código actual.
+También puedes arrancar a mano con `python3 app_server.py`, pero para demos y pruebas conviene usar `run_local_beta.sh` porque imprime `/healthz.version`. Esa versión queda fijada al arrancar el servidor: si haces `git pull` o cambias de commit, reinicia la beta para no probar un proceso antiguo.
 
 Por defecto el backend intenta usar `AI_PROVIDER=codex`, que llama a Codex CLI autenticado localmente con tu cuenta de ChatGPT/Codex. Esto sirve para pruebas internas en tu máquina o en un servidor donde hayas iniciado sesión con Codex CLI. No es la vía recomendada para una web pública con tráfico abierto.
 

@@ -152,7 +152,7 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; última instancia local verificada para UI/smoke tras cambios de onboarding: `82b005b` antes del commit de auditoría; última discovery real con Codex registrada: `c800bb3`.
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; desde `fd35508`, `version` queda fijada al arrancar el servidor para detectar procesos antiguos tras un `git pull`; smoke local contra `localhost:8787` devuelve `version=fd35508`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK en `1761140` con instancia temporal en `localhost:8791`; `/api/lead/update`, `/api/lead/delete`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local ampliado: OK en `cf94a71` y de nuevo tras endurecer el lanzamiento VPS hasta `e24c2cf`, con `.env` temporal válido, URL local, pruebas Playwright de UI/informe/sesión y transcripción local real; privacidad beta queda como warning mientras no se completen datos legales.
