@@ -90,4 +90,7 @@ Antes de subirlo:
 - Codex CLI funciona en la máquina destino o se decide usar API.
 - `python3 test_public_ui_flow.py --base http://localhost:8787` pasa.
 - `python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787` pasa en local.
+- `python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --mic-optional` devuelve `GO` solo para validación local/controlada.
 - Para una validación más cercana a usuario real: `python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription`.
+
+Nota: el go/no-go público debe ejecutarse con `.env` real, contraseña CRM y URL HTTPS. Si lo lanzas contra `localhost` con `--public-beta`, tiene que devolver `NO_GO`.
