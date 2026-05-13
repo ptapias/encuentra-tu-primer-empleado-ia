@@ -26,7 +26,6 @@ mkdir -p "${APP_DIR}"
 
 if [[ "$(pwd)" != "${APP_DIR}" ]]; then
   rsync -a --delete \
-    --exclude ".git" \
     --exclude ".env" \
     --exclude "crm.sqlite3" \
     --exclude "crm.sqlite3-*" \

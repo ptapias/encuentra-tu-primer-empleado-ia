@@ -128,6 +128,7 @@ def deploy_config_check() -> dict:
         "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
         "install_script_smoke": "test_beta_smoke.py" in install_script,
         "install_script_preflight_service_user": "--service-user" in install_script and "CHECK_CODEX_LIVE" in install_script,
+        "install_script_preserves_git_repo": '--exclude ".git"' not in install_script and "--exclude '.git'" not in install_script,
         "verify_script_executable": VERIFY_SCRIPT.exists() and bool(VERIFY_SCRIPT.stat().st_mode & 0o111),
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
         "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
