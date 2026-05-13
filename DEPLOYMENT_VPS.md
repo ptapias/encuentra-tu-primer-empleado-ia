@@ -136,10 +136,22 @@ python3 test_beta_smoke.py --base https://diagnostico.tu-dominio.com --admin-use
 python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password una-password-larga
 ```
 
+También puedes ejecutar el verificador completo del VPS. Lee la contraseña desde `.env`, prueba preflight, smoke local, smoke HTTPS y release gate:
+
+```bash
+DOMAIN=diagnostico.tu-dominio.com ./deploy/verify_vps.sh
+```
+
 Para una apertura pública más allá de beta controlada, completa antes `PRIVACY_BETA.md` y `PRIVACY_BETA.html`, y usa:
 
 ```bash
 python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password una-password-larga --public-beta
+```
+
+O con el verificador:
+
+```bash
+DOMAIN=diagnostico.tu-dominio.com PUBLIC_BETA=true ./deploy/verify_vps.sh
 ```
 
 Ese gate falla si el dominio no usa HTTPS, si estás probando contra localhost, si no pasas credenciales reales del CRM, si la contraseña no coincide con `.env`, si la privacidad final sigue con placeholders o notas públicas de beta, o si Codex CLI no responde en vivo.

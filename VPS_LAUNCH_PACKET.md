@@ -102,6 +102,18 @@ python3 release_check.py \
 
 Si falla, no se abre.
 
+Atajo recomendado después de instalar:
+
+```bash
+DOMAIN=diagnostico.tu-dominio.com ./deploy/verify_vps.sh
+```
+
+Cuando la privacidad final esté completada y quieras abrir más allá de beta controlada:
+
+```bash
+DOMAIN=diagnostico.tu-dominio.com PUBLIC_BETA=true ./deploy/verify_vps.sh
+```
+
 ## 5. Prueba manual de producto
 
 Hacer dos diagnósticos reales en producción:

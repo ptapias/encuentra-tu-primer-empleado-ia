@@ -15,6 +15,7 @@ BACKUP_SERVICE = ROOT / "deploy" / "primer-empleado-ia-backup.service"
 BACKUP_TIMER = ROOT / "deploy" / "primer-empleado-ia-backup.timer"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
+VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
 
 
 def load_env(path: Path) -> dict:
@@ -103,6 +104,7 @@ def deploy_config_check() -> dict:
     backup_timer = BACKUP_TIMER.read_text(encoding="utf-8") if BACKUP_TIMER.exists() else ""
     caddyfile = CADDYFILE.read_text(encoding="utf-8") if CADDYFILE.exists() else ""
     install_script = INSTALL_SCRIPT.read_text(encoding="utf-8") if INSTALL_SCRIPT.exists() else ""
+    verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8") if VERIFY_SCRIPT.exists() else ""
     required = {
         "app_service_NoNewPrivileges": "NoNewPrivileges=true" in app_service,
         "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
@@ -119,6 +121,9 @@ def deploy_config_check() -> dict:
         "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
         "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
         "install_script_smoke": "test_beta_smoke.py" in install_script,
+        "verify_script_executable": VERIFY_SCRIPT.exists() and bool(VERIFY_SCRIPT.stat().st_mode & 0o111),
+        "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
+        "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
     }
     missing = [name for name, ok in required.items() if not ok]
     return {
