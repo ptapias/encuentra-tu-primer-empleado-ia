@@ -454,6 +454,7 @@
         renderMetric("Interés CTA", `${metrics.cta_interest_rate || 0}%`, `${metrics.cta_interest || 0} señales`),
         renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
         renderMetric("Turnos", metrics.avg_user_turns, "Media usuario"),
+        renderMetric("Latencia IA", metrics.avg_chat_latency_seconds ? `${metrics.avg_chat_latency_seconds}s` : "sin datos", metrics.avg_report_latency_seconds ? `Informe ${metrics.avg_report_latency_seconds}s` : "Aún sin informes medidos"),
         renderMetric("Salud IA", metrics.operational_status || "ok", `${metrics.ai_errors || 0} errores · ${metrics.ai_busy || 0} ocupados`),
         renderMetric("Webhook", metrics.webhook_errors ? "revisar" : "ok", `${metrics.webhook_errors || 0} errores`),
         renderMetric("CTA top", topCta?.name || "sin datos", topCta ? `${topCta.count} leads` : "Aún sin clics"),

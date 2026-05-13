@@ -1316,19 +1316,21 @@ class Handler(SimpleHTTPRequestHandler):
         transcript = lead["transcript"] + [{"role": "user", "content": user_text, "at": now()}]
         lead["transcript"] = transcript
         prompt = json.dumps({"lead": lead, "latest_user_message": user_text}, ensure_ascii=False)
+        started_at = time.monotonic()
         try:
             result = call_ai(AGENT_INSTRUCTIONS, prompt)
         except AiBusyError as exc:
-            insert_event(lead_id, "ai_busy", {"stage": "chat", "error": str(exc)})
+            insert_event(lead_id, "ai_busy", {"stage": "chat", "error": str(exc), "elapsed_seconds": round(time.monotonic() - started_at, 2)})
             self._json({"error": str(exc)}, 429)
             return
         except Exception as exc:
             if not should_fallback():
-                insert_event(lead_id, "ai_error", {"stage": "chat", "error": str(exc)})
+                insert_event(lead_id, "ai_error", {"stage": "chat", "error": str(exc), "elapsed_seconds": round(time.monotonic() - started_at, 2)})
                 self._json({"error": "Ahora mismo no puedo generar una respuesta fiable. Inténtalo de nuevo en un momento."}, 502)
                 return
             result = fallback_agent(lead, user_text)
             result["api_error"] = str(exc)
+        elapsed_seconds = round(time.monotonic() - started_at, 2)
         result = normalize_agent_result(result, lead)
         result = repair_repetitive_reply(result, lead, user_text)
         result = enforce_readiness_window(result, lead)
@@ -1341,7 +1343,7 @@ class Handler(SimpleHTTPRequestHandler):
             signals=result.get("signals", lead["signals"]),
             transcript=transcript,
         )
-        insert_event(lead_id, "chat_turn", {"user": user_text, "assistant": result})
+        insert_event(lead_id, "chat_turn", {"user": user_text, "assistant": result, "elapsed_seconds": elapsed_seconds, "provider": AI_PROVIDER})
         self._json({"lead_id": lead_id, **result})
 
     def _handle_report(self):
@@ -1356,22 +1358,24 @@ class Handler(SimpleHTTPRequestHandler):
             self._json({"error": "Para generar el informe necesitamos email y consentimiento explícito."}, 400)
             return
         prompt = json.dumps({"lead": lead}, ensure_ascii=False)
+        started_at = time.monotonic()
         try:
             report = call_ai(REPORT_INSTRUCTIONS, prompt)
         except AiBusyError as exc:
-            insert_event(lead_id, "ai_busy", {"stage": "report", "error": str(exc)})
+            insert_event(lead_id, "ai_busy", {"stage": "report", "error": str(exc), "elapsed_seconds": round(time.monotonic() - started_at, 2)})
             self._json({"error": str(exc)}, 429)
             return
         except Exception as exc:
             if not should_fallback():
-                insert_event(lead_id, "ai_error", {"stage": "report", "error": str(exc)})
+                insert_event(lead_id, "ai_error", {"stage": "report", "error": str(exc), "elapsed_seconds": round(time.monotonic() - started_at, 2)})
                 self._json({"error": "Ahora mismo no puedo generar el informe con garantías. Inténtalo de nuevo en un momento."}, 502)
                 return
             report = fallback_report(lead)
             report["api_error"] = str(exc)
+        elapsed_seconds = round(time.monotonic() - started_at, 2)
         report = normalize_report(report, lead)
         update_lead(lead_id, outcome=report, stage="informe", status="report_generated")
-        insert_event(lead_id, "report_generated", report)
+        insert_event(lead_id, "report_generated", {**report, "elapsed_seconds": elapsed_seconds, "provider": AI_PROVIDER})
         send_crm_webhook(
             "report_generated",
             lead_id,
@@ -1598,6 +1602,13 @@ class Handler(SimpleHTTPRequestHandler):
                 LIMIT 8
                 """
             ).fetchall()
+            latency_event_rows = conn.execute(
+                """
+                SELECT event, payload_json
+                FROM events
+                WHERE event IN ('chat_turn', 'report_generated')
+                """
+            ).fetchall()
 
         total = len(lead_rows)
         with_email = 0
@@ -1666,6 +1677,27 @@ class Handler(SimpleHTTPRequestHandler):
         ai_busy = event_counts.get("ai_busy", 0)
         webhook_errors = event_counts.get("webhook_error", 0)
         operational_status = "revisar IA" if ai_errors else ("cola ocupada" if ai_busy else "ok")
+        chat_latencies = []
+        report_latencies = []
+        for row in latency_event_rows:
+            try:
+                payload = json.loads(row["payload_json"] or "{}")
+            except json.JSONDecodeError:
+                payload = {}
+            try:
+                elapsed = float(payload.get("elapsed_seconds"))
+            except (TypeError, ValueError):
+                continue
+            if elapsed <= 0:
+                continue
+            if row["event"] == "chat_turn":
+                chat_latencies.append(elapsed)
+            elif row["event"] == "report_generated":
+                report_latencies.append(elapsed)
+
+        def avg_seconds(values):
+            return round(sum(values) / len(values), 1) if values else 0
+
         recent_operational_events = []
         for row in operational_event_rows:
             try:
@@ -1700,6 +1732,8 @@ class Handler(SimpleHTTPRequestHandler):
             "avg_user_turns": round(total_turns / total, 1) if total else 0,
             "ai_errors": ai_errors,
             "ai_busy": ai_busy,
+            "avg_chat_latency_seconds": avg_seconds(chat_latencies),
+            "avg_report_latency_seconds": avg_seconds(report_latencies),
             "webhook_errors": webhook_errors,
             "operational_status": operational_status,
             "events": event_counts,
