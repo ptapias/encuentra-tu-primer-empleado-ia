@@ -77,6 +77,9 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Estado de preparación auditable | `beta_readiness_status.py`, `test_beta_readiness_status.py`, `VPS_LAUNCH_PACKET.md` | Resume artefactos locales esperados y clasifica el proyecto como bloqueado por inputs, listo para generar archivos, listo para prueba manual VPS o listo para ejecutar go/no-go público; si faltan inputs, apunta al generador guiado `generate_vps_inputs.py` | Hecho base |
 | Codex verificado como usuario systemd | `preflight_vps.py`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `test_server_guards.py`, docs VPS | El preflight puede recibir `--service-user primeria`; si se usa `--check-codex-live`, ejecuta Codex como ese usuario, evitando el falso positivo de login como `root` | Hecho base |
 | Preparación de producción | `PRODUCTION_READINESS.md`, `VPS_INPUTS.md`, `VPS_INPUTS.local.md` ignorado por Git, `.env` ignorado por Git, `generate_vps_inputs.py`, `validate_vps_inputs.py`, `prepare_vps_launch_files.py`, tests dedicados | Lista datos necesarios, variables `.env`, gate final, prueba manual obligatoria, criterios de no apertura, asistente guiado de ficha local, validación estricta y generación de `.env.generated`/`privacy_config.json` antes de tocar el VPS sin subir secretos al repo | Hecho base |
+| Prerrequisitos VPS bloqueantes | `validate_vps_inputs.py`, `test_vps_inputs_validator.py`, `generate_vps_inputs.py`, `DEPLOYMENT_VPS.md`, `VPS_LAUNCH_PACKET.md` | La ficha local falla si el dominio no apunta al VPS, si se lanza con Codex sin login del usuario systemd, si una decisión sí/no es ambigua o si el webhook está activo sin URL | Hecho base |
+| `.env` compatible con systemd | `validate_vps_inputs.py`, `test_vps_inputs_validator.py`, `generate_vps_inputs.py` | Bloquea contraseñas, secretos y rutas que puedan romper `EnvironmentFile`: espacios, comillas, `#`, barras invertidas y rutas no absolutas | Hecho base |
+| Secretos locales fuera de Git | `.gitignore`, `release_check.py` | El release check falla si `.env`, `.env.generated`, CRM SQLite/JSONL, backups, `privacy_config.json`, `VPS_INPUTS.local.md` o `MANUAL_PRODUCTION_TEST.local.md` dejan de estar ignorados o aparecen trackeados | Hecho base |
 | Plan de beta externa | `BETA_TEST_PLAN.md` | Define muestra mínima, mensaje para testers, variables a observar en CRM, criterios de éxito y experimentos por canal | Hecho base |
 | Paquete de primeros testers | `FIRST_TESTERS_PACKET.md` | Incluye enlaces UTM base, mensajes para DM/newsletter/YouTube, CTA oral, seguimiento tras completar, mensaje de abandono y checklist de lectura tras 10 testers | Hecho base |
 | Repositorio enseñable | GitHub `ptapias/encuentra-tu-primer-empleado-ia` | About actualizado con descripción de producto "Ontora-lite para pymes..." y topics `ai-discovery`, `business-automation`, `lead-magnet`, `no-code`, `pymes`, `spanish-saas` | Hecho base |
@@ -132,6 +135,7 @@ python3 test_prepare_vps_launch_files.py
 python3 test_manual_production_validator.py
 python3 test_beta_readiness_status.py
 python3 test_generate_vps_inputs.py
+python3 -m py_compile validate_vps_inputs.py generate_vps_inputs.py prepare_vps_launch_files.py
 python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription --manual-production-tested --crm-reviewed --mic-tested
 python3 release_check.py --env /tmp/primer-empleado-valid.env --service-user "$(whoami)" --base http://localhost:8787
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription
@@ -145,10 +149,10 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado por smoke: `b4dbf20`, con commits posteriores que refinan el flujo de lanzamiento VPS.
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado por smoke: `a4aeef5`, con commit posterior `d41a650` que añade protección de archivos sensibles al release check.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK en `1761140` con instancia temporal en `localhost:8791`; `/api/lead/update`, `/api/lead/delete`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
-- Release check local ampliado: OK en `cf94a71` y de nuevo tras añadir `generate_vps_inputs.py`/actualizar el lanzador, con `.env` temporal válido, URL local, pruebas Playwright de UI/informe/sesión y transcripción local real; privacidad beta queda como warning mientras no se completen datos legales.
+- Release check local ampliado: OK en `cf94a71` y de nuevo tras endurecer el lanzamiento VPS hasta `d41a650`, con `.env` temporal válido, URL local, pruebas Playwright de UI/informe/sesión y transcripción local real; privacidad beta queda como warning mientras no se completen datos legales.
 - Go/no-go local/controlado: OK con `--mic-optional` contra `localhost`; sigue sin equivaler a beta pública porque no valida HTTPS, datos legales ni prueba manual real.
 - Preflight valida `MAX_AI_CONCURRENCY` y `AI_QUEUE_WAIT_SECONDS`; `healthz` expone `ai_concurrency`; `test_ai_concurrency.py` prueba el error de agente ocupado.
 - Smoke test valida que `HEAD /` redirige al diagnóstico para que checks externos no vean un falso 404.
@@ -172,6 +176,8 @@ Resultado reciente:
 - Prueba de transcripción real: `test_transcription_local.py` valida audio generado localmente contra `/transcribe`; la prueba puede saltarse si faltan `say`, `ffmpeg` o Whisper.
 - Pruebas de navegador y transcripción usan IPs de prueba separadas para no pisarse con el rate limit antiabuso durante release checks repetidos.
 - Generador guiado de inputs VPS: `test_generate_vps_inputs.py` valida creación de `VPS_INPUTS.local.md`, rechazo de sobrescritura accidental y compatibilidad con `validate_vps_inputs.py`; `release_check.py` lo incluye como paso obligatorio.
+- Validación de inputs VPS: `test_vps_inputs_validator.py` cubre plantilla vacía, inputs válidos, webhook sin URL, dominio sin DNS, Codex sin login systemd, respuestas sí/no ambiguas y valores peligrosos para `.env`/systemd.
+- Protección de secretos locales: `release_check.py` incluye `sensitive_files_ignored` y valida `.gitignore`/Git para evitar subir `.env`, CRM, backups, privacidad real, ficha VPS local o prueba manual local.
 - Estado de preparación actual: `python3 beta_readiness_status.py` devuelve `blocked_on_launch_inputs` y recomienda `python3 generate_vps_inputs.py` como primera acción.
 - Prueba de sincronización CRM: `test_crm_webhook_sync.py` crea una base temporal, levanta un receptor webhook local, envía un snapshot y comprueba cabeceras, payload y recibo `crm_webhook_snapshot_synced`.
 - Go/no-go local/controlado: `launch_go_no_go.py` devuelve `GO` contra `localhost` cuando el release ampliado pasa y las confirmaciones manuales simuladas están presentes; con credenciales pasadas contra una instancia sin auth devuelve `NO_GO`, detectando una configuración que no sirve para producción.
@@ -183,6 +189,7 @@ Resultado reciente:
 |---|---|---|
 | VPS no desplegado todavía | "Listo para beta pública" requiere comprobar dominio, HTTPS, systemd, auth y persistencia en servidor real | Ejecutar `DEPLOYMENT_VPS.md` y luego `DOMAIN=... ./deploy/verify_vps.sh` en el VPS |
 | Faltan datos de lanzamiento | Sin dominio, acceso SSH, contraseña CRM y datos legales no se puede completar `--public-beta` | Ejecutar `python3 generate_vps_inputs.py`, validar `VPS_INPUTS.local.md`, generar `.env.generated`/`privacy_config.json` y seguir `VPS_LAUNCH_PACKET.md` |
+| DNS/login Codex reales no verificados en VPS | El validador ya bloquea respuestas negativas, pero todavía no hay evidencia real del servidor | En el VPS, apuntar DNS, ejecutar `sudo -H -u primeria codex login` y validar con preflight `--check-codex-live --service-user primeria` |
 | Codex CLI en producción es frágil para tráfico abierto | Puede tardar, romper sesión o no estar pensado como backend multiusuario | Beta privada primero; si hay uso real, migrar a API oficial o cola supervisada |
 | Grabación real de micrófono no cubierta por smoke test | Los permisos del navegador requieren prueba manual aunque `/api/capabilities` valide binarios | Probar micrófono manualmente en local y en VPS con HTTPS |
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
