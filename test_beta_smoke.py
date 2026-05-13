@@ -52,12 +52,34 @@ def main():
     status, public_html = request(args.base, "/Agente_Real_CRM.html")
     expect(status == 200, "la página pública no carga")
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
+    expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
+    expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
 
     status, session = request(args.base, "/api/session", payload={})
     expect(status == 200 and session.get("lead_id"), "no se puede crear sesión pública")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
+
+    update_payload = {
+        "lead_id": session["lead_id"],
+        "status": "send_resource",
+        "offer": "resource",
+        "notes": "smoke test",
+    }
+    try:
+        status, lead_update = request(args.base, "/api/lead/update", payload=update_payload)
+        update_without_auth = status
+    except urllib.error.HTTPError as exc:
+        update_without_auth = exc.code
+        lead_update = {}
+    if auth:
+        expect(update_without_auth == 401, "la edición de lead debería estar protegida sin autenticación")
+        status, lead_update = request(args.base, "/api/lead/update", auth=auth, payload=update_payload)
+        expect(status == 200 and lead_update.get("lead", {}).get("status") == "send_resource", "la edición de lead no responde con autenticación")
+    else:
+        expect(update_without_auth == 200 and lead_update.get("lead", {}).get("status") == "send_resource", "la edición de lead no responde en entorno sin auth")
+    checks.append({"check": "lead_update", "auth_required": bool(auth), "status_without_auth": update_without_auth})
 
     try:
         status, metrics = request(args.base, "/api/metrics")
