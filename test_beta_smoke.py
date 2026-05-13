@@ -171,6 +171,12 @@ def main():
     except urllib.error.HTTPError as exc:
         email_without_consent = exc.code
     expect(email_without_consent == 400, "el email-gate debería exigir consentimiento explícito")
+    try:
+        request(args.base, "/api/report", payload={"lead_id": session["lead_id"]}, timeout=5)
+        report_without_consent = 200
+    except urllib.error.HTTPError as exc:
+        report_without_consent = exc.code
+    expect(report_without_consent == 400, "el informe no debería generarse sin email y consentimiento")
     status, email_saved = request(
         args.base,
         "/api/email",
