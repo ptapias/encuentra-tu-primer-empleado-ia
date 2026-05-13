@@ -32,6 +32,7 @@ CRITICAL_ROWS = [
     "Micrófono HTTPS",
     "Email-gate",
     "Informe",
+    "Enlace privado",
     "CTA",
     "Feedback",
     "Lead nuevo",

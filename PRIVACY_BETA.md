@@ -7,7 +7,7 @@ Documento operativo para la beta. Debe revisarse antes de publicación definitiv
 | Punto | Información |
 |---|---|
 | Responsable | Pablo Tapias / Tu Primer Empleado IA. Completar razón social o datos fiscales antes de publicar. |
-| Finalidad | Generar un diagnóstico personalizado de procesos automatizables, enviar el informe al email facilitado, mejorar el producto con feedback y cualificar el siguiente paso comercial cuando proceda. |
+| Finalidad | Generar un diagnóstico personalizado de procesos automatizables, mostrar y guardar el informe, crear un enlace privado de acceso al diagnóstico, mejorar el producto con feedback y cualificar el siguiente paso comercial cuando proceda. |
 | Datos tratados | Email, respuestas de la conversación, información de negocio aportada por la persona, informe generado, métricas de uso y feedback. |
 | Base | Consentimiento de la persona al completar el diagnóstico y solicitar el informe. Revisar encaje legal antes de escalar la beta. |
 | Destinatarios | No vender datos. Puede haber proveedores técnicos de hosting, email, CRM/webhook, IA o transcripción necesarios para prestar el servicio y operar la beta. |
@@ -17,7 +17,7 @@ Documento operativo para la beta. Debe revisarse antes de publicación definitiv
 
 ## Texto corto para el punto de recogida
 
-Usaremos tu email y la conversación para generar y enviarte el diagnóstico, mejorar esta beta y, si encaja, proponerte el siguiente paso. No vendemos tus datos. Puedes pedir que eliminemos tu información escribiéndonos.
+Usaremos tu email y la conversación para generar, mostrar y guardar el diagnóstico, crear un enlace privado de acceso al informe, mejorar esta beta y, si encaja, proponerte el siguiente paso. No vendemos tus datos. Puedes pedir que eliminemos tu información escribiéndonos.
 
 ## Capa adicional recomendada
 

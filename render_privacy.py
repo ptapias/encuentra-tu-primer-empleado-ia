@@ -61,8 +61,8 @@ Esta política explica cómo se usan los datos cuando una persona realiza el dia
 |---|---|
 | Responsable | {cfg['controller_name']} ({cfg['controller_legal_id']}) |
 | Contacto | {cfg['contact_email']} |
-| Finalidad | Generar un diagnóstico personalizado de procesos automatizables, guardar el resultado, mejorar el producto con feedback y cualificar el siguiente paso comercial cuando proceda. |
-| Datos tratados | Email, respuestas de la conversación, información de negocio aportada por la persona, informe generado, métricas de uso, interés en el siguiente paso y feedback. |
+| Finalidad | Generar un diagnóstico personalizado de procesos automatizables, guardar el resultado, crear un enlace privado de acceso al informe, mejorar el producto con feedback y cualificar el siguiente paso comercial cuando proceda. |
+| Datos tratados | Email, respuestas de la conversación, información de negocio aportada por la persona, informe generado, enlace privado de acceso al diagnóstico, métricas de uso, interés en el siguiente paso y feedback. |
 | Base | Consentimiento de la persona al dejar su email, aceptar la política y solicitar el informe. |
 | Destinatarios | No vendemos datos. Usamos proveedores técnicos necesarios para prestar el servicio y operar la beta. |
 | Conservación | {cfg['retention_period']} |
@@ -76,21 +76,21 @@ Esta política explica cómo se usan los datos cuando una persona realiza el dia
 
 - Email, si la persona lo deja al final para generar y guardar el diagnóstico.
 - Respuestas de la conversación y contexto de negocio que la persona decida compartir.
-- Informe generado, métricas de uso, interés en CTA y feedback.
+- Informe generado, enlace privado de acceso al diagnóstico, métricas de uso, interés en CTA y feedback.
 - Datos técnicos básicos necesarios para operar la web y proteger el servicio.
 
 ## Para qué se usan
 
 - Generar el diagnóstico personalizado.
 - Mostrar oportunidades de automatización, riesgos, matriz de priorización y plan de acción.
-- Guardar el resultado en el CRM interno para seguimiento y mejora del producto.
+- Guardar el resultado en el CRM interno y crear un enlace privado de acceso al informe para recuperar el diagnóstico.
 - Revisar calidad, detectar fallos y entender qué casos de uso interesan más.
 - Proponer un siguiente paso si encaja con el caso: recurso, newsletter, cohort, llamada o implementación.
 
 ## Qué no hacemos
 
 - No vendemos tus datos.
-- No publicamos conversaciones ni informes individuales.
+- No publicamos conversaciones ni informes individuales; el enlace privado del informe no muestra email, conversación completa ni CRM interno.
 - No usamos el diagnóstico para tomar decisiones legales, médicas, financieras o laborales automatizadas.
 - No dejamos que una decisión comercial delicada dependa solo de la IA sin revisión humana.
 
@@ -104,7 +104,7 @@ Si pides borrar tus datos, eliminaremos el lead y sus eventos asociados del CRM 
 
 ## Texto corto para el punto de recogida
 
-Usaremos tu email y esta conversación para generar y guardar el diagnóstico, mejorar la experiencia y proponerte un siguiente paso si encaja. No vendemos tus datos. Puedes pedir que eliminemos tu información escribiendo a {cfg['contact_email']}.
+Usaremos tu email y esta conversación para generar y guardar el diagnóstico, crear un enlace privado de acceso al informe, mejorar la experiencia y proponerte un siguiente paso si encaja. No vendemos tus datos. Puedes pedir que eliminemos tu información escribiendo a {cfg['contact_email']}.
 """
 
 
@@ -225,7 +225,7 @@ def render_html(cfg: dict) -> str:
         <ul>
           <li>Email, si lo dejas al final para generar y guardar el diagnóstico.</li>
           <li>Respuestas de la conversación y contexto de negocio que decidas compartir.</li>
-          <li>Informe generado, métricas de uso, interés en CTA y feedback.</li>
+          <li>Informe generado, enlace privado de acceso al diagnóstico, métricas de uso, interés en CTA y feedback.</li>
         </ul>
       </div>
       <div class="card">
@@ -240,7 +240,7 @@ def render_html(cfg: dict) -> str:
         <h2>Qué no hacemos</h2>
         <ul>
           <li>No vendemos tus datos.</li>
-          <li>No publicamos tu conversación.</li>
+          <li>No publicamos tu conversación ni mostramos el CRM interno en el enlace privado del informe.</li>
           <li>No dejamos que una decisión comercial delicada dependa solo de la IA.</li>
         </ul>
       </div>
