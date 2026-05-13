@@ -1316,6 +1316,28 @@
       }
     }
 
+    function recoverMissingDiagnostic(error) {
+      if (error.status !== 404) return false;
+      clearSessionState();
+      leadId = null;
+      capturedEmail = "";
+      pendingReport = false;
+      input.disabled = true;
+      send.disabled = true;
+      micBtn.disabled = true;
+      reportBtn.hidden = true;
+      reportBtn.disabled = true;
+      statusEl.textContent = "Este diagnóstico ya no está disponible.";
+      setCrm("La sesión anterior caducó o fue borrada. Empieza una nueva.", "error");
+      setStage("contexto");
+      addHtml("agent", `<div class="email-gate">
+        <h3>Este diagnóstico ya no está disponible.</h3>
+        <p>Puede pasar si se borró el lead del CRM, se reinició la base o el navegador recuperó una sesión antigua.</p>
+        <button onclick="resetCurrentSession()">Empezar diagnóstico nuevo</button>
+      </div>`, "Sesión caducada");
+      return true;
+    }
+
     async function refreshCapabilities() {
       try {
         const result = await api("/api/capabilities", null, "GET");
@@ -1433,10 +1455,12 @@
         }
       } catch (error) {
         clearWaitStatus();
+        if (recoverMissingDiagnostic(error)) return;
         await addTypingMessage("agent", `Ahora mismo no puedo continuar con garantías.\n\n${error.message}\n\nTu respuesta no se ha perdido: puedes intentarlo de nuevo en unos segundos.`, "Agente diagnóstico");
         statusEl.textContent = "El agente necesita reintentar.";
         setCrm("Respuesta no generada. Puedes reintentar.", "error");
       } finally {
+        if (!leadId) return;
         if (!reportBtn.hidden) return;
         send.disabled = false;
       }
@@ -1471,6 +1495,7 @@
         saveSessionState({ reportGenerated: true });
       } catch (error) {
         clearWaitStatus();
+        if (recoverMissingDiagnostic(error)) return;
         if (error.status === 409) {
           const missing = Array.isArray(error.payload?.missing) ? error.payload.missing : [];
           const missingText = missing.length ? `\n\nPara afinarlo necesito: ${missing.join(", ")}.` : "";
@@ -1491,6 +1516,7 @@
         statusEl.textContent = "Informe pendiente de reintento.";
         setCrm("Informe no generado. Reintenta en unos segundos.", "error");
       } finally {
+        if (!leadId) return;
         reportBtn.disabled = false;
       }
     }
@@ -1542,6 +1568,7 @@
           await runReport();
         }
       } catch (err) {
+        if (recoverMissingDiagnostic(err)) return;
         if (error) error.textContent = err.message;
       }
     }

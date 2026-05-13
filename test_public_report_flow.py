@@ -108,7 +108,7 @@ def main() -> int:
                             "signals": ["10-15 emails diarios", "riesgo de respuestas inventadas", "Outlook como herramienta base"],
                             "candidate_processes": [{"name": "triage de email", "confidence": 5}],
                             "open_gaps": [],
-                            "stage": "ready_for_report",
+                            "stage": "recomendacion",
                         }
                     ),
                 )
@@ -179,6 +179,7 @@ def main() -> int:
             retry_page.wait_for_selector("textarea#input:not([disabled])", timeout=8000)
             retry_page.fill("#input", "Tengo correos importantes sin responder.")
             retry_page.click("#send")
+            retry_page.get_by_text("Ya tengo suficiente para prepararte un diagnóstico útil").wait_for(timeout=10000)
             retry_page.locator("#report").wait_for(state="visible", timeout=5000)
             retry_page.locator("#report").click()
             retry_page.locator("#finalEmail").fill("tester@example.com")

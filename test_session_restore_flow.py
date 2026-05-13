@@ -104,6 +104,51 @@ def main() -> int:
             assert page.locator("#input").is_disabled()
             result["checks"].append("ready_for_report_restore")
 
+            stale_page = context.new_page()
+
+            def missing_chat_handler(route):
+                route.fulfill(
+                    status=404,
+                    content_type="application/json",
+                    body=json.dumps({"error": "No encuentro este diagnóstico. Empieza uno nuevo para continuar."}),
+                )
+
+            stale_page.route("**/api/capabilities", capabilities_handler)
+            stale_page.route("**/api/chat", missing_chat_handler)
+            stale_page.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=stale_restore", wait_until="networkidle")
+            stale_page.evaluate(
+                """
+                localStorage.setItem('primerEmpleadoIaSession', JSON.stringify({
+                  leadId: 'stale-lead',
+                  capturedEmail: '',
+                  stage: 'profundizacion',
+                  status: 'Diagnóstico recuperado.',
+                  readyForReport: false,
+                  reportGenerated: false,
+                  transcript: [
+                    {role: 'user', content: 'Tengo una agencia y quiero automatizar seguimiento.'},
+                    {role: 'assistant', content: 'Estoy entendiendo el proceso de seguimiento.'}
+                  ],
+                  lastDiscovery: {
+                    current_focus: 'seguimiento comercial',
+                    confidence: 0.48,
+                    open_gaps: ['frecuencia', 'impacto'],
+                    ready_for_report: false,
+                    progress_label: 'Profundizando seguimiento'
+                  }
+                }));
+                """
+            )
+            stale_page.reload(wait_until="networkidle")
+            stale_page.wait_for_selector("textarea#input:not([disabled])", timeout=5000)
+            stale_page.fill("#input", "Ocurre todos los días.")
+            stale_page.click("#send")
+            stale_page.get_by_role("heading", name="Este diagnóstico ya no está disponible.").wait_for(timeout=5000)
+            stale_page.get_by_text("Empezar diagnóstico nuevo").wait_for(timeout=5000)
+            assert stale_page.locator("#input").is_disabled()
+            result["checks"].append("stale_session_recovers")
+            stale_page.close()
+
             result["ok"] = True
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0
