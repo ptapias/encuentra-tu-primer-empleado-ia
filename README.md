@@ -20,6 +20,8 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
 - `DEPLOYMENT_VPS.md`: guía para desplegar en VPS con Codex CLI, systemd y Caddy.
+- `VALIDACION_LOCAL.md`: checklist para probar experiencia, agente, email-gate, informe y CRM antes del VPS.
+- `test_discovery_flow.py`: prueba de producto con casos de clínica dental, inmobiliaria y consultor B2B.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.
 - `Prototipo_Diagnostico.html`: prototipo antiguo tipo formulario. Mantener solo como referencia secundaria.
@@ -55,6 +57,14 @@ También puedes usar:
 AI_PROVIDER=openai OPENAI_API_KEY=... python3 app_server.py
 AI_PROVIDER=fallback python3 app_server.py
 ```
+
+Para validar el producto antes del VPS:
+
+```bash
+python3 test_discovery_flow.py
+```
+
+Checklist completo en `VALIDACION_LOCAL.md`.
 
 Si el proveedor elegido falla, el sistema entra en modo fallback local para poder probar flujo, CRM, informe y feedback sin romper la experiencia.
 

@@ -531,16 +531,23 @@ def call_openai(instructions: str, input_text: str) -> dict:
 def fallback_agent(lead: dict, user_text: str) -> dict:
     text = " ".join([m.get("content", "") for m in lead["transcript"] if m.get("role") == "user"]).lower()
     combined = f"{text} {user_text}".lower()
+    def score_terms(terms):
+        return sum(combined.count(term) for term in terms)
+
     scores = {
-        "email": sum(x in combined for x in ["email", "correo", "outlook", "gmail", "bandeja"]),
-        "sales": sum(x in combined for x in ["lead", "venta", "crm", "propuesta", "cliente potencial", "comercial"]),
-        "whatsapp": sum(x in combined for x in ["whatsapp", "wasap", "mensaje"]),
-        "support": sum(x in combined for x in ["soporte", "incidencia", "cliente", "duda", "ticket"]),
-        "bookings": sum(x in combined for x in ["reserva", "cita", "agenda", "calendario"]),
-        "reporting": sum(x in combined for x in ["reporte", "informe", "metricas", "dashboard"]),
-        "documentation": sum(x in combined for x in ["documentar", "documentacion", "procedimiento", "manual"]),
-        "operations": sum(x in combined for x in ["operacion", "proceso", "tarea", "repetitivo", "manual"]),
+        "email": score_terms(["email", "correo", "outlook", "gmail", "bandeja"]),
+        "sales": score_terms(["lead", "leads", "venta", "ventas", "crm", "propuesta", "comprador", "compradores", "comercial"]),
+        "whatsapp": score_terms(["whatsapp", "wasap", "whatsapps"]),
+        "support": score_terms(["soporte", "incidencia", "cliente", "duda", "ticket", "paciente", "pacientes"]),
+        "bookings": score_terms(["reserva", "reservas", "reservar", "cita", "citas", "agenda", "calendario", "doctoralia"]),
+        "reporting": score_terms(["reporte", "reportes", "informe", "metricas", "dashboard"]),
+        "documentation": score_terms(["documentar", "documentacion", "procedimiento", "manual"]),
+        "operations": score_terms(["operacion", "proceso", "tarea", "repetitivo", "manual", "seguimiento"]),
     }
+    if scores["whatsapp"] and scores["bookings"]:
+        scores["bookings"] += 2
+    if scores["sales"] and scores["whatsapp"]:
+        scores["sales"] += 1
     signal = max(scores, key=scores.get)
     if scores[signal] == 0:
         signal = "operations"
@@ -568,9 +575,20 @@ def fallback_agent(lead: dict, user_text: str) -> dict:
     ready = turns >= 5
     if not gaps and turns >= 3:
         ready = True
+    labels = {
+        "email": "bandeja de entrada y clasificación de mensajes",
+        "sales": "captación y seguimiento comercial",
+        "whatsapp": "recepción y respuesta por WhatsApp",
+        "support": "atención y soporte a clientes",
+        "bookings": "reservas y gestión de citas",
+        "reporting": "reporting y seguimiento de métricas",
+        "documentation": "documentación interna",
+        "operations": "operaciones repetitivas",
+    }
+    focus_label = labels.get(signal, signal)
     facts = lead["facts"]
     facts.setdefault("business", lead["transcript"][0]["content"] if lead["transcript"] else user_text)
-    facts["selected_process"] = signal
+    facts["selected_process"] = focus_label
     signals = lead["signals"]
     for key, score in scores.items():
         signals[key] = max(signals.get(key, 0), score)
@@ -579,16 +597,16 @@ def fallback_agent(lead: dict, user_text: str) -> dict:
         "stage": "recomendacion" if ready else "profundizacion",
         "ready_for_report": ready,
         "confidence": 0.72 if ready else min(0.65, 0.25 + turns * 0.12),
-        "progress_label": "Priorizando oportunidades" if ready else f"Investigando {signal}",
-        "current_focus": signal,
+        "progress_label": "Priorizando oportunidades" if ready else f"Investigando {focus_label}",
+        "current_focus": focus_label,
         "open_gaps": gaps,
         "live_insights": [
-            f"Hay señales de trabajo repetitivo en {signal}.",
+            f"Hay señales de trabajo repetitivo en {focus_label}.",
             "Conviene mantener revisión humana en la primera versión.",
         ],
         "candidate_processes": [
             {
-                "name": signal,
+                "name": focus_label,
                 "why_it_matters": "Aparece como área con fricción o pérdida de valor en la conversación.",
                 "evidence": user_text[:180],
                 "confidence": 0.62 if not ready else 0.78,
@@ -608,6 +626,9 @@ def fallback_report(lead: dict) -> dict:
         "sales": "SDR IA de seguimiento comercial",
         "whatsapp": "Recepcionista IA de WhatsApp",
         "support": "Asistente IA de atención al cliente",
+        "bookings": "Recepcionista IA de reservas y citas",
+        "reporting": "Analista IA de reporting operativo",
+        "documentation": "Documentalista IA de procesos internos",
         "operations": "Asistente IA de operaciones",
     }.get(best, "Asistente IA de operaciones")
     return {
