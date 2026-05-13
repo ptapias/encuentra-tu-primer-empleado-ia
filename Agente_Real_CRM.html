@@ -988,7 +988,7 @@
       statusEl.innerHTML = '<span class="thinking">El agente está pensando…</span>';
       try {
         const result = await api("/api/chat", { lead_id: leadId, email: capturedEmail, message: text });
-        await addTypingMessage("agent", result.reply, result.fallback ? "Agente fallback" : "Agente diagnóstico");
+        await addTypingMessage("agent", result.reply, "Agente diagnóstico");
         setStage(result.stage);
         updateDiscovery(result);
         if (result.ready_for_report) {
@@ -1028,8 +1028,8 @@
         latestReport = result.report;
         addHtml("agent", reportHtml(latestReport), "Informe");
         setStage("informe");
-        statusEl.textContent = "Informe generado y guardado en CRM.";
-        setCrm("Lead actualizado en CRM SQLite.", "ok");
+        statusEl.textContent = "Diagnóstico generado.";
+        setCrm("Diagnóstico listo.", "ok");
       } catch (error) {
         addMessage("agent", `Error generando informe: ${error.message}`, "Sistema");
       } finally {
