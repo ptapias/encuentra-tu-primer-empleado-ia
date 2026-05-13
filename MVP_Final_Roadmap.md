@@ -16,18 +16,18 @@ La versión vendible debe poder abrirse a tráfico real con límites, analítica
 - CRM SQLite con conversación, informe y feedback.
 - Dashboard interno.
 - Micrófono y transcripción local.
-- Informe con oportunidades, riesgos, plan de 7/30 días y CTA.
+- Informe con oportunidades, matriz de priorización, riesgos, plan de 7/30 días, CTA y feedback.
+- Gate de release `--public-beta` para evitar abrir sin HTTPS, CRM protegido, privacidad final y proveedor IA verificado.
 
 ## Brechas críticas
 
 1. Despliegue en VPS con dominio y HTTPS.
-2. Autenticación obligatoria del CRM.
-3. Límites antiabuso y email obligatorio.
-4. Copys públicos menos técnicos y más comerciales.
-5. Política de privacidad básica.
+2. Completar privacidad final con datos legales/contacto reales.
+3. Probar micrófono en dominio HTTPS real.
+4. Ejecutar 5-10 casos reales con usuarios externos.
+5. Conectar email/newsletter o decidir operación manual de seguimiento.
 6. Exportación o integración posterior con CRM externo/newsletter.
-7. Pruebas de 10 casos reales antes de abrirlo.
-8. Medición de conversión: visita, inicio, informe, feedback, CTA.
+7. Medición de conversión: visita, inicio, informe, feedback, CTA.
 
 ## Tramo 1: beta privada enseñable
 

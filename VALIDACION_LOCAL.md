@@ -20,8 +20,9 @@ Comprueba:
 - El botón visible es `Analizar mi negocio`.
 - No aparecen textos como `JSON`, `CRM`, `fallback` o `informe potente`.
 - Al empezar aparece `Lo que estoy entendiendo`.
-- El botón `Ver mi diagnóstico` no aparece hasta que el agente decide que tiene suficiente.
+- El botón `Generar informe` no aparece hasta que el agente decide que tiene suficiente.
 - El email se pide solo antes de generar el diagnóstico.
+- El informe incluye `Matriz de priorización`, `Por qué esta va primero` y feedback al final.
 
 ## 2. Arrancar con Codex real
 
@@ -56,6 +57,7 @@ La prueba falla si el agente no devuelve:
 - procesos candidatos,
 - diagnóstico con empleado recomendado,
 - oportunidades,
+- `ready_for_report=true` cuando ya hay evidencia suficiente,
 - plan de 7 días.
 
 ## 4. Criterio mínimo para pasar a VPS
@@ -67,3 +69,4 @@ Antes de subirlo:
 - El CRM interno muestra conversación, diagnóstico y feedback.
 - No hay textos internos en la página pública.
 - Codex CLI funciona en la máquina destino o se decide usar API.
+- `python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787` pasa en local.
