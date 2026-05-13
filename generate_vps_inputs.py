@@ -9,6 +9,7 @@ import validate_vps_inputs
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_OUTPUT = ROOT / "VPS_INPUTS.local.md"
+DEFAULT_ANSWERS = ROOT / "VPS_ANSWERS.local.json"
 
 
 FIELDS = [
@@ -54,6 +55,10 @@ def answers_template() -> dict[str, str]:
     return {label: default for _section, label, default, _help_text in FIELDS}
 
 
+def missing_answer_labels(answers: dict[str, str]) -> list[str]:
+    return [label for label in validate_vps_inputs.REQUIRED_LABELS if not str(answers.get(label, "")).strip()]
+
+
 def ask(label: str, default: str, help_text: str, *, secret: bool, answers: dict[str, str]) -> str:
     if label in answers:
         return str(answers[label]).strip()
@@ -88,6 +93,46 @@ def render(values: dict[str, str]) -> str:
             lines.append(f"- {label}: {value}")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def fill_missing_answers(path: Path, provided: dict[str, str] | None = None, *, force: bool = False) -> dict:
+    if path.exists():
+        answers = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        answers = answers_template()
+    provided = provided or {}
+    labels = {label: (default, help_text) for _section, label, default, help_text in FIELDS}
+    missing = missing_answer_labels(answers)
+    if not missing and not force:
+        return {"ok": True, "path": str(path), "updated": [], "missing_required": []}
+    updated = []
+    for label in missing:
+        default, help_text = labels.get(label, ("", ""))
+        current = str(answers.get(label, "")).strip()
+        if label in provided:
+            value = str(provided[label]).strip()
+        else:
+            value = ask(
+                label,
+                current or default,
+                help_text,
+                secret=label in {"Contraseña real CRM", "Secreto webhook"},
+                answers={},
+            )
+        if value:
+            answers[label] = value
+            updated.append(label)
+    path.write_text(json.dumps(answers, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return {
+        "ok": not missing_answer_labels(answers),
+        "path": str(path),
+        "updated": updated,
+        "missing_required": missing_answer_labels(answers),
+        "next_actions": [
+            f"python3 generate_vps_inputs.py --answers-json {path}",
+            "python3 validate_vps_inputs.py --path VPS_INPUTS.local.md",
+        ],
+    }
 
 
 def generate(output: Path, answers: dict[str, str], *, force: bool = False) -> dict:
@@ -125,11 +170,16 @@ def main() -> int:
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     parser.add_argument("--answers-json", default="", help="Archivo JSON opcional para generar sin prompts, útil para tests")
     parser.add_argument("--print-answers-template", action="store_true", help="Imprime una plantilla JSON editable para usar con --answers-json")
+    parser.add_argument("--fill-missing-answers", default="", help="Rellena interactivamente solo campos obligatorios vacíos del JSON indicado")
     parser.add_argument("--force", action="store_true", help="Sobrescribe el archivo de salida si ya existe")
     args = parser.parse_args()
     if args.print_answers_template:
         print(json.dumps(answers_template(), ensure_ascii=False, indent=2))
         return 0
+    if args.fill_missing_answers:
+        result = fill_missing_answers(Path(args.fill_missing_answers))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["ok"] else 1
     result = generate(Path(args.output), load_answers(args.answers_json), force=args.force)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1

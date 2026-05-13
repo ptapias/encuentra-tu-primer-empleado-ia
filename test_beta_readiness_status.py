@@ -60,6 +60,10 @@ def test_existing_answers_json_is_reported_and_prioritized():
         any("Rellena `VPS_ANSWERS.local.json`" in action for action in result["next_actions"]),
         "Si existe JSON local, debería priorizar rellenarlo",
     )
+    assert_true(
+        any("--fill-missing-answers" in action for action in result["next_actions"]),
+        "Si existe JSON local, debería ofrecer rellenar solo campos pendientes",
+    )
     plain = beta_readiness_status.plain_report(result)
     assert_true("Datos que faltan en VPS_ANSWERS.local.json:" in plain, plain)
     assert_true("Contraseña real CRM" in plain, "La salida legible debería listar campos pendientes concretos")
