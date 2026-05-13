@@ -1434,6 +1434,7 @@
     let leadId = null;
     let transcript = [];
     let latestReport = null;
+    let latestReportUrl = "";
     let mediaRecorder = null;
     let activeStream = null;
     let audioChunks = [];
@@ -1500,6 +1501,7 @@
       localStorage.setItem(storageKey, JSON.stringify({
         leadId,
         capturedEmail,
+        latestReportUrl,
         stage: stageEl.textContent,
         status: statusEl.textContent,
         transcript,
@@ -1817,6 +1819,7 @@
         const result = await api("/api/report", { lead_id: leadId });
         clearWaitStatus();
         latestReport = result.report;
+        latestReportUrl = result.report_url || latestReport.public_report_url || "";
         addHtml("agent", reportHtml(latestReport), "Informe");
         setStage("informe");
         statusEl.textContent = "Diagnóstico generado.";
@@ -1967,6 +1970,7 @@
           <p>${escapeHtml(report.summary)}</p>
           <div class="report-actions">
             <button class="secondary" type="button" onclick="printLatestReport()">Guardar PDF</button>
+            ${report.public_report_url ? `<button class="secondary" type="button" onclick="copyReportLink()">Copiar enlace privado</button>` : ""}
           </div>
         </div>
         <div class="report-action-strip" aria-label="Resumen de acción del diagnóstico">
@@ -2129,6 +2133,21 @@
       printWindow.print();
     }
 
+    async function copyReportLink() {
+      const url = latestReportUrl || latestReport?.public_report_url || "";
+      if (!url) {
+        setCrm("Primero genera el diagnóstico.", "error");
+        return;
+      }
+      const absoluteUrl = new URL(url, window.location.origin).toString();
+      try {
+        await navigator.clipboard.writeText(absoluteUrl);
+        setCrm("Enlace privado copiado.", "ok");
+      } catch (error) {
+        window.prompt("Copia este enlace privado del informe:", absoluteUrl);
+      }
+    }
+
     async function saveFeedback() {
       const selectedRating = document.querySelector("input[name='feedbackRating']:checked");
       const feedback = {
@@ -2172,6 +2191,7 @@
       composer.hidden = false;
       leadId = saved.leadId;
       capturedEmail = saved.capturedEmail || "";
+      latestReportUrl = saved.latestReportUrl || "";
       transcript = [];
       chat.innerHTML = "";
       starter?.remove();

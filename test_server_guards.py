@@ -169,6 +169,34 @@ def test_codex_live_service_user_requires_root():
     assert_true("sudo/root" in result["message"], "El error debería explicar que hace falta sudo/root")
 
 
+def test_public_report_renderer_hides_private_context():
+    lead = {
+        "email": "tester@example.com",
+        "facts": {"report_token": "token"},
+        "transcript": [{"role": "user", "content": "mensaje privado"}],
+        "outcome": {
+            "summary": "Resumen útil del diagnóstico.",
+            "recommended_employee": "Empleado IA de seguimiento comercial",
+            "recommendation_reason": "Hay fuga de leads y se puede empezar con revisión humana.",
+            "evidence_summary": ["Llegan leads por email", "Hay revisión humana"],
+            "opportunities": [
+                {
+                    "name": "Seguimiento de leads",
+                    "problem": "Muchos leads quedan sin respuesta.",
+                    "ai_employee": "Asistente IA de seguimiento",
+                    "first_step": "Reunir 20 conversaciones reales.",
+                }
+            ],
+            "seven_day_plan": ["Reunir ejemplos", "Definir categorías"],
+            "do_not_automate_yet": ["Cerrar ventas sin revisión"],
+        },
+    }
+    html = app_server.render_public_report_html(lead)
+    assert_true("Empleado IA de seguimiento comercial" in html, "El informe público debería mostrar recomendación")
+    assert_true("mensaje privado" not in html and "tester@example.com" not in html, "El informe público no debería exponer conversación ni email")
+    assert_true(app_server.public_report_url("lead-1", "token") == "/r/lead-1/token", "URL pública del informe inesperada")
+
+
 if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
@@ -180,4 +208,5 @@ if __name__ == "__main__":
     test_preflight_webhook_checks()
     test_preflight_warns_about_stale_commit_app_version()
     test_codex_live_service_user_requires_root()
+    test_public_report_renderer_hides_private_context()
     print("server_guards ok")

@@ -15,7 +15,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Prompt_Investigacion_Procesos.md`: prompt de fondo para el agente investigador de procesos automatizables.
 - `Prompt_Agente_Diagnostico.md`: prompt listo para usar en un agente conversacional.
 - `Scoring_y_CRM.csv`: criterios de scoring y campos internos recomendados.
-- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable, matriz visual de decisión y feedback.
+- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable, matriz visual de decisión, enlace privado de informe y feedback.
 - `CRM_Dashboard.html`: dashboard interno para revisar métricas de embudo, utilidad media del feedback, patrones de faltantes, filtrar leads por oferta/estado/origen, ver conversación, outcome, oferta recomendada, consentimiento, interés en CTA, feedback estructurado, cambiar estado/oferta manualmente y exportar CSV.
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead`, `/api/metrics`, `/api/export.csv` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
@@ -155,7 +155,7 @@ Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con
 
 Para enseñarlo a público real, usa `.env.example` como base y define `ADMIN_PASSWORD` para proteger el CRM. La página pública ya no muestra leads internos; el dashboard queda separado en `CRM_Dashboard.html`.
 
-La beta genera el informe en pantalla y guarda el lead en CRM. Todavía no envía emails automáticamente; si quieres entrega por correo habrá que conectar Resend, Beehiiv, ConvertKit u otro proveedor.
+La beta genera el informe en pantalla, crea un enlace privado no indexable para recuperar el diagnóstico y guarda el lead en CRM. Todavía no envía emails automáticamente; si quieres entrega por correo habrá que conectar Resend, Beehiiv, ConvertKit u otro proveedor.
 
 La guía de VPS está en `DEPLOYMENT_VPS.md`.
 

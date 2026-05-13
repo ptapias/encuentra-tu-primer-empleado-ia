@@ -126,7 +126,9 @@ def main() -> int:
 
             def report_handler(route):
                 time.sleep(0.6)
-                route.fulfill(status=200, content_type="application/json", body=json.dumps({"lead_id": "ui-test", "report": sample_report()}))
+                report = sample_report()
+                report["public_report_url"] = "/r/ui-test/token-test"
+                route.fulfill(status=200, content_type="application/json", body=json.dumps({"lead_id": "ui-test", "report": report, "report_url": "/r/ui-test/token-test"}))
 
             def feedback_handler(route):
                 route.fulfill(status=200, content_type="application/json", body=json.dumps({"ok": True}))
@@ -157,6 +159,7 @@ def main() -> int:
             page.get_by_text("Fuga principal").wait_for(timeout=5000)
             page.locator(".report-action-strip").get_by_text("Primer paso", exact=True).wait_for(timeout=5000)
             page.get_by_text("Matriz de priorización").wait_for(timeout=5000)
+            page.get_by_text("Copiar enlace privado").wait_for(timeout=5000)
             page.get_by_text("Ayúdanos a mejorar este diagnóstico").wait_for(timeout=5000)
             result["checks"].append("email_gate_report_rendered")
 

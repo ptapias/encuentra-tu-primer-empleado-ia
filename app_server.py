@@ -4,11 +4,13 @@ from pathlib import Path
 from urllib import request, error, parse
 import base64
 import csv
+import html
 import ipaddress
 import io
 import json
 import os
 import re
+import secrets
 import shutil
 import sqlite3
 import subprocess
@@ -1033,6 +1035,99 @@ def humanize(value) -> str:
     return str(value)
 
 
+def html_escape(value) -> str:
+    return html.escape(humanize(value), quote=True)
+
+
+def public_report_url(lead_id: str, token: str) -> str:
+    return f"/r/{lead_id}/{token}"
+
+
+def render_public_report_html(lead: dict) -> str:
+    report = lead.get("outcome") if isinstance(lead.get("outcome"), dict) else {}
+    opportunities = report.get("opportunities") if isinstance(report.get("opportunities"), list) else []
+    main = opportunities[0] if opportunities else {}
+    action_summary = {
+        "Fuga principal": main.get("name") or report.get("recommended_employee") or "Proceso prioritario",
+        "Empleado IA recomendado": main.get("ai_employee") or report.get("recommended_employee") or "Empleado IA supervisado",
+        "Primer paso": main.get("first_step") or "Reunir ejemplos reales y definir revisión humana.",
+    }
+
+    def list_html(items):
+        values = items if isinstance(items, list) else []
+        return "<ul>" + "".join(f"<li>{html_escape(item)}</li>" for item in values[:8]) + "</ul>"
+
+    opportunity_cards = "".join(
+        f"""
+        <article class="card">
+          <span>Oportunidad {index}</span>
+          <h3>{html_escape(item.get('name'))}</h3>
+          <p>{html_escape(item.get('problem') or item.get('why_it_matters'))}</p>
+          <p><strong>Empleado IA:</strong> {html_escape(item.get('ai_employee'))}</p>
+          <p><strong>Primer paso:</strong> {html_escape(item.get('first_step'))}</p>
+        </article>
+        """
+        for index, item in enumerate(opportunities[:3], start=1)
+    )
+    action_items = "".join(
+        f"<div><span>{html_escape(label)}</span><strong>{html_escape(value)}</strong></div>"
+        for label, value in action_summary.items()
+    )
+    return f"""<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diagnóstico - Encuentra Tu Primer Empleado IA</title>
+  <style>
+    :root {{ color-scheme: light; --ink:#15221c; --muted:#607168; --line:#d9e6de; --soft:#f4f8f5; --accent:#0f8f68; }}
+    body {{ margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--ink); background:#fbfdfb; }}
+    main {{ max-width: 980px; margin: 0 auto; padding: 42px 20px 64px; }}
+    header {{ border-bottom:1px solid var(--line); padding-bottom:24px; margin-bottom:24px; }}
+    .eyebrow, span {{ color:var(--accent); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }}
+    h1 {{ font-size: clamp(32px, 5vw, 58px); line-height:1.02; margin:10px 0 14px; letter-spacing:0; }}
+    h2 {{ font-size:26px; margin:32px 0 12px; }}
+    h3 {{ margin:8px 0 10px; font-size:20px; }}
+    p, li {{ color:var(--muted); line-height:1.6; }}
+    .strip {{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin:22px 0; }}
+    .strip div, .card {{ border:1px solid var(--line); background:white; border-radius:8px; padding:18px; }}
+    .strip strong {{ display:block; margin-top:6px; font-size:17px; }}
+    .grid {{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }}
+    .muted {{ color:var(--muted); }}
+    .footer {{ margin-top:36px; padding-top:22px; border-top:1px solid var(--line); font-size:14px; color:var(--muted); }}
+    @media (max-width: 760px) {{ .strip, .grid {{ grid-template-columns:1fr; }} main {{ padding-top:28px; }} }}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Diagnóstico generado</div>
+      <h1>{html_escape(report.get('recommended_employee') or 'Tu primer empleado IA')}</h1>
+      <p>{html_escape(report.get('summary') or report.get('recommendation_reason'))}</p>
+    </header>
+    <section class="strip">{action_items}</section>
+    <section>
+      <h2>Por qué esta va primero</h2>
+      <p>{html_escape(report.get('recommendation_reason'))}</p>
+      <h2>Señales detectadas</h2>
+      {list_html(report.get('evidence_summary'))}
+    </section>
+    <section>
+      <h2>Top oportunidades</h2>
+      <div class="grid">{opportunity_cards}</div>
+    </section>
+    <section>
+      <h2>Plan de 7 días</h2>
+      {list_html(report.get('seven_day_plan'))}
+      <h2>Qué no automatizar todavía</h2>
+      {list_html(report.get('do_not_automate_yet'))}
+    </section>
+    <p class="footer">Informe privado de beta. Este enlace permite ver el diagnóstico, pero no expone la conversación completa ni el CRM interno.</p>
+  </main>
+</body>
+</html>"""
+
+
 def score_1_to_5(value, default=3):
     try:
         score = float(value)
@@ -1276,6 +1371,9 @@ class Handler(SimpleHTTPRequestHandler):
         if route.path == "/api/capabilities":
             self._json({"transcription": transcription_status()})
             return
+        if route.path.startswith("/r/"):
+            self._handle_public_report(route.path)
+            return
         if route.path in (*ADMIN_STATIC_FILES, "/api/leads", "/api/lead", "/api/metrics", "/api/export.csv") and not self._require_admin():
             return
         if route.path == "/api/leads":
@@ -1499,15 +1597,35 @@ class Handler(SimpleHTTPRequestHandler):
             report["api_error"] = str(exc)
         elapsed_seconds = round(time.monotonic() - started_at, 2)
         report = normalize_report(report, lead)
-        update_lead(lead_id, outcome=report, stage="informe", status="report_generated")
+        facts = lead["facts"]
+        report_token = facts.get("report_token") or secrets.token_urlsafe(24)
+        facts["report_token"] = report_token
+        report["public_report_url"] = public_report_url(lead_id, report_token)
+        update_lead(lead_id, facts=facts, outcome=report, stage="informe", status="report_generated")
         insert_event(lead_id, "report_generated", {**report, "elapsed_seconds": elapsed_seconds, "provider": AI_PROVIDER})
         send_crm_webhook(
             "report_generated",
             lead_id,
-            {"email": lead["email"], "outcome": report, "facts": lead["facts"], "transcript": lead["transcript"]},
+            {"email": lead["email"], "outcome": report, "facts": facts, "transcript": lead["transcript"]},
         )
         append_jsonl({"event": "report_generated", "lead_id": lead_id, "email": lead["email"], "outcome": report, "transcript": lead["transcript"]})
-        self._json({"lead_id": lead_id, "report": report})
+        self._json({"lead_id": lead_id, "report": report, "report_url": report["public_report_url"]})
+
+    def _handle_public_report(self, path: str):
+        parts = [part for part in path.split("/") if part]
+        if len(parts) != 3 or parts[0] != "r":
+            self.send_error(404, "Not found")
+            return
+        _, lead_id, token = parts
+        lead = get_lead(lead_id)
+        if not lead or not isinstance(lead.get("outcome"), dict):
+            self.send_error(404, "Not found")
+            return
+        facts = lead.get("facts") if isinstance(lead.get("facts"), dict) else {}
+        if not secrets.compare_digest(token, humanize(facts.get("report_token"))):
+            self.send_error(404, "Not found")
+            return
+        self._text(render_public_report_html(lead), "text/html; charset=utf-8")
 
     def _handle_cta_interest(self):
         payload = read_json(self)

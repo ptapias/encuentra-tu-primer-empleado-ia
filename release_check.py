@@ -89,6 +89,7 @@ def static_page_check() -> dict:
         "Señales detectadas",
         "Cómo funcionaría en la práctica",
         "Matriz de priorización",
+        "Copiar enlace privado",
         "Acepto que se use mi email y esta conversación",
         "Ayúdanos a mejorar este diagnóstico",
         "Qué echaste en falta",

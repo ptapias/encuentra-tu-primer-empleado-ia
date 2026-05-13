@@ -45,6 +45,7 @@ Usa este documento después de desplegar en VPS y antes de pasar el enlace a tes
 | Evidencia | Se ven señales detectadas y “por qué esta va primero” |  |  |
 | Plan | Aparece plan de 7/30 días |  |  |
 | PDF | “Guardar PDF” abre/imprime una versión limpia |  |  |
+| Enlace privado | “Copiar enlace privado” abre `/r/...`, muestra informe y no expone email/conversación |  |  |
 | CTA | “Me interesa este siguiente paso” guarda intención |  |  |
 | Feedback | Rating y texto se guardan sin error |  |  |
 
