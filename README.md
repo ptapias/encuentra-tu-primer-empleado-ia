@@ -95,6 +95,8 @@ La app guarda atribución básica si el enlace incluye parámetros como `utm_sou
 
 Desde `CRM_Dashboard.html` puedes operar la beta sin tocar la base de datos: seleccionar un lead, cambiar su estado, ajustar la oferta recomendada, añadir notas internas, revisar qué gustó/faltó del diagnóstico, detectar objeciones/ideas de contenido y borrar un lead completo si alguien pide eliminar sus datos. Los cambios quedan registrados como evento interno cuando procede.
 
+Si quieres conectar un CRM externo sin tocar código, configura `CRM_WEBHOOK_URL` en `.env`. La app enviará eventos de email capturado, informe generado, interés en CTA y feedback a Make, n8n, Zapier, Airtable, HubSpot o el destino que elijas. `CRM_WEBHOOK_SECRET` añade una cabecera sencilla para validar el origen.
+
 Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo. En VPS, define `WHISPER_BIN` y `FFMPEG_BIN` si no están en el `PATH`; si faltan, la app desactiva el micro y mantiene el flujo por texto.
 
 ## Producción beta

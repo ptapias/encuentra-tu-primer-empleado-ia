@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import app_server
+import json
 
 
 def assert_true(condition, message):
@@ -57,10 +58,48 @@ def test_client_ip_only_trusts_proxy_header_from_loopback():
     )
 
 
+def test_crm_webhook_payload_and_secret_header():
+    original_url = app_server.CRM_WEBHOOK_URL
+    original_secret = app_server.CRM_WEBHOOK_SECRET
+    original_urlopen = app_server.request.urlopen
+    calls = []
+
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+    def fake_urlopen(req, timeout):
+        calls.append({"req": req, "timeout": timeout})
+        return FakeResponse()
+
+    try:
+        app_server.CRM_WEBHOOK_URL = ""
+        assert_true(not app_server.send_crm_webhook("report_generated", "lead-1", {"ok": True}), "Sin URL no debería enviar webhook")
+
+        app_server.CRM_WEBHOOK_URL = "https://example.com/webhook"
+        app_server.CRM_WEBHOOK_SECRET = "secreto"
+        app_server.request.urlopen = fake_urlopen
+        assert_true(app_server.send_crm_webhook("report_generated", "lead-1", {"ok": True}), "Webhook configurado debería enviarse")
+        sent = calls[0]["req"]
+        body = json.loads(sent.data.decode("utf-8"))
+        assert_true(body["event"] == "report_generated" and body["lead_id"] == "lead-1", "Payload de webhook incompleto")
+        assert_true(sent.headers.get("X-crm-webhook-secret") == "secreto", "Falta cabecera de secreto del webhook")
+    finally:
+        app_server.CRM_WEBHOOK_URL = original_url
+        app_server.CRM_WEBHOOK_SECRET = original_secret
+        app_server.request.urlopen = original_urlopen
+
+
 if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
     test_admin_example_password_is_misconfigured()
     test_admin_without_password_only_allowed_on_local_host()
     test_client_ip_only_trusts_proxy_header_from_loopback()
+    test_crm_webhook_payload_and_secret_header()
     print("server_guards ok")

@@ -43,6 +43,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Inteligencia comercial interna | `sales_intelligence` en informe, `CRM_Dashboard.html`, CSV | CRM muestra frases útiles, objeciones e ideas de contenido; CSV exporta objeciones e ideas sin exponerlo en UI pública | Hecho base |
 | CRM operable manualmente | `/api/lead/update`, controles de "Operación interna" en `CRM_Dashboard.html` | Permite cambiar estado, oferta y notas internas desde el detalle del lead; `test_beta_smoke.py` valida edición con y sin auth | Hecho base |
 | CRM filtrable para operar beta | `offerFilter`, `statusFilter`, `sourceFilter` en `CRM_Dashboard.html` | Permite filtrar leads por oferta, estado y origen; smoke test valida presencia de filtros | Hecho base |
+| Integración CRM externa opcional | `CRM_WEBHOOK_URL`, `CRM_WEBHOOK_SECRET`, `send_crm_webhook()` en `app_server.py` | Envía email capturado, informe generado, interés CTA y feedback a Make/n8n/Zapier/Airtable/HubSpot si se configura; `test_server_guards.py` valida payload y cabecera secreta | Hecho base |
 | Borrado de datos de lead | `/api/lead/delete`, botón `Borrar lead` en `CRM_Dashboard.html`, nota en `PRIVACY_BETA.md` | Elimina lead y eventos asociados; `test_beta_smoke.py` valida borrado y 404 posterior | Hecho base |
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead, metrics, export, edición de lead y `/crm` legacy | Prueba con `ADMIN_PASSWORD`: endpoints internos devuelven `401` sin auth y `200` con auth | Hecho para VPS |
 | Bloqueo de contraseña admin de ejemplo | `admin_auth_misconfigured()` en `app_server.py`, `test_server_guards.py` | Si `ADMIN_PASSWORD=change-me`, rutas admin devuelven error de configuración en vez de aceptar una contraseña conocida | Hecho base |
@@ -121,7 +122,7 @@ Resultado reciente:
 | Grabación real de micrófono no cubierta por smoke test | Los permisos del navegador requieren prueba manual aunque `/api/capabilities` valide binarios | Probar micrófono manualmente en local y en VPS con HTTPS |
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
 | Calidad adaptativa probada en pocos casos reales con Codex | Un caso bueno no garantiza robustez en sectores distintos | Ejecutar 5 discovery sessions reales: newsletter, clínica, inmobiliaria, agencia, ecommerce |
-| Integración directa con CRM externo no implementada | CSV ya cubre operación manual inicial, pero no sincroniza con HubSpot/Airtable/etc. | Integrar cuando haya los primeros testers y un CRM elegido |
+| CRM externo real no elegido | El webhook ya permite sincronizar con Make/n8n/Zapier/Airtable/HubSpot, pero falta escoger destino y configurar credenciales reales | Elegir CRM/destino y completar `CRM_WEBHOOK_URL` en VPS |
 | Privacidad pendiente de datos reales | La beta ya informa, pero falta responsable legal, contacto y plazo concreto | Completar `PRIVACY_BETA.md` antes de tráfico público abierto |
 
 ## Decisión de auditoría

@@ -39,6 +39,9 @@ MAX_USER_TURNS = int(os.environ.get("MAX_USER_TURNS", "14"))
 MAX_AI_CONCURRENCY = max(1, int(os.environ.get("MAX_AI_CONCURRENCY", "1")))
 AI_QUEUE_WAIT_SECONDS = max(0.0, float(os.environ.get("AI_QUEUE_WAIT_SECONDS", "8")))
 BETA_NOINDEX = os.environ.get("BETA_NOINDEX", "true").lower() in {"1", "true", "yes", "on"}
+CRM_WEBHOOK_URL = os.environ.get("CRM_WEBHOOK_URL", "").strip()
+CRM_WEBHOOK_SECRET = os.environ.get("CRM_WEBHOOK_SECRET", "").strip()
+CRM_WEBHOOK_TIMEOUT = max(1.0, float(os.environ.get("CRM_WEBHOOK_TIMEOUT", "5")))
 RATE_BUCKETS: dict[str, list[int]] = {}
 AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
 PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.html"}
@@ -340,6 +343,33 @@ def insert_event(lead_id: str | None, event_name: str, payload: dict):
             "INSERT INTO events (lead_id, event, payload_json, created_at) VALUES (?, ?, ?, ?)",
             (lead_id, event_name, json.dumps(payload, ensure_ascii=False), now()),
         )
+
+
+def send_crm_webhook(event_name: str, lead_id: str | None, payload: dict) -> bool:
+    if not CRM_WEBHOOK_URL:
+        return False
+    body = {
+        "event": event_name,
+        "lead_id": lead_id,
+        "created_at": now(),
+        "payload": payload,
+    }
+    encoded = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "primer-empleado-ia/1.0",
+    }
+    if CRM_WEBHOOK_SECRET:
+        headers["X-CRM-Webhook-Secret"] = CRM_WEBHOOK_SECRET
+    req = request.Request(CRM_WEBHOOK_URL, data=encoded, headers=headers, method="POST")
+    try:
+        with request.urlopen(req, timeout=CRM_WEBHOOK_TIMEOUT) as response:
+            if response.status >= 400:
+                raise RuntimeError(f"Webhook returned HTTP {response.status}")
+        return True
+    except Exception as exc:
+        insert_event(lead_id, "webhook_error", {"event": event_name, "error": str(exc)[:500]})
+        return False
 
 
 def create_lead(email: str = "", attribution: dict | None = None) -> dict:
@@ -1236,7 +1266,9 @@ class Handler(SimpleHTTPRequestHandler):
             "privacy_version": payload.get("privacy_version") or "beta",
         }
         update_lead(lead_id, email=email, facts=facts)
-        insert_event(lead_id, "email_captured", {"email": email, "consent": facts["consent"]})
+        email_event = {"email": email, "consent": facts["consent"]}
+        insert_event(lead_id, "email_captured", email_event)
+        send_crm_webhook("email_captured", lead_id, email_event)
         self._json({"ok": True, "email": email})
 
     def _handle_chat(self):
@@ -1313,6 +1345,11 @@ class Handler(SimpleHTTPRequestHandler):
         report = normalize_report(report, lead)
         update_lead(lead_id, outcome=report, stage="informe", status="report_generated")
         insert_event(lead_id, "report_generated", report)
+        send_crm_webhook(
+            "report_generated",
+            lead_id,
+            {"email": lead["email"], "outcome": report, "facts": lead["facts"], "transcript": lead["transcript"]},
+        )
         append_jsonl({"event": "report_generated", "lead_id": lead_id, "email": lead["email"], "outcome": report, "transcript": lead["transcript"]})
         self._json({"lead_id": lead_id, "report": report})
 
@@ -1356,6 +1393,7 @@ class Handler(SimpleHTTPRequestHandler):
             status=status_by_segment.get(segment, lead["status"]),
         )
         insert_event(lead_id, "cta_interest_saved", facts["cta_interest"])
+        send_crm_webhook("cta_interest_saved", lead_id, {"email": lead["email"], "cta_interest": facts["cta_interest"], "status": status_by_segment.get(segment, lead["status"])})
         self._json({"ok": True, "lead_id": lead_id, "cta_interest": facts["cta_interest"]})
 
     def _handle_feedback(self):
@@ -1372,6 +1410,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
         update_lead(lead_id, feedback=feedback, status="feedback_saved")
         insert_event(lead_id, "feedback_saved", feedback)
+        send_crm_webhook("feedback_saved", lead_id, {"email": lead["email"], "feedback": feedback})
         self._json({"ok": True})
 
     def _handle_update_lead_admin(self):

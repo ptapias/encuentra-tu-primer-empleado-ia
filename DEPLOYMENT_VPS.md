@@ -48,12 +48,17 @@ CODEX_BIN=/usr/local/bin/codex
 ALLOW_AI_FALLBACK=false
 ADMIN_USER=admin
 ADMIN_PASSWORD=una-password-larga
+CRM_WEBHOOK_URL=
+CRM_WEBHOOK_SECRET=
+CRM_WEBHOOK_TIMEOUT=5
 MAX_AI_CONCURRENCY=1
 AI_QUEUE_WAIT_SECONDS=8
 BETA_NOINDEX=true
 WHISPER_BIN=/usr/local/bin/whisper
 FFMPEG_BIN=/usr/bin/ffmpeg
 ```
+
+`CRM_WEBHOOK_URL` es opcional. Úsalo si quieres enviar automáticamente email capturado, informe, interés CTA y feedback a Make, n8n, Zapier, Airtable, HubSpot u otro CRM.
 
 Si no vas a usar micrófono en la primera beta, la app seguirá funcionando por texto. El endpoint `/api/capabilities` indicará si la transcripción está disponible y la UI desactivará el botón de micro si faltan binarios.
 
