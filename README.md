@@ -40,6 +40,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
 - `release_check.py --with-browser --with-transcription`: añade pruebas de navegador y audio real contra una URL local o VPS ya arrancada.
 - `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
+- `launch_go_no_go.py`: veredicto operativo final antes de enseñar la beta, combinando release check, navegador/transcripción y confirmaciones manuales.
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
 - `test_server_guards.py`: prueba de guardas básicos del servidor como rate limit e emails inválidos.

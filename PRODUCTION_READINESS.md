@@ -68,6 +68,24 @@ python3 release_check.py \
   --public-beta
 ```
 
+Para obtener un veredicto operativo en una sola salida:
+
+```bash
+python3 launch_go_no_go.py \
+  --env .env \
+  --base https://diagnostico.tu-dominio.com \
+  --admin-user admin \
+  --admin-password una-password-larga \
+  --public-beta \
+  --check-codex-live \
+  --service-user primeria \
+  --with-browser \
+  --with-transcription \
+  --manual-production-tested \
+  --crm-reviewed \
+  --mic-tested
+```
+
 Debe validar:
 
 - App viva en HTTPS.

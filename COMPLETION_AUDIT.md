@@ -64,6 +64,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `VPS_LAUNCH_PACKET.md`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight, release check, instalador no-root, verificador VPS y smoke test locales OK; checklist operativo preparado; despliegue real no ejecutado | Parcial |
 | Gate de release para VPS | `release_check.py`, `deploy/verify_vps.sh` | Agrupa sintaxis, copy público, privacidad beta, test del generador de privacidad, preflight y smoke test contra URL local/dominio; `--public-beta` exige HTTPS, no localhost, credenciales CRM, privacidad final y Codex live | Hecho base |
 | Gate opcional de experiencia real | `release_check.py --with-browser --with-transcription`, `test_public_ui_flow.py`, `test_public_report_flow.py`, `test_transcription_local.py` | Permite sumar pruebas de navegador, cierre de informe y audio real al release check contra una URL arrancada; falla si se piden sin `--base` | Hecho base |
+| Go/no-go operativo | `launch_go_no_go.py`, `test_launch_go_no_go.py`, `PRODUCTION_READINESS.md`, `VPS_LAUNCH_PACKET.md` | Ejecuta `release_check.py` y añade bloqueos explícitos de HTTPS, localhost, CRM, privacidad, prueba manual, revisión CRM y micro antes de abrir beta pública | Hecho base |
 | Codex verificado como usuario systemd | `preflight_vps.py`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `test_server_guards.py`, docs VPS | El preflight puede recibir `--service-user primeria`; si se usa `--check-codex-live`, ejecuta Codex como ese usuario, evitando el falso positivo de login como `root` | Hecho base |
 | Preparación de producción | `PRODUCTION_READINESS.md` | Lista datos necesarios, variables `.env`, gate final, prueba manual obligatoria y criterios de no apertura | Hecho base |
 | Plan de beta externa | `BETA_TEST_PLAN.md` | Define muestra mínima, mensaje para testers, variables a observar en CRM, criterios de éxito y experimentos por canal | Hecho base |
@@ -103,6 +104,8 @@ python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription
+python3 test_launch_go_no_go.py
+python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription --manual-production-tested --crm-reviewed --mic-tested
 python3 release_check.py --env /tmp/primer-empleado-valid.env --service-user "$(whoami)" --base http://localhost:8787
 APP_DIR="$PWD" CHECK_CODEX_LIVE=false ./deploy/verify_vps.sh
 curl http://localhost:8787/healthz
@@ -136,6 +139,7 @@ Resultado reciente:
 - Prueba de cierre público reusable: `test_public_report_flow.py` valida que el usuario solo deja email al final y que el informe/feedback aparecen correctamente.
 - Prueba de transcripción real: `test_transcription_local.py` valida audio generado localmente contra `/transcribe`; la prueba puede saltarse si faltan `say`, `ffmpeg` o Whisper.
 - Prueba de sincronización CRM: `test_crm_webhook_sync.py` crea una base temporal, levanta un receptor webhook local, envía un snapshot y comprueba cabeceras, payload y recibo `crm_webhook_snapshot_synced`.
+- Go/no-go local/controlado: `launch_go_no_go.py` devuelve `GO` contra `localhost` cuando el release ampliado pasa y las confirmaciones manuales simuladas están presentes; con credenciales pasadas contra una instancia sin auth devuelve `NO_GO`, detectando una configuración que no sirve para producción.
 - Prueba anti-fallback silencioso: con `CODEX_BIN` inválido y `ALLOW_AI_FALLBACK=false`, `/api/chat` devuelve `502` y no genera respuesta fallback.
 
 ## Huecos no cerrados

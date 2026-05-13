@@ -124,6 +124,24 @@ Cuando la privacidad final esté completada y quieras abrir más allá de beta c
 DOMAIN=diagnostico.tu-dominio.com PUBLIC_BETA=true ./deploy/verify_vps.sh
 ```
 
+Después de las pruebas manuales, usa el go/no-go operativo:
+
+```bash
+python3 launch_go_no_go.py \
+  --env .env \
+  --base https://diagnostico.tu-dominio.com \
+  --admin-user admin \
+  --admin-password 'PASSWORD_REAL' \
+  --public-beta \
+  --check-codex-live \
+  --service-user primeria \
+  --with-browser \
+  --with-transcription \
+  --manual-production-tested \
+  --crm-reviewed \
+  --mic-tested
+```
+
 ## 5. Prueba manual de producto
 
 Hacer dos diagnósticos reales en producción:

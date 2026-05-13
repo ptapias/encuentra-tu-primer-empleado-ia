@@ -19,6 +19,7 @@ VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
+LAUNCH_GO_NO_GO = ROOT / "launch_go_no_go.py"
 
 
 def load_env(path: Path) -> dict:
@@ -132,6 +133,7 @@ def deploy_config_check() -> dict:
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
         "manual_production_test_exists": MANUAL_PRODUCTION_TEST.exists(),
+        "launch_go_no_go_exists": LAUNCH_GO_NO_GO.exists(),
     }
     missing = [name for name, ok in required.items() if not ok]
     return {
@@ -203,8 +205,10 @@ def main():
                 "test_public_report_flow.py",
                 "test_crm_webhook_sync.py",
                 "test_transcription_local.py",
+                "test_launch_go_no_go.py",
                 "render_privacy.py",
                 "sync_crm_webhook.py",
+                "launch_go_no_go.py",
             ],
         ),
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
@@ -213,6 +217,7 @@ def main():
         run_step("backup_crm", [sys.executable, "test_backup_crm.py"]),
         run_step("privacy_renderer", [sys.executable, "test_privacy_renderer.py"]),
         run_step("crm_webhook_sync", [sys.executable, "test_crm_webhook_sync.py"]),
+        run_step("launch_go_no_go", [sys.executable, "test_launch_go_no_go.py"]),
         static_page_check(),
         privacy_check(require_privacy_final),
         deploy_config_check(),
