@@ -126,7 +126,9 @@ def main():
     if beta_noindex:
         expect("noindex" in public_headers.get("X-Robots-Tag", ""), "falta X-Robots-Tag en página pública")
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
-    expect("Sesión de discovery gratuita · 7-10 minutos" in public_html, "falta el posicionamiento de discovery consultiva")
+    expect("Discovery gratuito · 7-10 min" in public_html, "falta el posicionamiento de discovery consultiva")
+    expect("Discovery gratuito" in public_html and "mini sesión consultiva" in public_html, "el lateral no refuerza el posicionamiento consultivo")
+    expect("Empieza con una escena real" in public_html, "el lateral no guía al usuario a empezar con una escena")
     expect("Empieza cuando quieras: el agente irá tirando del hilo." in public_html, "el estado inicial suena interno o poco conversacional")
     expect("Habla con un agente que analiza tu negocio como lo haría un consultor" in public_html, "falta la promesa consultiva del agente")
     expect("No hace falta que lo tengas ordenado" in public_html, "el inicio no reduce fricción para usuarios no técnicos")

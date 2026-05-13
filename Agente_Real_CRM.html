@@ -1215,15 +1215,15 @@
 <body>
   <div class="shell">
     <aside>
-      <div class="eyebrow">Diagnóstico gratuito</div>
+      <div class="eyebrow">Discovery gratuito</div>
       <h1>Encuentra tu primer empleado IA</h1>
-      <p class="lead">Una discovery session ligera para encontrar la fuga concreta: tiempo, dinero, clientes o trabajo que depende demasiado de ti.</p>
+      <p class="lead">Una mini sesión consultiva para detectar dónde se escapa tiempo, dinero, clientes o trabajo que depende demasiado de ti.</p>
       <div class="panel">
-        <h2>Empieza por lo que más te pesa</h2>
+        <h2>Empieza con una escena real</h2>
         <button id="start">Empezar diagnóstico</button>
         <button class="secondary" id="resetSession" type="button" hidden>Nuevo diagnóstico</button>
-        <div class="crm-status" id="crmStatus">Sin formularios largos. Primero entendemos tu caso.</div>
-        <p class="privacy-note">El agente irá tirando del hilo hasta encontrar un proceso automatizable real. <a href="/PRIVACY_BETA.html" target="_blank" rel="noreferrer">Privacidad beta</a></p>
+        <div class="crm-status" id="crmStatus">Sin formulario previo. Primero entendemos qué pasa de verdad.</div>
+        <p class="privacy-note">El agente irá tirando del hilo hasta convertir tu relato en procesos, señales y prioridades. <a href="/PRIVACY_BETA.html" target="_blank" rel="noreferrer">Privacidad beta</a></p>
       </div>
       <div class="panel discovery-panel" id="discoveryPanel">
         <h2>Lo que estoy entendiendo</h2>
@@ -1257,8 +1257,8 @@
       <div class="panel">
         <h2>Qué recibirás</h2>
         <div class="lead-list">
-          <div class="lead-item"><strong>Top 3 oportunidades</strong>Procesos concretos que podrías automatizar.</div>
-          <div class="lead-item"><strong>Primer empleado IA recomendado</strong>Qué debería hacer, con qué datos y con qué riesgos.</div>
+          <div class="lead-item"><strong>Fugas detectadas</strong>Dónde se pierde tiempo, dinero, clientes o foco.</div>
+          <div class="lead-item"><strong>Primer empleado IA recomendado</strong>Qué debería hacer, con qué datos, límites y riesgos.</div>
           <div class="lead-item"><strong>Plan de 7 días</strong>Primeros pasos realistas sin lenguaje técnico.</div>
         </div>
       </div>
@@ -1274,7 +1274,7 @@
       <div class="chat" id="chat">
         <section class="starter" id="starter">
           <div class="starter-hero">
-            <div class="starter-kicker">Sesión de discovery gratuita · 7-10 minutos</div>
+            <div class="starter-kicker">Discovery gratuito · 7-10 min</div>
             <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
             <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: escucha, repregunta, detecta patrones y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
             <div class="starter-start">
@@ -1681,7 +1681,7 @@
         if (microAdvice) microAdvice.textContent = "También puedes hacerlo por texto: responde como si lo estuvieras contando en una llamada.";
         if (microPill) microPill.hidden = true;
       } else {
-        if (microAdvice) microAdvice.textContent = "Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.";
+        if (microAdvice) microAdvice.textContent = "Consejo: usa el micro y cuenta una escena real. No hace falta que lo traigas ordenado.";
         if (microPill) microPill.hidden = false;
       }
     }

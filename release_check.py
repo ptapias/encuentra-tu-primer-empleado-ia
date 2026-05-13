@@ -82,7 +82,10 @@ def static_page_check() -> dict:
     html = PUBLIC_PAGE.read_text(encoding="utf-8")
     required = [
         "¿Dónde se te escapa tiempo, dinero o clientes?",
-        "Sesión de discovery gratuita · 7-10 minutos",
+        "Discovery gratuito · 7-10 min",
+        "Discovery gratuito",
+        "mini sesión consultiva",
+        "Empieza con una escena real",
         "analiza tu negocio como lo haría un consultor",
         "No hace falta que lo traigas ordenado",
         "mapa de procesos, señales y prioridades",
