@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 LOCAL_HOST_MARKERS = ("localhost", "127.0.0.1", "::1")
+DEFAULT_MANUAL_TEST = ROOT / "MANUAL_PRODUCTION_TEST.local.md"
 
 
 def run_release_check(args) -> dict:
@@ -59,6 +60,25 @@ def failed_steps(release_result: dict) -> list[dict]:
     ]
 
 
+def validate_manual_test(path: str) -> dict:
+    command = [sys.executable, "validate_manual_production_test.py", "--path", path]
+    completed = subprocess.run(
+        command,
+        cwd=str(ROOT),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=30,
+    )
+    output = completed.stdout or ""
+    try:
+        parsed = json.loads(output)
+    except Exception:
+        parsed = {"ok": False, "errors": ["No se pudo leer la validación manual"], "raw_output": output[-1000:]}
+    parsed["returncode"] = completed.returncode
+    return parsed
+
+
 def evaluate(args, release_result: dict) -> dict:
     blockers = []
     warnings = []
@@ -79,6 +99,11 @@ def evaluate(args, release_result: dict) -> dict:
             blockers.append("Falta una contraseña real para el CRM.")
         if not args.manual_production_tested:
             blockers.append("Falta confirmar prueba manual en producción con `--manual-production-tested`.")
+        elif args.manual_test_path:
+            manual_result = validate_manual_test(args.manual_test_path)
+            if not manual_result.get("ok"):
+                detail = "; ".join(manual_result.get("errors", []))[:500]
+                blockers.append(f"La prueba manual registrada no pasa: {detail}")
         if not args.crm_reviewed:
             blockers.append("Falta confirmar revisión de CRM/CSV con `--crm-reviewed`.")
         if args.mic_required and not args.mic_tested:
@@ -127,6 +152,7 @@ def main() -> int:
     parser.add_argument("--with-browser", action="store_true")
     parser.add_argument("--with-transcription", action="store_true")
     parser.add_argument("--manual-production-tested", action="store_true")
+    parser.add_argument("--manual-test-path", default=str(DEFAULT_MANUAL_TEST) if DEFAULT_MANUAL_TEST.exists() else "", help="Ruta a MANUAL_PRODUCTION_TEST.local.md para validar evidencia manual")
     parser.add_argument("--crm-reviewed", action="store_true")
     parser.add_argument("--mic-tested", action="store_true")
     parser.add_argument("--mic-required", dest="mic_required", action="store_true", default=True)

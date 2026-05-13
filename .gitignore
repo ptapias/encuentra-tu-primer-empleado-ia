@@ -8,6 +8,7 @@ crm.sqlite3-*
 backups/
 privacy_config.json
 VPS_INPUTS.local.md
+MANUAL_PRODUCTION_TEST.local.md
 *.sqlite3
 __pycache__/
 .DS_Store

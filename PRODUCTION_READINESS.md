@@ -116,6 +116,14 @@ Después del despliegue:
 
 Usa `MANUAL_PRODUCTION_TEST.md` para registrar resultado, evidencia y decisión de apertura.
 
+No rellenes la plantilla versionada con evidencias reales. Crea una copia local ignorada por Git y valídala:
+
+```bash
+cp MANUAL_PRODUCTION_TEST.md MANUAL_PRODUCTION_TEST.local.md
+nano MANUAL_PRODUCTION_TEST.local.md
+python3 validate_manual_production_test.py --path MANUAL_PRODUCTION_TEST.local.md
+```
+
 ## Decisión de salida
 
 Abrir beta controlada si:

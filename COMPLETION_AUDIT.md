@@ -73,6 +73,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Gate de release para VPS | `release_check.py`, `deploy/verify_vps.sh`, `test_public_beta_gate.py` | Agrupa sintaxis, copy público, privacidad beta, test del generador de privacidad, preflight y smoke test contra URL local/dominio; `--public-beta` exige HTTPS, no localhost, credenciales CRM, privacidad final y Codex live; test unitario valida bloqueos principales | Hecho base |
 | Gate opcional de experiencia real | `release_check.py --with-browser --with-transcription`, `test_public_ui_flow.py`, `test_public_report_flow.py`, `test_transcription_local.py` | Permite sumar pruebas de navegador, cierre de informe y audio real al release check contra una URL arrancada; falla si se piden sin `--base` | Hecho base |
 | Go/no-go operativo | `launch_go_no_go.py`, `test_launch_go_no_go.py`, `PRODUCTION_READINESS.md`, `VPS_LAUNCH_PACKET.md` | Ejecuta `release_check.py` y añade bloqueos explícitos de HTTPS, localhost, CRM, privacidad, prueba manual, revisión CRM y micro antes de abrir beta pública; permite `--mic-optional` si la primera beta se lanza por texto | Hecho base |
+| Prueba manual verificable | `MANUAL_PRODUCTION_TEST.md`, `MANUAL_PRODUCTION_TEST.local.md` ignorado por Git, `validate_manual_production_test.py`, `test_manual_production_validator.py`, `launch_go_no_go.py` | La plantilla de producción puede rellenarse en una copia local; el validador exige datos de prueba, resultados OK en checks críticos y decisión final Abrir/GO; el go/no-go puede validar esa evidencia con `--manual-test-path` | Hecho base |
 | Codex verificado como usuario systemd | `preflight_vps.py`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `test_server_guards.py`, docs VPS | El preflight puede recibir `--service-user primeria`; si se usa `--check-codex-live`, ejecuta Codex como ese usuario, evitando el falso positivo de login como `root` | Hecho base |
 | Preparación de producción | `PRODUCTION_READINESS.md`, `VPS_INPUTS.md`, `VPS_INPUTS.local.md` ignorado por Git, `.env` ignorado por Git, `validate_vps_inputs.py`, `prepare_vps_launch_files.py`, tests dedicados | Lista datos necesarios, variables `.env`, gate final, prueba manual obligatoria, criterios de no apertura, ficha corta verificable y generación de `.env.generated`/`privacy_config.json` antes de tocar el VPS sin subir secretos al repo | Hecho base |
 | Plan de beta externa | `BETA_TEST_PLAN.md` | Define muestra mínima, mensaje para testers, variables a observar en CRM, criterios de éxito y experimentos por canal | Hecho base |
@@ -126,6 +127,7 @@ python3 test_launch_go_no_go.py
 python3 test_public_beta_gate.py
 python3 test_vps_inputs_validator.py
 python3 test_prepare_vps_launch_files.py
+python3 test_manual_production_validator.py
 python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription --manual-production-tested --crm-reviewed --mic-tested
 python3 release_check.py --env /tmp/primer-empleado-valid.env --service-user "$(whoami)" --base http://localhost:8787
 APP_DIR="$PWD" CHECK_CODEX_LIVE=false ./deploy/verify_vps.sh

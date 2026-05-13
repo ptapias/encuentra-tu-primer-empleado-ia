@@ -23,6 +23,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `VPS_LAUNCH_PACKET.md`: checklist operativo con datos necesarios, comandos, validación, prueba manual y criterios para abrir tráfico.
 - `VPS_INPUTS.md`: plantilla de ficha corta; rellena la copia ignorada `VPS_INPUTS.local.md` con dominio, SSH, privacidad, CRM, proveedor IA y decisiones de beta antes de tocar el VPS.
 - `MANUAL_PRODUCTION_TEST.md`: plantilla de aceptación manual para probar escritorio, móvil, micrófono HTTPS, informe, CRM, CSV y go/no-go antes de testers.
+- `validate_manual_production_test.py`: valida la copia local `MANUAL_PRODUCTION_TEST.local.md` antes de permitir una apertura pública.
 - `PRODUCTION_READINESS.md`: lista corta de datos, variables, legal, gate final y prueba manual antes de abrir la beta.
 - `deploy/install_vps.sh`: instalador con guardarraíles para crear `.env`, copiar servicios, activar backups y validar smoke test en el VPS.
 - `deploy/verify_vps.sh`: verificador de VPS con smoke local/HTTPS, release gate y checks opcionales de navegador/transcripción.

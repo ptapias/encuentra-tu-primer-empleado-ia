@@ -170,6 +170,14 @@ En cada prueba:
 
 Usa `MANUAL_PRODUCTION_TEST.md` como plantilla de aceptación. Rellena una copia por prueba o pega ahí las evidencias antes de abrir a testers.
 
+Para que el go/no-go pueda validar esa evidencia sin subirla a Git:
+
+```bash
+cp MANUAL_PRODUCTION_TEST.md MANUAL_PRODUCTION_TEST.local.md
+nano MANUAL_PRODUCTION_TEST.local.md
+python3 validate_manual_production_test.py --path MANUAL_PRODUCTION_TEST.local.md
+```
+
 ## 6. Primer grupo de testers
 
 Enviar a 5-10 personas, no más, durante la primera semana.

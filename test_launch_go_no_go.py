@@ -19,6 +19,7 @@ def args(**overrides):
         "mic_tested": True,
         "with_browser": True,
         "with_transcription": True,
+        "manual_test_path": "",
     }
     base.update(overrides)
     return argparse.Namespace(**base)
