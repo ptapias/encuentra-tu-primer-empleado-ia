@@ -1074,6 +1074,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(encoded)))
             self.end_headers()
             return
+        if route.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
         if forbidden_static_path(route.path) or not allowed_static_path(route.path):
             self.send_error(404, "Not found")
             return
@@ -1097,6 +1101,10 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if route.path == "/robots.txt":
             self._text("User-agent: *\nDisallow: /\n" if BETA_NOINDEX else "User-agent: *\nAllow: /\n", "text/plain; charset=utf-8")
+            return
+        if route.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
             return
         if route.path == "/api/capabilities":
             self._json({"transcription": transcription_status()})

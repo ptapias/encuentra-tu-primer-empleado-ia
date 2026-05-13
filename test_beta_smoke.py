@@ -75,7 +75,9 @@ def main():
         status == 302 and root_utm_headers.get("Location") == "/Agente_Real_CRM.html?utm_source=youtube&utm_campaign=whatsapp_ia&video=agente-whatsapp",
         "GET / debería conservar UTMs al redirigir al diagnóstico",
     )
-    checks.append({"check": "root_redirect", "status": status, "keeps_utm": True})
+    favicon_status, _favicon_headers = request_no_redirect(args.base, "/favicon.ico", method="GET")
+    expect(favicon_status == 204, "favicon.ico no debería generar ruido 404 en navegador")
+    checks.append({"check": "root_redirect", "status": status, "keeps_utm": True, "favicon": favicon_status})
 
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")
@@ -106,6 +108,7 @@ def main():
     if beta_noindex:
         expect("noindex" in public_headers.get("X-Robots-Tag", ""), "falta X-Robots-Tag en página pública")
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
+    expect("Pulsa empezar y cuéntame tu caso." in public_html, "el estado inicial suena interno o poco conversacional")
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Matriz de priorización" in public_html and "Impacto frente a factibilidad" in public_html, "el informe no incluye matriz visual de priorización")
