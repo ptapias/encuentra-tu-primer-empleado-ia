@@ -201,10 +201,18 @@ python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --
 O con el verificador:
 
 ```bash
-DOMAIN=diagnostico.tu-dominio.com PUBLIC_BETA=true ./deploy/verify_vps.sh
+DOMAIN=diagnostico.tu-dominio.com \
+PUBLIC_BETA=true \
+BROWSER_CHECKS=true \
+TRANSCRIPTION_CHECK=true \
+MANUAL_PRODUCTION_TESTED=true \
+MANUAL_TEST_PATH=MANUAL_PRODUCTION_TEST.local.md \
+CRM_REVIEWED=true \
+MIC_TESTED=true \
+./deploy/verify_vps.sh
 ```
 
-Ese gate falla si el dominio no usa HTTPS, si estás probando contra localhost, si no pasas credenciales reales del CRM, si la contraseña no coincide con `.env`, si la privacidad final sigue con placeholders o notas públicas de beta, o si Codex CLI no responde en vivo.
+Ese gate falla si el dominio no usa HTTPS, si estás probando contra localhost, si no pasas credenciales reales del CRM, si la contraseña no coincide con `.env`, si la privacidad final sigue con placeholders o notas públicas de beta, si Codex CLI no responde en vivo, si no hay evidencia manual validada o si falta confirmar revisión de CRM/micro. Si el micro queda fuera de la primera beta, usa `MIC_OPTIONAL=true` en lugar de `MIC_TESTED=true`.
 
 ## 6. Operación de beta
 

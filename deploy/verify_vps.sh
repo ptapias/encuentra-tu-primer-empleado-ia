@@ -9,6 +9,11 @@ PUBLIC_BETA="${PUBLIC_BETA:-false}"
 CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE:-true}"
 BROWSER_CHECKS="${BROWSER_CHECKS:-false}"
 TRANSCRIPTION_CHECK="${TRANSCRIPTION_CHECK:-false}"
+MANUAL_PRODUCTION_TESTED="${MANUAL_PRODUCTION_TESTED:-false}"
+MANUAL_TEST_PATH="${MANUAL_TEST_PATH:-MANUAL_PRODUCTION_TEST.local.md}"
+CRM_REVIEWED="${CRM_REVIEWED:-false}"
+MIC_TESTED="${MIC_TESTED:-false}"
+MIC_OPTIONAL="${MIC_OPTIONAL:-false}"
 
 if [[ ! -d "${APP_DIR}" ]]; then
   echo "No existe APP_DIR=${APP_DIR}" >&2
@@ -82,5 +87,38 @@ fi
 
 echo "4/4 Release gate"
 "${RELEASE[@]}"
+
+if [[ "${PUBLIC_BETA}" == "true" ]]; then
+  GO_NO_GO=(python3 launch_go_no_go.py
+    --env .env
+    --base "${PUBLIC_BASE}"
+    --admin-user "${ADMIN_USER}"
+    --admin-password "${ADMIN_PASSWORD}"
+    --public-beta
+    --check-codex-live
+    --service-user "${APP_USER}"
+    --manual-test-path "${MANUAL_TEST_PATH}"
+  )
+  if [[ "${BROWSER_CHECKS}" == "true" ]]; then
+    GO_NO_GO+=(--with-browser)
+  fi
+  if [[ "${TRANSCRIPTION_CHECK}" == "true" ]]; then
+    GO_NO_GO+=(--with-transcription)
+  fi
+  if [[ "${MANUAL_PRODUCTION_TESTED}" == "true" ]]; then
+    GO_NO_GO+=(--manual-production-tested)
+  fi
+  if [[ "${CRM_REVIEWED}" == "true" ]]; then
+    GO_NO_GO+=(--crm-reviewed)
+  fi
+  if [[ "${MIC_OPTIONAL}" == "true" ]]; then
+    GO_NO_GO+=(--mic-optional)
+  elif [[ "${MIC_TESTED}" == "true" ]]; then
+    GO_NO_GO+=(--mic-tested)
+  fi
+
+  echo "5/5 Go/no-go público"
+  "${GO_NO_GO[@]}"
+fi
 
 echo "Verificación VPS completada para ${PUBLIC_BASE}."

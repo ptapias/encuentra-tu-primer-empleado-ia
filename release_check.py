@@ -206,6 +206,7 @@ def deploy_config_check() -> dict:
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
         "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
         "verify_script_preflight_service_user": "--service-user" in verify_script and "APP_USER" in verify_script,
+        "verify_script_runs_go_no_go_for_public_beta": "launch_go_no_go.py" in verify_script and "MANUAL_PRODUCTION_TESTED" in verify_script and "CRM_REVIEWED" in verify_script,
         "update_script_executable": UPDATE_SCRIPT.exists() and bool(UPDATE_SCRIPT.stat().st_mode & 0o111),
         "update_script_backup_before_pull": "backup_crm.py" in update_script and "pull --ff-only" in update_script,
         "update_script_safe_directory": "safe.directory" in update_script,

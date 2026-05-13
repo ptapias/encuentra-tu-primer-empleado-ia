@@ -119,10 +119,20 @@ DOMAIN=diagnostico.tu-dominio.com ./deploy/verify_vps.sh
 Cuando la privacidad final esté completada y quieras abrir más allá de beta controlada:
 
 ```bash
-DOMAIN=diagnostico.tu-dominio.com PUBLIC_BETA=true ./deploy/verify_vps.sh
+DOMAIN=diagnostico.tu-dominio.com \
+PUBLIC_BETA=true \
+BROWSER_CHECKS=true \
+TRANSCRIPTION_CHECK=true \
+MANUAL_PRODUCTION_TESTED=true \
+MANUAL_TEST_PATH=MANUAL_PRODUCTION_TEST.local.md \
+CRM_REVIEWED=true \
+MIC_TESTED=true \
+./deploy/verify_vps.sh
 ```
 
-Después de las pruebas manuales, usa el go/no-go operativo:
+Con `PUBLIC_BETA=true`, el verificador ejecuta también el go/no-go operativo. Si el micro queda fuera de la primera beta, usa `MIC_OPTIONAL=true` en lugar de `MIC_TESTED=true`.
+
+También puedes ejecutar el go/no-go operativo directamente:
 
 ```bash
 python3 launch_go_no_go.py \
