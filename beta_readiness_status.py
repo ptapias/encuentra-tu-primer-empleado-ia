@@ -154,6 +154,9 @@ def plain_report(result: dict) -> str:
         for blocker in blockers:
             lines.append(f"- {blocker}")
     answers = result.get("checks", {}).get("answers_json", {})
+    if answers.get("exists") and answers.get("required_fields"):
+        lines.append("")
+        lines.append(f"Datos VPS completados: {answers.get('filled_required', 0)}/{answers.get('required_fields')}.")
     missing = answers.get("empty_required") or []
     if missing:
         lines.append("")

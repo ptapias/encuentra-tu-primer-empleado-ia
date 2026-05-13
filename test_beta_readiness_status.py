@@ -66,6 +66,7 @@ def test_existing_answers_json_is_reported_and_prioritized():
         "Si existe JSON local, debería ofrecer rellenar solo campos pendientes",
     )
     plain = beta_readiness_status.plain_report(result)
+    assert_true("Datos VPS completados:" in plain, "La salida legible debería mostrar progreso de datos VPS")
     assert_true("Datos que faltan en VPS_ANSWERS.local.json:" in plain, plain)
     assert_true("Contraseña real CRM" in plain, "La salida legible debería listar campos pendientes concretos")
     assert_true("Siguiente acción:" in plain, "La salida legible debería listar siguientes pasos")
