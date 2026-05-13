@@ -1248,8 +1248,11 @@
     async function startSession() {
       setCrm("Preparando el diagnóstico...", "");
       start.disabled = true;
+      let sessionStarted = false;
       try {
         const session = await api("/api/session", { attribution: collectAttribution() });
+        sessionStarted = true;
+        start.hidden = true;
         resetSession.hidden = false;
         leadId = session.lead_id;
         transcript = [];
@@ -1281,7 +1284,7 @@
       } catch (error) {
         setCrm(error.message, "error");
       } finally {
-        start.disabled = false;
+        start.disabled = sessionStarted;
       }
     }
 
@@ -1643,6 +1646,8 @@
         return;
       }
       if (!saved?.leadId || !Array.isArray(saved.transcript)) return;
+      start.hidden = true;
+      start.disabled = true;
       resetSession.hidden = false;
       leadId = saved.leadId;
       capturedEmail = saved.capturedEmail || "";
