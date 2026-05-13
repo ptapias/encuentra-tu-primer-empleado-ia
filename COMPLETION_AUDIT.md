@@ -36,6 +36,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead y metrics | Prueba con `ADMIN_PASSWORD`: `/api/metrics` devuelve `401` sin auth y `200` con auth | Hecho para VPS |
 | Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; con `ADMIN_PASSWORD` devuelve `401` sin auth y `200` con auth | Hecho |
 | Backups de beta | `backup_crm.py`, `backups/` ignorado por Git | Script genera copia SQLite consistente y JSONL si existe | Hecho |
+| Privacidad beta | `PRIVACY_BETA.md`, enlace en UI, texto corto en email-gate | Basado en enfoque de información por capas de AEPD; pendiente completar datos legales reales | Parcial |
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight y smoke test locales OK; despliegue real no ejecutado | Parcial |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
@@ -70,6 +71,7 @@ Resultado reciente:
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
 | Calidad adaptativa probada en pocos casos reales con Codex | Un caso bueno no garantiza robustez en sectores distintos | Ejecutar 5 discovery sessions reales: newsletter, clínica, inmobiliaria, agencia, ecommerce |
 | Integración directa con CRM externo no implementada | CSV ya cubre operación manual inicial, pero no sincroniza con HubSpot/Airtable/etc. | Integrar cuando haya los primeros testers y un CRM elegido |
+| Privacidad pendiente de datos reales | La beta ya informa, pero falta responsable legal, contacto y plazo concreto | Completar `PRIVACY_BETA.md` antes de tráfico público abierto |
 
 ## Decisión de auditoría
 

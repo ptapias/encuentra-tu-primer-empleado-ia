@@ -63,6 +63,11 @@
       font-size: 13px;
       margin: 0;
     }
+    .privacy-note a {
+      color: var(--accent-dark);
+      font-weight: 800;
+      text-decoration: none;
+    }
     .panel {
       border: 1px solid var(--line);
       background: var(--panel);
@@ -696,7 +701,7 @@
         <h2>Empieza hablando</h2>
         <button id="start">Empezar diagnóstico gratis</button>
         <div class="crm-status" id="crmStatus">Sin formularios largos. Primero entendemos tu caso.</div>
-        <p class="privacy-note">El agente irá tirando del hilo hasta encontrar un proceso automatizable real.</p>
+        <p class="privacy-note">El agente irá tirando del hilo hasta encontrar un proceso automatizable real. <a href="/PRIVACY_BETA.md" target="_blank" rel="noreferrer">Privacidad beta</a></p>
       </div>
       <div class="panel discovery-panel" id="discoveryPanel">
         <h2>Lo que estoy entendiendo</h2>
@@ -1056,6 +1061,7 @@
       const html = `<div class="email-gate">
         <h3>Ya tengo suficiente para preparar tu informe.</h3>
         <p>Déjanos tu email y generamos el diagnóstico completo: oportunidades, primer empleado IA recomendado, riesgos y plan de 7 días.</p>
+        <p>Usaremos tu email y esta conversación para enviarte el informe y mejorar la beta. No vendemos tus datos.</p>
         <div class="email-gate-row">
           <input id="finalEmail" type="email" placeholder="persona@empresa.com" autocomplete="email">
           <button onclick="captureEmailAndReport()">Recibir informe</button>
