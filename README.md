@@ -36,6 +36,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
 - `test_server_guards.py`: prueba de guardas básicos del servidor como rate limit e emails inválidos.
+- `test_backup_crm.py`: prueba de backup SQLite/JSONL en un entorno temporal.
 - `backup_crm.py`: copia segura de `crm.sqlite3` y `crm_leads.jsonl` para operación de beta.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.

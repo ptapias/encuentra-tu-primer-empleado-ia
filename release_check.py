@@ -12,6 +12,7 @@ PRIVACY_PAGE = ROOT / "PRIVACY_BETA.md"
 PUBLIC_PRIVACY_PAGE = ROOT / "PRIVACY_BETA.html"
 APP_SERVICE = ROOT / "deploy" / "primer-empleado-ia.service"
 BACKUP_SERVICE = ROOT / "deploy" / "primer-empleado-ia-backup.service"
+BACKUP_TIMER = ROOT / "deploy" / "primer-empleado-ia-backup.timer"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 
@@ -98,6 +99,7 @@ def privacy_check(require_final: bool) -> dict:
 def deploy_config_check() -> dict:
     app_service = APP_SERVICE.read_text(encoding="utf-8") if APP_SERVICE.exists() else ""
     backup_service = BACKUP_SERVICE.read_text(encoding="utf-8") if BACKUP_SERVICE.exists() else ""
+    backup_timer = BACKUP_TIMER.read_text(encoding="utf-8") if BACKUP_TIMER.exists() else ""
     caddyfile = CADDYFILE.read_text(encoding="utf-8") if CADDYFILE.exists() else ""
     install_script = INSTALL_SCRIPT.read_text(encoding="utf-8") if INSTALL_SCRIPT.exists() else ""
     required = {
@@ -105,6 +107,10 @@ def deploy_config_check() -> dict:
         "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
         "app_service_network_online": "network-online.target" in app_service,
         "backup_service_NoNewPrivileges": "NoNewPrivileges=true" in backup_service,
+        "backup_service_exec_path": "ExecStart=/usr/bin/python3 /opt/primer-empleado-ia/backup_crm.py" in backup_service,
+        "backup_service_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in backup_service,
+        "backup_timer_persistent": "Persistent=true" in backup_timer,
+        "backup_timer_enabled_target": "WantedBy=timers.target" in backup_timer,
         "caddy_hsts": "Strict-Transport-Security" in caddyfile,
         "caddy_microphone_policy": "microphone=(self)" in caddyfile,
         "caddy_body_limit": "max_size 2MB" in caddyfile,
@@ -174,11 +180,13 @@ def main():
                 "test_ai_concurrency.py",
                 "test_agent_quality_guard.py",
                 "test_server_guards.py",
+                "test_backup_crm.py",
             ],
         ),
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
         run_step("agent_quality_guard", [sys.executable, "test_agent_quality_guard.py"]),
         run_step("server_guards", [sys.executable, "test_server_guards.py"]),
+        run_step("backup_crm", [sys.executable, "test_backup_crm.py"]),
         static_page_check(),
         privacy_check(require_privacy_final),
         deploy_config_check(),
