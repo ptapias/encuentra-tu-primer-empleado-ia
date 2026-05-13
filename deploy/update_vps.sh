@@ -48,25 +48,33 @@ fi
 BEFORE="$("${GIT[@]}" rev-parse --short HEAD)"
 ROLLBACK_ENABLED=false
 
+render_systemd_units() {
+  if [[ -x ./deploy/render_systemd_units.sh ]]; then
+    APP_DIR="${APP_DIR}" APP_USER="${APP_USER}" APP_GROUP="${APP_GROUP}" ./deploy/render_systemd_units.sh
+  fi
+}
+
 rollback() {
   local exit_code=$?
   if [[ "${ROLLBACK_ENABLED}" == "true" ]]; then
     echo "Actualización fallida. Intento rollback a ${BEFORE}..." >&2
     "${GIT[@]}" reset --hard "${BEFORE}" || true
     chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}" || true
+    render_systemd_units || true
+    systemctl daemon-reload || true
     systemctl restart primer-empleado-ia || true
   fi
   exit "${exit_code}"
 }
 trap rollback ERR
 
-echo "1/7 Backup antes de actualizar"
+echo "1/8 Backup antes de actualizar"
 python3 backup_crm.py || {
   echo "Backup falló. No actualizo." >&2
   exit 1
 }
 
-echo "2/7 Pull de GitHub desde ${BEFORE}"
+echo "2/8 Pull de GitHub desde ${BEFORE}"
 "${GIT[@]}" fetch origin main
 "${GIT[@]}" pull --ff-only origin main
 AFTER="$("${GIT[@]}" rev-parse --short HEAD)"
@@ -74,7 +82,7 @@ if [[ "${AFTER}" != "${BEFORE}" ]]; then
   ROLLBACK_ENABLED=true
 fi
 
-echo "3/7 Permisos"
+echo "3/8 Permisos"
 chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
 chmod 700 "${APP_DIR}"
 chmod 600 "${APP_DIR}/.env"
@@ -84,13 +92,17 @@ if [[ "${CHECK_CODEX_LIVE}" == "true" ]]; then
   PREFLIGHT+=(--check-codex-live)
 fi
 
-echo "4/7 Preflight"
+echo "4/8 Preflight"
 "${PREFLIGHT[@]}"
 
-echo "5/7 Release check estático"
+echo "5/8 Release check estático"
 python3 release_check.py --env .env
 
-echo "6/7 Reinicio servicio"
+echo "6/8 Actualizo unidades systemd"
+render_systemd_units
+systemctl daemon-reload
+
+echo "7/8 Reinicio servicio"
 systemctl restart primer-empleado-ia
 sleep 2
 
@@ -99,7 +111,7 @@ PORT_VALUE="$(env_value PORT)"
 PORT_VALUE="${PORT_VALUE:-8787}"
 LOCAL_BASE="http://${HOST_VALUE:-127.0.0.1}:${PORT_VALUE}"
 
-echo "7/7 Smoke local (${LOCAL_BASE})"
+echo "8/8 Smoke local (${LOCAL_BASE})"
 python3 test_beta_smoke.py \
   --base "${LOCAL_BASE}" \
   --admin-user "${ADMIN_USER}" \

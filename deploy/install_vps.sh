@@ -18,10 +18,6 @@ if [[ ! -f "app_server.py" || ! -d "deploy" ]]; then
   exit 1
 fi
 
-sed_escape() {
-  printf '%s' "$1" | sed 's/[\/&]/\\&/g'
-}
-
 if ! id "${APP_USER}" >/dev/null 2>&1; then
   adduser --system --group --home "${APP_DIR}" "${APP_USER}"
 fi
@@ -65,20 +61,7 @@ fi
 "${PREFLIGHT[@]}"
 python3 release_check.py --env .env
 
-APP_DIR_ESCAPED="$(sed_escape "${APP_DIR}")"
-APP_USER_ESCAPED="$(sed_escape "${APP_USER}")"
-APP_GROUP_ESCAPED="$(sed_escape "${APP_GROUP}")"
-sed \
-  -e "s/\/opt\/primer-empleado-ia/${APP_DIR_ESCAPED}/g" \
-  -e "s/User=primeria/User=${APP_USER_ESCAPED}/g" \
-  -e "s/Group=primeria/Group=${APP_GROUP_ESCAPED}/g" \
-  deploy/primer-empleado-ia.service > /etc/systemd/system/primer-empleado-ia.service
-sed \
-  -e "s/\/opt\/primer-empleado-ia/${APP_DIR_ESCAPED}/g" \
-  -e "s/User=primeria/User=${APP_USER_ESCAPED}/g" \
-  -e "s/Group=primeria/Group=${APP_GROUP_ESCAPED}/g" \
-  deploy/primer-empleado-ia-backup.service > /etc/systemd/system/primer-empleado-ia-backup.service
-cp deploy/primer-empleado-ia-backup.timer /etc/systemd/system/
+APP_DIR="${APP_DIR}" APP_USER="${APP_USER}" APP_GROUP="${APP_GROUP}" ./deploy/render_systemd_units.sh
 systemctl daemon-reload
 systemctl enable primer-empleado-ia
 systemctl restart primer-empleado-ia

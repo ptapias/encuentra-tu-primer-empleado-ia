@@ -105,7 +105,7 @@ python3 release_check.py --env .env --check-codex-live
 
 ## 3. Servicio
 
-El servicio queda limitado a `/opt/primer-empleado-ia` con hardening básico de systemd. La app debe escuchar en `127.0.0.1` y exponerse solo a través de Caddy/HTTPS.
+El servicio queda limitado a `/opt/primer-empleado-ia` con hardening básico de systemd. La app debe escuchar en `127.0.0.1` y exponerse solo a través de Caddy/HTTPS. Si usas otra carpeta o usuario, usa el instalador automático; renderiza las unidades con `APP_DIR`, `APP_USER` y `APP_GROUP`.
 
 ```bash
 sudo cp deploy/primer-empleado-ia.service /etc/systemd/system/
@@ -218,7 +218,7 @@ cd /opt/primer-empleado-ia
 sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/update_vps.sh
 ```
 
-El script exige worktree limpio, hace backup antes de traer cambios, usa `git pull --ff-only`, ejecuta preflight, reinicia systemd y corre smoke test local. Si el update falla después de moverse a un nuevo commit, intenta volver al commit anterior y reiniciar el servicio. Si pasas `DOMAIN`, llama también a `verify_vps.sh`.
+El script exige worktree limpio, hace backup antes de traer cambios, usa `git pull --ff-only`, ejecuta preflight, actualiza las unidades systemd según `APP_DIR`, `APP_USER` y `APP_GROUP`, reinicia systemd y corre smoke test local. Si el update falla después de moverse a un nuevo commit, intenta volver al commit anterior y reiniciar el servicio. Si pasas `DOMAIN`, llama también a `verify_vps.sh`.
 
 ## 8. Riesgos conocidos
 

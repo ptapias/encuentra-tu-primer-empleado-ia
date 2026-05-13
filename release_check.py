@@ -13,6 +13,7 @@ PUBLIC_PRIVACY_PAGE = ROOT / "PRIVACY_BETA.html"
 APP_SERVICE = ROOT / "deploy" / "primer-empleado-ia.service"
 BACKUP_SERVICE = ROOT / "deploy" / "primer-empleado-ia-backup.service"
 BACKUP_TIMER = ROOT / "deploy" / "primer-empleado-ia-backup.timer"
+RENDER_SYSTEMD_SCRIPT = ROOT / "deploy" / "render_systemd_units.sh"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
@@ -108,6 +109,7 @@ def deploy_config_check() -> dict:
     backup_service = BACKUP_SERVICE.read_text(encoding="utf-8") if BACKUP_SERVICE.exists() else ""
     backup_timer = BACKUP_TIMER.read_text(encoding="utf-8") if BACKUP_TIMER.exists() else ""
     caddyfile = CADDYFILE.read_text(encoding="utf-8") if CADDYFILE.exists() else ""
+    render_systemd_script = RENDER_SYSTEMD_SCRIPT.read_text(encoding="utf-8") if RENDER_SYSTEMD_SCRIPT.exists() else ""
     install_script = INSTALL_SCRIPT.read_text(encoding="utf-8") if INSTALL_SCRIPT.exists() else ""
     verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8") if VERIFY_SCRIPT.exists() else ""
     update_script = UPDATE_SCRIPT.read_text(encoding="utf-8") if UPDATE_SCRIPT.exists() else ""
@@ -124,12 +126,14 @@ def deploy_config_check() -> dict:
         "caddy_microphone_policy": "microphone=(self)" in caddyfile,
         "caddy_body_limit": "max_size 2MB" in caddyfile,
         "caddy_reverse_proxy_local": "reverse_proxy 127.0.0.1:8787" in caddyfile,
+        "render_systemd_script_executable": RENDER_SYSTEMD_SCRIPT.exists() and bool(RENDER_SYSTEMD_SCRIPT.stat().st_mode & 0o111),
+        "render_systemd_uses_app_config": "APP_DIR_ESCAPED" in render_systemd_script and "User=${APP_USER_ESCAPED}" in render_systemd_script and "Group=${APP_GROUP_ESCAPED}" in render_systemd_script,
         "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
         "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
         "install_script_smoke": "test_beta_smoke.py" in install_script,
         "install_script_preflight_service_user": "--service-user" in install_script and "CHECK_CODEX_LIVE" in install_script,
         "install_script_preserves_git_repo": '--exclude ".git"' not in install_script and "--exclude '.git'" not in install_script,
-        "install_script_renders_systemd_units": "sed_escape" in install_script and "User=${APP_USER_ESCAPED}" in install_script and "Group=${APP_GROUP_ESCAPED}" in install_script and "APP_DIR_ESCAPED" in install_script,
+        "install_script_renders_systemd_units": "render_systemd_units.sh" in install_script and "systemctl daemon-reload" in install_script,
         "verify_script_executable": VERIFY_SCRIPT.exists() and bool(VERIFY_SCRIPT.stat().st_mode & 0o111),
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
         "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
@@ -139,6 +143,7 @@ def deploy_config_check() -> dict:
         "update_script_safe_directory": "safe.directory" in update_script,
         "update_script_clean_worktree": "diff --quiet" in update_script and "diff --cached --quiet" in update_script,
         "update_script_rollback": "reset --hard" in update_script and "ROLLBACK_ENABLED" in update_script,
+        "update_script_renders_systemd_units": "render_systemd_units" in update_script and "systemctl daemon-reload" in update_script,
         "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
