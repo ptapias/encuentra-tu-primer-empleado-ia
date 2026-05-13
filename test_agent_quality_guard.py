@@ -75,6 +75,37 @@ def test_frustration_is_acknowledged():
     assert_true(repaired["reply"].startswith("Tienes razón"), "No reconoció la frustración del usuario")
 
 
+def test_unknown_output_is_rescued_with_options():
+    lead = {
+        "stage": "profundizacion",
+        "facts": {"selected_process": "email y priorización"},
+        "signals": {},
+        "transcript": [
+            {"role": "assistant", "content": "Dame un ejemplo concreto con qué entra, qué haces tú y qué resultado debería salir."},
+        ],
+    }
+    raw_result = {
+        "reply": "Entiendo. ¿Qué resultado debería salir exactamente cuando entra ese email?",
+        "stage": "profundizacion",
+        "ready_for_report": False,
+        "confidence": 0.5,
+        "current_focus": "email y priorización",
+        "open_gaps": ["resultado esperado"],
+        "facts": {"selected_process": "email y priorización"},
+        "signals": {},
+    }
+
+    repaired = repair_repetitive_reply(
+        normalize_agent_result(raw_result, lead),
+        lead,
+        "Entra: email. Hago: nada. Debería salir: no sé.",
+    )
+    reply = repaired["reply"].lower()
+    assert_true("no pasa nada" in reply, "No normalizó que el usuario no sepa definir el output")
+    assert_true("clasificar" in reply and "resumir" in reply and "revisión humana" in reply, "No propuso salidas posibles")
+    assert_true("qué resultado debería salir" not in reply, "Volvió a pedir el output en vez de ayudar a definirlo")
+
+
 def test_high_confidence_four_turns_can_close():
     lead = {
         "stage": "evaluacion",
@@ -231,6 +262,7 @@ def test_agent_prompt_prioritizes_adaptive_discovery():
 if __name__ == "__main__":
     test_repeated_example_request_is_repaired()
     test_frustration_is_acknowledged()
+    test_unknown_output_is_rescued_with_options()
     test_high_confidence_four_turns_can_close()
     test_compressed_discovery_can_close_with_solid_evidence()
     test_report_always_exposes_evidence_summary()

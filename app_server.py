@@ -593,6 +593,22 @@ def user_supplied_example(text: str) -> bool:
     return len(text) > 120 or any(marker in text for marker in markers)
 
 
+def user_unsure_about_output(text: str) -> bool:
+    text = (text or "").lower()
+    return any(marker in text for marker in [
+        "debería salir: no sé",
+        "deberia salir: no se",
+        "debería salir no sé",
+        "deberia salir no se",
+        "no sé qué debería salir",
+        "no se que deberia salir",
+        "no sé qué tiene que salir",
+        "no se que tiene que salir",
+        "no sé",
+        "no se",
+    ]) and any(marker in text for marker in ["sale", "salir", "resultado", "output"])
+
+
 def repair_repetitive_reply(result: dict, lead: dict, user_text: str) -> dict:
     reply = result.get("reply", "")
     previous_assistant = [
@@ -606,7 +622,11 @@ def repair_repetitive_reply(result: dict, lead: dict, user_text: str) -> dict:
         marker in reply.lower()
         for marker in ["ejemplo concreto", "caso real", "qué entra", "que entra"]
     )
-    if not (repeated or frustrated or asks_same_example):
+    asks_unknown_output = user_unsure_about_output(user_text) and any(
+        marker in reply.lower()
+        for marker in ["qué resultado", "que resultado", "debería salir", "deberia salir", "resultado debería", "resultado deberia"]
+    )
+    if not (repeated or frustrated or asks_same_example or asks_unknown_output):
         return result
 
     focus = result.get("current_focus") or result.get("facts", {}).get("selected_process") or "ese proceso"
@@ -616,7 +636,15 @@ def repair_repetitive_reply(result: dict, lead: dict, user_text: str) -> dict:
         gap for gap in gaps
         if not ("ejemplo" in gap.lower() and user_supplied_example(user_text))
     ]
-    if "frecuencia" not in lowered_history and "impacto" not in lowered_history:
+    if asks_unknown_output:
+        next_question = (
+            f"Bien, si ahora no sabes qué debería salir de {focus}, no pasa nada: ahí está parte del diagnóstico. "
+            "Veo varias salidas posibles para una primera versión: clasificar el mensaje, resumir el caso, proponer una respuesta, "
+            "crear una tarea de seguimiento, registrar el contacto o marcarlo para revisión humana. "
+            "¿Cuál de esas salidas te daría más valor al principio, aunque luego la persona revise antes de enviar nada?"
+        )
+        stage = "evaluacion"
+    elif "frecuencia" not in lowered_history and "impacto" not in lowered_history:
         next_question = (
             f"Vale, entonces tomo ese caso como ejemplo. Para priorizar {focus}: "
             "¿cuántas veces ocurre a la semana, cuánto tiempo o valor se pierde y qué pasaría si siguiera igual tres meses?"
