@@ -60,6 +60,19 @@ FFMPEG_BIN=/usr/bin/ffmpeg
 
 `CRM_WEBHOOK_URL` es opcional. Úsalo si quieres enviar automáticamente email capturado, informe, interés CTA y feedback a Make, n8n, Zapier, Airtable, HubSpot u otro CRM.
 
+Si configuras el CRM externo después de lanzar la beta o quieres reintentar envíos, puedes reenviar los leads existentes desde el VPS:
+
+```bash
+cd /opt/primer-empleado-ia
+sudo -u primeria CRM_WEBHOOK_URL="https://tu-webhook" CRM_WEBHOOK_SECRET="tu-secreto" python3 sync_crm_webhook.py --limit 100
+```
+
+Para no enviar la conversación completa al CRM externo:
+
+```bash
+sudo -u primeria CRM_WEBHOOK_URL="https://tu-webhook" python3 sync_crm_webhook.py --no-transcript --limit 100
+```
+
 Si no vas a usar micrófono en la primera beta, la app seguirá funcionando por texto. El endpoint `/api/capabilities` indicará si la transcripción está disponible y la UI desactivará el botón de micro si faltan binarios.
 
 Antes de abrir tráfico externo, genera la privacidad pública con datos reales:

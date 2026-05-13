@@ -39,6 +39,8 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
 - `test_server_guards.py`: prueba de guardas básicos del servidor como rate limit e emails inválidos.
+- `sync_crm_webhook.py`: sincronizador manual para reenviar leads existentes al CRM externo si se configura el webhook después o hay que reintentar.
+- `test_crm_webhook_sync.py`: prueba de integración del sincronizador con un receptor webhook local.
 - `test_backup_crm.py`: prueba de backup SQLite/JSONL en un entorno temporal.
 - `backup_crm.py`: copia segura de `crm.sqlite3` y `crm_leads.jsonl` para operación de beta.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
@@ -99,6 +101,18 @@ La app guarda atribución básica si el enlace incluye parámetros como `utm_sou
 Desde `CRM_Dashboard.html` puedes operar la beta sin tocar la base de datos: seleccionar un lead, cambiar su estado, ajustar la oferta recomendada, añadir notas internas, revisar qué gustó/faltó del diagnóstico, detectar objeciones/ideas de contenido y borrar un lead completo si alguien pide eliminar sus datos. Los cambios quedan registrados como evento interno cuando procede.
 
 Si quieres conectar un CRM externo sin tocar código, configura `CRM_WEBHOOK_URL` en `.env`. La app enviará eventos de email capturado, informe generado, interés en CTA y feedback a Make, n8n, Zapier, Airtable, HubSpot o el destino que elijas. `CRM_WEBHOOK_SECRET` añade una cabecera sencilla para validar el origen.
+
+Si activas el CRM externo después de tener leads o necesitas reintentar una sincronización, puedes reenviar snapshots de los leads existentes:
+
+```bash
+CRM_WEBHOOK_URL=https://hook.example.com CRM_WEBHOOK_SECRET=... python3 sync_crm_webhook.py --limit 100
+```
+
+Para probar el volumen sin enviar nada:
+
+```bash
+python3 sync_crm_webhook.py --dry-run --limit 20
+```
 
 Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo. En VPS, define `WHISPER_BIN` y `FFMPEG_BIN` si no están en el `PATH`; si faltan, la app desactiva el micro y mantiene el flujo por texto.
 

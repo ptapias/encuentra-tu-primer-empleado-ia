@@ -44,6 +44,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | CRM operable manualmente | `/api/lead/update`, controles de "Operación interna" en `CRM_Dashboard.html` | Permite cambiar estado, oferta y notas internas desde el detalle del lead; `test_beta_smoke.py` valida edición con y sin auth | Hecho base |
 | CRM filtrable para operar beta | `offerFilter`, `statusFilter`, `sourceFilter` en `CRM_Dashboard.html` | Permite filtrar leads por oferta, estado y origen; smoke test valida presencia de filtros | Hecho base |
 | Integración CRM externa opcional | `CRM_WEBHOOK_URL`, `CRM_WEBHOOK_SECRET`, `send_crm_webhook()` en `app_server.py`, `preflight_vps.py` | Envía email capturado, informe generado, interés CTA y feedback a Make/n8n/Zapier/Airtable/HubSpot si se configura; `test_server_guards.py` valida payload, cabecera secreta y chequeos de webhook en preflight; dashboard muestra errores de webhook | Hecho base |
+| Reintento/sincronización CRM externa | `sync_crm_webhook.py`, `test_crm_webhook_sync.py`, `README.md`, `DEPLOYMENT_VPS.md` | Permite reenviar snapshots de leads existentes a un webhook externo si el CRM se configura tarde o hay que reintentar; puede omitir transcript con `--no-transcript`; release check ejecuta una prueba con receptor local y recibo en eventos | Hecho base |
 | Borrado de datos de lead | `/api/lead/delete`, botón `Borrar lead` en `CRM_Dashboard.html`, nota en `PRIVACY_BETA.md` | Elimina lead y eventos asociados; `test_beta_smoke.py` valida borrado y 404 posterior | Hecho base |
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead, metrics, export, edición de lead y `/crm` legacy | Prueba con `ADMIN_PASSWORD`: endpoints internos devuelven `401` sin auth y `200` con auth | Hecho para VPS |
 | Bloqueo de contraseña admin de ejemplo | `admin_auth_misconfigured()` en `app_server.py`, `test_server_guards.py` | Si `ADMIN_PASSWORD=change-me`, rutas admin devuelven error de configuración en vez de aceptar una contraseña conocida | Hecho base |
@@ -90,6 +91,8 @@ python3 -m py_compile app_server.py test_discovery_flow.py test_beta_smoke.py
 python3 test_agent_quality_guard.py
 python3 test_server_guards.py
 python3 test_privacy_renderer.py
+python3 test_public_ui_flow.py --base http://localhost:8787
+python3 test_crm_webhook_sync.py
 python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
@@ -102,7 +105,7 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local: `e20130c`.
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local antes de esta auditoría: `2498b88`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK; `/api/lead/update`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
@@ -122,6 +125,8 @@ Resultado reciente:
 - `deploy/verify_vps.sh`: probado en modo local con CRM protegido; valida preflight, smoke local y deja preparado el camino para smoke HTTPS/dominio.
 - `test_privacy_renderer.py`: valida que la privacidad con placeholders falle y que una configuración final genere MD/HTML sin marcadores de beta.
 - UI de espera lenta: prueba con navegador simulando `/api/chat` confirma que se muestra estado progresivo y vuelve al progreso normal cuando llega la respuesta.
+- Prueba UI pública reusable: `test_public_ui_flow.py` valida escritorio, móvil, arranque sin email y estado de espera del agente.
+- Prueba de sincronización CRM: `test_crm_webhook_sync.py` crea una base temporal, levanta un receptor webhook local, envía un snapshot y comprueba cabeceras, payload y recibo `crm_webhook_snapshot_synced`.
 - Prueba anti-fallback silencioso: con `CODEX_BIN` inválido y `ALLOW_AI_FALLBACK=false`, `/api/chat` devuelve `502` y no genera respuesta fallback.
 
 ## Huecos no cerrados
