@@ -16,9 +16,11 @@ Recluta 8-12 personas. Prioridad:
 
 Envía este texto o usa las variantes listas de `FIRST_TESTERS_PACKET.md`:
 
-> Estoy probando una herramienta gratuita que analiza tu negocio y te dice qué procesos podrías automatizar primero con IA. Funciona como una mini sesión de discovery: le cuentas tu caso, te repregunta y al final te genera un informe. Lo más útil es que respondas con ejemplos reales, como si estuvieras hablando conmigo. Al terminar, deja feedback sincero sobre qué te sirvió y qué echaste en falta.
+> Estoy probando una herramienta gratuita que analiza dónde se te escapa tiempo, dinero o clientes en tu negocio y te dice qué proceso tendría más sentido automatizar primero con IA. Funciona como una mini sesión de discovery: le cuentas tu caso, te repregunta y al final te genera un informe. Lo más útil es que respondas con ejemplos reales, como si estuvieras hablando conmigo. Al terminar, deja feedback sincero sobre qué te sirvió y qué echaste en falta.
 
 No les expliques el sistema por dentro. Queremos medir si la promesa se entiende sola.
+
+No adelantes que al final pedirá email. La prueba debe confirmar si la gente empieza sin fricción, avanza porque la conversación le aporta valor y acepta dejar el email solo cuando ya quiere generar el informe.
 
 ## Qué observar
 
@@ -27,9 +29,13 @@ Para cada tester, revisa en el CRM:
 - Sector y tipo de negocio.
 - Origen del lead.
 - Número de turnos hasta `ready_for_report`.
+- Si el primer mensaje trae una escena concreta o se queda en generalidades.
+- Si el agente hace repreguntas adaptadas al caso o cae en preguntas genéricas.
 - Si dejó email.
 - Si generó informe.
+- Fuga principal detectada.
 - Empleado IA recomendado.
+- Primer paso recomendado.
 - Oferta recomendada.
 - Rating de feedback.
 - Qué echó en falta.
@@ -75,8 +81,10 @@ Prueba tres entradas distintas:
 Mide por fuente:
 
 - Visita -> inicio.
-- Inicio -> email.
-- Email -> informe.
+- Inicio -> discovery útil: el usuario da al menos una escena concreta.
+- Discovery útil -> `ready_for_report`.
+- `ready_for_report` -> email-gate aceptado.
+- Email-gate aceptado -> informe.
 - Informe -> feedback.
 - Informe -> respuesta/comentario solicitando ayuda.
 

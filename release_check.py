@@ -28,6 +28,7 @@ MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
 LOCAL_VALIDATION = ROOT / "VALIDACION_LOCAL.md"
 LAUNCH_GO_NO_GO = ROOT / "launch_go_no_go.py"
 FIRST_TESTERS_PACKET = ROOT / "FIRST_TESTERS_PACKET.md"
+BETA_TEST_PLAN = ROOT / "BETA_TEST_PLAN.md"
 GITIGNORE = ROOT / ".gitignore"
 SENSITIVE_PATHS = [
     ".env",
@@ -150,6 +151,36 @@ def testers_packet_check() -> dict:
     leaked = [item for item in forbidden if item.lower() in text.lower()]
     return {
         "name": "first_testers_packet",
+        "ok": bool(text) and not missing and not leaked,
+        "missing": missing,
+        "leaked": leaked,
+    }
+
+
+def beta_test_plan_check() -> dict:
+    text = BETA_TEST_PLAN.read_text(encoding="utf-8") if BETA_TEST_PLAN.exists() else ""
+    required = [
+        "dónde se te escapa tiempo, dinero o clientes",
+        "No adelantes que al final pedirá email",
+        "primer mensaje trae una escena concreta",
+        "repreguntas adaptadas al caso",
+        "Fuga principal detectada",
+        "Primer paso recomendado",
+        "Inicio -> discovery útil",
+        "Discovery útil -> `ready_for_report`",
+        "`ready_for_report` -> email-gate aceptado",
+        "Email-gate aceptado -> informe",
+    ]
+    forbidden = [
+        "Inicio -> email",
+        "Email -> informe",
+        "Descargar JSON",
+        "informe potente",
+    ]
+    missing = [item for item in required if item.lower() not in text.lower()]
+    leaked = [item for item in forbidden if item.lower() in text.lower()]
+    return {
+        "name": "beta_test_plan",
         "ok": bool(text) and not missing and not leaked,
         "missing": missing,
         "leaked": leaked,
@@ -432,6 +463,7 @@ def main():
         sensitive_files_check(),
         privacy_check(require_privacy_final),
         testers_packet_check(),
+        beta_test_plan_check(),
         local_validation_check(),
         deploy_config_check(),
     ]
