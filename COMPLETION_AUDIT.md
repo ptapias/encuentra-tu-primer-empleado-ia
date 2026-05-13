@@ -113,7 +113,7 @@ Resultado reciente:
 
 - `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado: `457e7ae`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
-- Smoke test con `ADMIN_PASSWORD`: OK; `/api/lead/update`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
+- Smoke test con `ADMIN_PASSWORD`: OK en `1761140` con instancia temporal en `localhost:8791`; `/api/lead/update`, `/api/lead/delete`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
 - Preflight valida `MAX_AI_CONCURRENCY` y `AI_QUEUE_WAIT_SECONDS`; `healthz` expone `ai_concurrency`; `test_ai_concurrency.py` prueba el error de agente ocupado.
 - Smoke test valida que `HEAD /` redirige al diagnóstico para que checks externos no vean un falso 404.
