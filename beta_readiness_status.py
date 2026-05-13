@@ -72,6 +72,7 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
     checks["vps_inputs"] = inputs
     if not inputs.get("ok"):
         blockers.append("Faltan datos reales de VPS/privacidad/CRM.")
+        next_actions.append("Abre `NEXT_DEPLOYMENT_HANDOFF.md` si quieres la versión corta: 8 datos pendientes, comandos y gate final.")
         if answers["exists"]:
             next_actions.append("Rellena `VPS_ANSWERS.local.json` y después ejecuta `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
         else:

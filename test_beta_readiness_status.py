@@ -32,6 +32,10 @@ def test_default_repo_is_blocked_on_launch_inputs():
         any("VPS_ANSWERS.local.json" in action for action in result["next_actions"]),
         "El semáforo debería enseñar también la ruta no interactiva con JSON local",
     )
+    assert_true(
+        any("NEXT_DEPLOYMENT_HANDOFF.md" in action for action in result["next_actions"]),
+        "El semáforo debería apuntar al handoff corto de despliegue",
+    )
 
 
 def test_existing_answers_json_is_reported_and_prioritized():
