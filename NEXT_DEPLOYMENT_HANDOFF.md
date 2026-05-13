@@ -50,6 +50,12 @@ cd /opt/primer-empleado-ia
 
 Copia al VPS `VPS_INPUTS.local.md`. Ese es el camino recomendado: `deploy/launch_from_inputs.sh` volverá a validar la ficha y generará allí `.env.generated` y `privacy_config.json`.
 
+Para que te imprima los comandos SSH/SCP exactos desde la ficha validada:
+
+```bash
+python3 print_vps_deploy_commands.py --inputs VPS_INPUTS.local.md
+```
+
 Solo copies `.env.generated` o `privacy_config.json` si decides saltarte el flujo guiado y hacer una instalación manual con `deploy/install_vps.sh`.
 
 Despues ejecuta:

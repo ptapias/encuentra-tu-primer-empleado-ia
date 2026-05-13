@@ -54,6 +54,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `generate_vps_inputs.py`: asistente guiado para crear `VPS_INPUTS.local.md` sin subir datos sensibles a Git.
 - `validate_vps_inputs.py`: valida que `VPS_INPUTS.md` esté completo antes de tocar el VPS.
 - `prepare_vps_launch_files.py`: genera `.env.generated` y `privacy_config.json` desde `VPS_INPUTS.local.md`.
+- `print_vps_deploy_commands.py`: genera comandos SSH/SCP desde `VPS_INPUTS.local.md` validado, sin imprimir la contraseña CRM.
 - `test_public_beta_gate.py`: prueba unitaria del gate público para no abrir por error en localhost, sin HTTPS o con credenciales incorrectas.
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
