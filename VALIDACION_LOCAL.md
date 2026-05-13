@@ -45,6 +45,14 @@ python3 test_public_ui_flow.py --base http://localhost:8787
 
 Esta prueba abre la página como escritorio y móvil, comprueba que el gancho inicial aparece pronto, que se puede empezar sin pedir email y que el estado de espera aparece mientras el agente prepara la respuesta.
 
+Si quieres probar la transcripción con audio real generado localmente:
+
+```bash
+python3 test_transcription_local.py --base http://localhost:8787
+```
+
+Esta prueba no sustituye la prueba manual de permisos del micrófono en navegador, pero confirma que `/transcribe` procesa un audio real y devuelve texto.
+
 Después valida la calidad del agente real:
 
 ```bash
