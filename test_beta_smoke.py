@@ -149,6 +149,8 @@ def main():
     expect(status == 200 and "offerFilter" in dashboard_html and "sourceFilter" in dashboard_html, "el CRM no incluye filtros operativos")
     expect("Consentimiento" in dashboard_html, "el CRM no muestra consentimiento del lead")
     expect("Interés CTA" in dashboard_html, "el CRM no muestra intención de CTA")
+    expect("Discovery útil" in dashboard_html and "Listos informe" in dashboard_html, "el CRM no muestra métricas del embudo de discovery")
+    expect("Email final" in dashboard_html and "de emails" in dashboard_html, "el CRM no muestra conversión del email-gate final")
     expect("Resumen de acción" in dashboard_html and "Fuga principal" in dashboard_html, "el CRM no muestra resumen accionable del diagnóstico")
     expect("Discovery viva" in dashboard_html and "Procesos candidatos" in dashboard_html, "el CRM no muestra discovery viva ni procesos candidatos")
     checks.append({"check": "dashboard_filters", "ok": True})
