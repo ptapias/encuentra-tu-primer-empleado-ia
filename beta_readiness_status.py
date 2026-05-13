@@ -6,6 +6,7 @@ from pathlib import Path
 import render_privacy
 import validate_manual_production_test
 import validate_vps_inputs
+import generate_vps_inputs
 
 
 ROOT = Path(__file__).resolve().parent
@@ -28,10 +29,39 @@ def privacy_state(path: Path) -> dict:
     return state
 
 
-def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path: Path) -> dict:
+def answers_state(path: Path) -> dict:
+    state = file_state(path)
+    if not path.exists():
+        state.update({"ok": False, "errors": ["Falta VPS_ANSWERS.local.json"], "empty_required": []})
+        return state
+    try:
+        answers = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        state.update({"ok": False, "errors": [f"JSON inválido: {exc}"], "empty_required": []})
+        return state
+    required = [label for label in validate_vps_inputs.REQUIRED_LABELS if not str(answers.get(label, "")).strip()]
+    known_labels = {label for _section, label, _default, _help in generate_vps_inputs.FIELDS}
+    unknown = sorted(label for label in answers if label not in known_labels)
+    state.update(
+        {
+            "ok": not required and not unknown,
+            "errors": [f"Faltan campos obligatorios en JSON: {', '.join(required[:6])}"] if required else [],
+            "warnings": [f"Campos no reconocidos en JSON: {', '.join(unknown[:6])}"] if unknown else [],
+            "empty_required": required,
+            "filled_required": len(validate_vps_inputs.REQUIRED_LABELS) - len(required),
+            "required_fields": len(validate_vps_inputs.REQUIRED_LABELS),
+        }
+    )
+    return state
+
+
+def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path: Path, answers_path: Path | None = None) -> dict:
     checks = {}
     blockers = []
     next_actions = []
+    answers_path = answers_path or (ROOT / "VPS_ANSWERS.local.json")
+    answers = answers_state(answers_path)
+    checks["answers_json"] = answers
 
     inputs = validate_vps_inputs.validate(inputs_path) if inputs_path.exists() else {
         "ok": False,
@@ -42,8 +72,11 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
     checks["vps_inputs"] = inputs
     if not inputs.get("ok"):
         blockers.append("Faltan datos reales de VPS/privacidad/CRM.")
-        next_actions.append("Ejecuta `python3 generate_vps_inputs.py` para crear `VPS_INPUTS.local.md` de forma guiada y validable.")
-        next_actions.append("Si prefieres rellenarlo en un archivo, ejecuta `python3 generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json`, edítalo y luego `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
+        if answers["exists"]:
+            next_actions.append("Rellena `VPS_ANSWERS.local.json` y después ejecuta `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
+        else:
+            next_actions.append("Ejecuta `python3 generate_vps_inputs.py` para crear `VPS_INPUTS.local.md` de forma guiada y validable.")
+            next_actions.append("Si prefieres rellenarlo en un archivo, ejecuta `python3 generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json`, edítalo y luego `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
         next_actions.append("Después ejecuta `python3 validate_vps_inputs.py --path VPS_INPUTS.local.md`.")
 
     env = file_state(env_path)
@@ -99,8 +132,9 @@ def main() -> int:
     parser.add_argument("--manual-test", default=str(ROOT / "MANUAL_PRODUCTION_TEST.local.md"))
     parser.add_argument("--env", default=str(ROOT / ".env.generated"))
     parser.add_argument("--privacy", default=str(ROOT / "privacy_config.json"))
+    parser.add_argument("--answers-json", default=str(ROOT / "VPS_ANSWERS.local.json"))
     args = parser.parse_args()
-    result = readiness(Path(args.inputs), Path(args.manual_test), Path(args.env), Path(args.privacy))
+    result = readiness(Path(args.inputs), Path(args.manual_test), Path(args.env), Path(args.privacy), Path(args.answers_json))
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1
 

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import json
 import tempfile
 from pathlib import Path
 
 import beta_readiness_status
+import generate_vps_inputs
 import prepare_vps_launch_files
 from test_manual_production_validator import filled_doc
 from test_vps_inputs_validator import VALID_INPUTS
@@ -32,6 +34,30 @@ def test_default_repo_is_blocked_on_launch_inputs():
     )
 
 
+def test_existing_answers_json_is_reported_and_prioritized():
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
+        base = Path(tmp)
+        answers = base / "VPS_ANSWERS.local.json"
+        answers.write_text(
+            '{\n  "Dominio/subdominio público": "diagnostico.example.com",\n  "Puerto SSH": "22"\n}\n',
+            encoding="utf-8",
+        )
+        result = beta_readiness_status.readiness(
+            base / "VPS_INPUTS.local.md",
+            base / "MANUAL_PRODUCTION_TEST.local.md",
+            base / ".env.generated",
+            base / "privacy_config.json",
+            answers,
+        )
+    assert_true(not result["ok"], result)
+    assert_true(result["checks"]["answers_json"]["exists"], "Debería detectar la ficha JSON local")
+    assert_true(result["checks"]["answers_json"]["empty_required"], "Debería listar campos obligatorios vacíos")
+    assert_true(
+        any("Rellena `VPS_ANSWERS.local.json`" in action for action in result["next_actions"]),
+        "Si existe JSON local, debería priorizar rellenarlo",
+    )
+
+
 def test_complete_artifacts_are_ready_for_public_go_no_go():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
         base = Path(tmp)
@@ -56,7 +82,22 @@ def test_complete_artifacts_are_ready_for_public_go_no_go():
     )
 
 
+def test_complete_answers_json_state_is_ok():
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
+        answers = Path(tmp) / "VPS_ANSWERS.local.json"
+        full = generate_vps_inputs.answers_template()
+        for label in full:
+            if not str(full[label]).strip():
+                full[label] = "valor-validado"
+        answers.write_text(json.dumps(full, ensure_ascii=False), encoding="utf-8")
+        state = beta_readiness_status.answers_state(answers)
+    assert_true(state["ok"], state)
+    assert_true(state["filled_required"] == state["required_fields"], state)
+
+
 if __name__ == "__main__":
     test_default_repo_is_blocked_on_launch_inputs()
+    test_existing_answers_json_is_reported_and_prioritized()
     test_complete_artifacts_are_ready_for_public_go_no_go()
+    test_complete_answers_json_state_is_ok()
     print("beta_readiness_status ok")
