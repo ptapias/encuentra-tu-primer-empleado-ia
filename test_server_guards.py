@@ -21,7 +21,19 @@ def test_valid_email_rejects_bad_values():
     assert_true(not app_server.valid_email("persona@empresa"), "Email sin TLD debería fallar")
 
 
+def test_admin_example_password_is_misconfigured():
+    original = app_server.ADMIN_PASSWORD
+    try:
+        app_server.ADMIN_PASSWORD = "change-me"
+        assert_true(app_server.admin_auth_misconfigured(), "La contraseña de ejemplo debería marcarse como mala configuración")
+        app_server.ADMIN_PASSWORD = "clave-real"
+        assert_true(not app_server.admin_auth_misconfigured(), "Una contraseña real no debería marcarse como mala configuración")
+    finally:
+        app_server.ADMIN_PASSWORD = original
+
+
 if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
+    test_admin_example_password_is_misconfigured()
     print("server_guards ok")

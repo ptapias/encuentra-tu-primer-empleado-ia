@@ -223,6 +223,10 @@ def valid_email(email: str) -> bool:
     return bool(local and "." in domain and not any(char.isspace() for char in email))
 
 
+def admin_auth_misconfigured() -> bool:
+    return bool(ADMIN_PASSWORD and ADMIN_PASSWORD == "change-me")
+
+
 def clean_tracking_value(value, max_len=120) -> str:
     text = humanize(value).strip()
     if not text:
@@ -1118,6 +1122,9 @@ class Handler(SimpleHTTPRequestHandler):
     def _require_admin(self) -> bool:
         if not ADMIN_PASSWORD:
             return True
+        if admin_auth_misconfigured():
+            self._json({"error": "CRM admin password is still the example value. Configure ADMIN_PASSWORD before exposing admin routes."}, 503)
+            return False
         auth = self.headers.get("Authorization", "")
         if not auth.startswith("Basic "):
             self._auth_required()
@@ -1739,7 +1746,7 @@ def main():
     print("SQLite CRM:", DB_FILE)
     print("AI provider:", AI_PROVIDER)
     print("AI fallback:", "enabled" if ALLOW_AI_FALLBACK else "disabled")
-    print("CRM auth:", "enabled" if ADMIN_PASSWORD else "disabled")
+    print("CRM auth:", "misconfigured" if admin_auth_misconfigured() else ("enabled" if ADMIN_PASSWORD else "disabled"))
     print("Local transcription endpoint enabled at /transcribe")
     server.serve_forever()
 
