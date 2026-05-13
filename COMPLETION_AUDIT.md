@@ -34,7 +34,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Guarda leads en CRM | SQLite `crm.sqlite3`, endpoints `/api/session`, `/api/email`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` | `test_discovery_flow.py` crea leads y reportes; dashboard lee datos | Hecho |
 | CRM con métricas de beta | `/api/metrics`, `CRM_Dashboard.html` | `curl /api/metrics` devuelve leads, inicio, email, informe, feedback y turnos | Hecho |
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead y metrics | Prueba con `ADMIN_PASSWORD`: `/api/metrics` devuelve `401` sin auth y `200` con auth | Hecho para VPS |
-| Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; con `ADMIN_PASSWORD` devuelve `401` sin auth y `200` con auth | Hecho |
+| Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; `test_beta_smoke.py` comprueba protección y respuesta | Hecho |
 | Backups de beta | `backup_crm.py`, `backups/` ignorado por Git | Script genera copia SQLite consistente y JSONL si existe | Hecho |
 | Privacidad beta | `PRIVACY_BETA.md`, enlace en UI, texto corto en email-gate | Basado en enfoque de información por capas de AEPD; pendiente completar datos legales reales | Parcial |
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight y smoke test locales OK; despliegue real no ejecutado | Parcial |

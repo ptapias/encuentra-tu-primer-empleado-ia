@@ -73,6 +73,20 @@ def main():
         expect(metrics_without_auth == 200 and "metrics" in metrics, "las métricas no responden en entorno sin auth")
     checks.append({"check": "metrics", "auth_required": bool(auth), "status_without_auth": metrics_without_auth})
 
+    try:
+        status, export_csv = request(args.base, "/api/export.csv")
+        export_without_auth = status
+    except urllib.error.HTTPError as exc:
+        export_without_auth = exc.code
+        export_csv = ""
+    if auth:
+        expect(export_without_auth == 401, "el export CSV debería estar protegido sin autenticación")
+        status, export_csv = request(args.base, "/api/export.csv", auth=auth)
+        expect(status == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde con autenticación")
+    else:
+        expect(export_without_auth == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde en entorno sin auth")
+    checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
+
     print(json.dumps({"ok": True, "base": args.base, "checks": checks}, ensure_ascii=False, indent=2))
     return 0
 
