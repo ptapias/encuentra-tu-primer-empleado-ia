@@ -719,6 +719,36 @@
     .report-actions button {
       width: fit-content;
     }
+    .report-action-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--line);
+    }
+    .report-action-item {
+      background: #fbfaf6;
+      padding: 14px;
+      display: grid;
+      gap: 5px;
+      min-height: 112px;
+    }
+    .report-action-item span {
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .report-action-item strong {
+      display: block;
+      font-size: 16px;
+    }
+    .report-action-item p {
+      color: var(--muted);
+      font-size: 13px;
+    }
     .next-step-card {
       border: 1px solid #cfe1d8;
       background: #fffdf8;
@@ -1176,7 +1206,7 @@
       aside { order: 2; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       aside > .panel:first-of-type { display: none; }
-      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid, .starter-proof, .diagnostic-preview-body { grid-template-columns: 1fr; }
+      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid, .starter-proof, .diagnostic-preview-body, .report-action-strip { grid-template-columns: 1fr; }
       .priority-map-canvas { min-height: 300px; }
       .priority-label { max-width: 150px; }
     }
@@ -1939,6 +1969,23 @@
             <button class="secondary" type="button" onclick="printLatestReport()">Guardar PDF</button>
           </div>
         </div>
+        <div class="report-action-strip" aria-label="Resumen de acción del diagnóstico">
+          <div class="report-action-item">
+            <span>Fuga principal</span>
+            <strong>${escapeHtml(mainOpportunity.name || "Proceso prioritario")}</strong>
+            <p>${escapeHtml(mainOpportunity.problem || report.recommendation_reason || "Área con potencial de automatización.")}</p>
+          </div>
+          <div class="report-action-item">
+            <span>Empleado IA recomendado</span>
+            <strong>${escapeHtml(mainOpportunity.ai_employee || report.recommended_employee)}</strong>
+            <p>${escapeHtml((mainOpportunity.what_it_would_do || []).slice(0, 2).join(", ") || "Preparar trabajo repetitivo con revisión humana.")}</p>
+          </div>
+          <div class="report-action-item">
+            <span>Primer paso</span>
+            <strong>Empezar pequeño</strong>
+            <p>${escapeHtml(mainOpportunity.first_step || (report.seven_day_plan || [])[0] || "Reunir ejemplos reales y validar una primera versión supervisada.")}</p>
+          </div>
+        </div>
         <div class="mini-grid">
           <div class="diagnosis-card"><span>Lo que he entendido</span>${escapeHtml(report.business_snapshot)}</div>
           <div class="diagnosis-card"><span>Por qué empezar aquí</span>${escapeHtml(report.recommendation_reason)}</div>
@@ -2050,6 +2097,11 @@
         <p class="muted">Encuentra Tu Primer Empleado IA</p>
         <h1>${escapeHtml(report.recommended_employee)}</h1>
         <p>${escapeHtml(report.summary)}</p>
+        <section><h2>Resumen de acción</h2>
+          <p><strong>Fuga principal:</strong> ${escapeHtml((report.opportunities || [])[0]?.name || "Proceso prioritario")}</p>
+          <p><strong>Empleado IA recomendado:</strong> ${escapeHtml((report.opportunities || [])[0]?.ai_employee || report.recommended_employee)}</p>
+          <p><strong>Primer paso:</strong> ${escapeHtml((report.opportunities || [])[0]?.first_step || (report.seven_day_plan || [])[0] || "Reunir ejemplos reales y validar una primera versión supervisada.")}</p>
+        </section>
         <section><h2>Lo que he entendido</h2><p>${escapeHtml(report.business_snapshot)}</p></section>
         <section><h2>Por qué empezar aquí</h2><p>${escapeHtml(report.recommendation_reason)}</p></section>
         ${report.evidence_summary?.length ? `<section><h2>Señales detectadas</h2>${list(report.evidence_summary)}</section>` : ""}

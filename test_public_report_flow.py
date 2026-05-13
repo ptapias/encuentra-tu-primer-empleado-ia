@@ -154,6 +154,8 @@ def main() -> int:
             page.locator(".email-gate button").click()
             page.get_by_text("Generando diagnóstico").wait_for(timeout=3000)
             page.get_by_text("Tu primer empleado IA debería ser: Empleado IA de triaje y seguimiento de email").wait_for(timeout=10000)
+            page.get_by_text("Fuga principal").wait_for(timeout=5000)
+            page.locator(".report-action-strip").get_by_text("Primer paso", exact=True).wait_for(timeout=5000)
             page.get_by_text("Matriz de priorización").wait_for(timeout=5000)
             page.get_by_text("Ayúdanos a mejorar este diagnóstico").wait_for(timeout=5000)
             result["checks"].append("email_gate_report_rendered")

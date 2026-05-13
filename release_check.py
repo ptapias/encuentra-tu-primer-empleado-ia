@@ -81,6 +81,8 @@ def static_page_check() -> dict:
         "¿Dónde se te escapa tiempo, dinero o clientes?",
         "analiza tu negocio como lo haría un consultor",
         "Por qué esta va primero",
+        "Fuga principal",
+        "Resumen de acción",
         "Señales detectadas",
         "Cómo funcionaría en la práctica",
         "Matriz de priorización",
