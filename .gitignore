@@ -1,6 +1,9 @@
 crm_leads.jsonl
 crm.sqlite3
 crm.sqlite3-*
+.env
+.env.*
+!.env.example
 backups/
 privacy_config.json
 VPS_INPUTS.local.md
