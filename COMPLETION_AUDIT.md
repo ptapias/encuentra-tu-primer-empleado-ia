@@ -101,7 +101,7 @@ Resultado reciente:
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
-- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: detectó foco correcto e informes específicos; se corrigió exceso de prudencia para activar informe cuando ya hay confianza alta.
+- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK tras cambios de consentimiento/CTA; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
