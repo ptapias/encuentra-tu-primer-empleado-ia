@@ -38,6 +38,14 @@ def test_admin_example_password_is_misconfigured():
         app_server.ADMIN_PASSWORD = original
 
 
+def test_admin_without_password_only_allowed_on_local_host():
+    assert_true(app_server.local_host_header("localhost:8787"), "localhost debería permitir CRM sin contraseña en desarrollo")
+    assert_true(app_server.local_host_header("127.0.0.1:8787"), "127.0.0.1 debería permitir CRM sin contraseña en desarrollo")
+    assert_true(app_server.local_host_header("[::1]:8787"), "::1 debería permitir CRM sin contraseña en desarrollo")
+    assert_true(not app_server.local_host_header("diagnostico.example.com"), "un dominio público no debería permitir CRM sin contraseña")
+    assert_true(not app_server.local_host_header("203.0.113.10:8787"), "una IP pública no debería permitir CRM sin contraseña")
+
+
 def test_client_ip_only_trusts_proxy_header_from_loopback():
     assert_true(
         app_server.client_ip(FakeHandler("127.0.0.1", "203.0.113.25, 127.0.0.1")) == "203.0.113.25",
@@ -53,5 +61,6 @@ if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
     test_admin_example_password_is_misconfigured()
+    test_admin_without_password_only_allowed_on_local_host()
     test_client_ip_only_trusts_proxy_header_from_loopback()
     print("server_guards ok")

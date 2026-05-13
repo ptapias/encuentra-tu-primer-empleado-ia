@@ -236,6 +236,17 @@ def admin_auth_misconfigured() -> bool:
     return bool(ADMIN_PASSWORD and ADMIN_PASSWORD == "change-me")
 
 
+def local_host_header(host_header: str) -> bool:
+    host = (host_header or "").strip().lower()
+    if not host:
+        return False
+    if host.startswith("["):
+        host = host.split("]", 1)[0].lstrip("[")
+    else:
+        host = host.split(":", 1)[0]
+    return host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".localhost")
+
+
 def clean_tracking_value(value, max_len=120) -> str:
     text = humanize(value).strip()
     if not text:
@@ -1164,7 +1175,10 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _require_admin(self) -> bool:
         if not ADMIN_PASSWORD:
-            return True
+            if local_host_header(self.headers.get("Host", "")):
+                return True
+            self._json({"error": "CRM admin password is not configured. Set ADMIN_PASSWORD before exposing admin routes."}, 503)
+            return False
         if admin_auth_misconfigured():
             self._json({"error": "CRM admin password is still the example value. Configure ADMIN_PASSWORD before exposing admin routes."}, 503)
             return False
