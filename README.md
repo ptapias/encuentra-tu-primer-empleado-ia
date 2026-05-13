@@ -94,6 +94,8 @@ Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con
 
 Para enseñarlo a público real, usa `.env.example` como base y define `ADMIN_PASSWORD` para proteger el CRM. La página pública ya no muestra leads internos; el dashboard queda separado en `CRM_Dashboard.html`.
 
+La beta genera el informe en pantalla y guarda el lead en CRM. Todavía no envía emails automáticamente; si quieres entrega por correo habrá que conectar Resend, Beehiiv, ConvertKit u otro proveedor.
+
 La guía de VPS está en `DEPLOYMENT_VPS.md`.
 
 Nota clave: una web pública no puede usar directamente tu suscripción personal de Codex como API. Sí puedes usar Codex para pruebas locales o para procesar manualmente conversaciones recogidas por la web durante la validación.
