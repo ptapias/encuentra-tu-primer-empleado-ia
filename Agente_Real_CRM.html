@@ -1022,8 +1022,9 @@
           await addTypingMessage("agent", "Ya tengo suficiente para prepararte un diagnóstico útil. Puedo pasar de la conversación al informe.", "Cierre de discovery");
         }
       } catch (error) {
-        addMessage("agent", `Error del agente: ${error.message}`, "Sistema");
-        statusEl.textContent = "Error";
+        await addTypingMessage("agent", `Ahora mismo no puedo continuar con garantías.\n\n${error.message}\n\nTu respuesta no se ha perdido: puedes intentarlo de nuevo en unos segundos.`, "Agente diagnóstico");
+        statusEl.textContent = "El agente necesita reintentar.";
+        setCrm("Respuesta no generada. Puedes reintentar.", "error");
       } finally {
         if (!reportBtn.hidden) return;
         send.disabled = false;
@@ -1051,7 +1052,9 @@
         statusEl.textContent = "Diagnóstico generado.";
         setCrm("Diagnóstico listo.", "ok");
       } catch (error) {
-        addMessage("agent", `Error generando informe: ${error.message}`, "Sistema");
+        await addTypingMessage("agent", `No he podido generar el informe con garantías.\n\n${error.message}\n\nPuedes volver a intentarlo en unos segundos.`, "Agente diagnóstico");
+        statusEl.textContent = "Informe pendiente de reintento.";
+        setCrm("Informe no generado. Reintenta en unos segundos.", "error");
       } finally {
         reportBtn.disabled = false;
       }
