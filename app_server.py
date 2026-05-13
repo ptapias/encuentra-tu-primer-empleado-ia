@@ -3,6 +3,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib import request, error, parse
 import base64
+import csv
+import io
 import json
 import os
 import shutil
@@ -812,7 +814,7 @@ class Handler(SimpleHTTPRequestHandler):
         if route.path == "/api/capabilities":
             self._json({"transcription": transcription_status()})
             return
-        if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead", "/api/metrics") and not self._require_admin():
+        if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead", "/api/metrics", "/api/export.csv") and not self._require_admin():
             return
         if route.path == "/api/leads":
             self._handle_list_leads()
@@ -822,6 +824,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if route.path == "/api/metrics":
             self._handle_metrics()
+            return
+        if route.path == "/api/export.csv":
+            self._handle_export_csv()
             return
         super().do_GET()
 
@@ -1094,6 +1099,72 @@ class Handler(SimpleHTTPRequestHandler):
             "recent_reports": sorted(recent_reports, key=lambda item: item["updated_at"], reverse=True)[:5],
         }
         self._json({"metrics": metrics})
+
+    def _handle_export_csv(self):
+        with db() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, email, created_at, updated_at, stage, status, facts_json, outcome_json,
+                       feedback_json, transcript_json
+                FROM leads
+                ORDER BY updated_at DESC
+                """
+            ).fetchall()
+
+        output = io.StringIO()
+        fieldnames = [
+            "id",
+            "email",
+            "created_at",
+            "updated_at",
+            "stage",
+            "status",
+            "sector",
+            "use_case",
+            "score",
+            "urgency",
+            "budget",
+            "offer",
+            "recommended_employee",
+            "turns",
+            "has_feedback",
+            "summary",
+        ]
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            outcome = json.loads(row["outcome_json"]) if row["outcome_json"] else {}
+            facts = json.loads(row["facts_json"] or "{}")
+            feedback = json.loads(row["feedback_json"]) if row["feedback_json"] else None
+            transcript = json.loads(row["transcript_json"] or "[]")
+            crm = outcome.get("crm_summary", {})
+            writer.writerow(
+                {
+                    "id": row["id"],
+                    "email": row["email"] or "",
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                    "stage": row["stage"],
+                    "status": row["status"],
+                    "sector": humanize(crm.get("sector")),
+                    "use_case": humanize(crm.get("use_case")) or humanize(facts.get("selected_process")),
+                    "score": score_0_to_100(crm.get("score"), 0) if outcome else 0,
+                    "urgency": humanize(crm.get("urgency")),
+                    "budget": humanize(crm.get("budget")),
+                    "offer": humanize(crm.get("offer")),
+                    "recommended_employee": humanize(outcome.get("recommended_employee")),
+                    "turns": len([m for m in transcript if m.get("role") == "user"]),
+                    "has_feedback": "yes" if feedback else "no",
+                    "summary": humanize(outcome.get("summary")),
+                }
+            )
+        encoded = output.getvalue().encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/csv; charset=utf-8")
+        self.send_header("Content-Disposition", 'attachment; filename="primer-empleado-ia-leads.csv"')
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        self.wfile.write(encoded)
 
     def _handle_crm(self):
         payload = read_json(self)

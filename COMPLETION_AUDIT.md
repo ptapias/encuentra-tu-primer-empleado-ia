@@ -34,6 +34,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Guarda leads en CRM | SQLite `crm.sqlite3`, endpoints `/api/session`, `/api/email`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` | `test_discovery_flow.py` crea leads y reportes; dashboard lee datos | Hecho |
 | CRM con métricas de beta | `/api/metrics`, `CRM_Dashboard.html` | `curl /api/metrics` devuelve leads, inicio, email, informe, feedback y turnos | Hecho |
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead y metrics | Prueba con `ADMIN_PASSWORD`: `/api/metrics` devuelve `401` sin auth y `200` con auth | Hecho para VPS |
+| Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; con `ADMIN_PASSWORD` devuelve `401` sin auth y `200` con auth | Hecho |
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `test_beta_smoke.py` | Smoke test local OK; despliegue real no ejecutado | Parcial |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
@@ -65,7 +66,7 @@ Resultado reciente:
 | Grabación real de micrófono no cubierta por smoke test | Los permisos del navegador requieren prueba manual aunque `/api/capabilities` valide binarios | Probar micrófono manualmente en local y en VPS con HTTPS |
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
 | Calidad adaptativa probada en pocos casos reales con Codex | Un caso bueno no garantiza robustez en sectores distintos | Ejecutar 5 discovery sessions reales: newsletter, clínica, inmobiliaria, agencia, ecommerce |
-| No hay exportación CSV desde dashboard | Para operación comercial puede hacer falta mover leads a CRM externo | Añadir export CSV o integración cuando haya los primeros testers |
+| Integración directa con CRM externo no implementada | CSV ya cubre operación manual inicial, pero no sincroniza con HubSpot/Airtable/etc. | Integrar cuando haya los primeros testers y un CRM elegido |
 
 ## Decisión de auditoría
 
