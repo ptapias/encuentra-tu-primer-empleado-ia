@@ -50,20 +50,12 @@ REQUIRED_LABELS = [
 
 def extract_fields(text: str) -> dict[str, str]:
     fields = {}
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
+    for line in text.splitlines():
         match = re.match(r"^- ([^:\n]+):\s*(.*)$", line)
         if not match:
             continue
         label = match.group(1).strip()
         value = match.group(2).strip()
-        continuation = []
-        cursor = index + 1
-        while cursor < len(lines) and re.match(r"^\s+- ", lines[cursor]):
-            continuation.append(lines[cursor].strip().removeprefix("- ").strip())
-            cursor += 1
-        if not value and continuation:
-            value = " ".join(continuation)
         fields[label] = value
     return fields
 

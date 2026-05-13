@@ -66,6 +66,18 @@ def test_empty_template_fails():
     result = validate_vps_inputs.validate(validate_vps_inputs.DEFAULT_PATH)
     assert_true(not result["ok"], "La plantilla sin rellenar debería fallar")
     assert_true(result["errors"], "El validador debería explicar qué falta")
+    assert_true(
+        any("Proveedor IA inicial" in error for error in result["errors"]),
+        "Los textos de ayuda no deberían contar como proveedor IA rellenado",
+    )
+    assert_true(
+        any("¿El micro entra en la primera beta?" in error for error in result["errors"]),
+        "Las opciones sí/no de ayuda no deberían contar como decisión de micro",
+    )
+    assert_true(
+        any("Usuario admin CRM" in error for error in result["errors"]),
+        "El valor por defecto documentado no debería contar como respuesta real",
+    )
 
 
 def test_valid_inputs_pass():
