@@ -700,6 +700,7 @@
       <div class="panel">
         <h2>Empieza hablando</h2>
         <button id="start">Empezar diagnóstico gratis</button>
+        <button class="secondary" id="resetSession" type="button" hidden>Nuevo diagnóstico</button>
         <div class="crm-status" id="crmStatus">Sin formularios largos. Primero entendemos tu caso.</div>
         <p class="privacy-note">El agente irá tirando del hilo hasta encontrar un proceso automatizable real. <a href="/PRIVACY_BETA.md" target="_blank" rel="noreferrer">Privacidad beta</a></p>
       </div>
@@ -815,6 +816,7 @@
     const input = document.getElementById("input");
     const send = document.getElementById("send");
     const start = document.getElementById("start");
+    const resetSession = document.getElementById("resetSession");
     const starter = document.getElementById("starter");
     const reportBtn = document.getElementById("report");
     const micBtn = document.getElementById("mic");
@@ -896,6 +898,11 @@
 
     function clearSessionState() {
       localStorage.removeItem(storageKey);
+    }
+
+    function resetCurrentSession() {
+      clearSessionState();
+      window.location.reload();
     }
 
     function listHtml(items, fallback) {
@@ -987,6 +994,7 @@
       start.disabled = true;
       try {
         const session = await api("/api/session", {});
+        resetSession.hidden = false;
         leadId = session.lead_id;
         transcript = [];
         clearSessionState();
@@ -1203,6 +1211,7 @@
         return;
       }
       if (!saved?.leadId || !Array.isArray(saved.transcript)) return;
+      resetSession.hidden = false;
       leadId = saved.leadId;
       capturedEmail = saved.capturedEmail || "";
       transcript = [];
@@ -1290,6 +1299,7 @@
     }
 
     start.addEventListener("click", startSession);
+    resetSession.addEventListener("click", resetCurrentSession);
     send.addEventListener("click", sendMessage);
     reportBtn.addEventListener("click", generateReport);
     micBtn.addEventListener("click", async () => {
