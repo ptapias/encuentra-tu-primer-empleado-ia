@@ -30,6 +30,7 @@ Usa este documento después de desplegar en VPS y antes de pasar el enlace a tes
 | Paso | Esperado | Resultado | Evidencia |
 |---|---|---|---|
 | Abrir landing | Hero “¿Dónde se te escapa tiempo, dinero o clientes?” visible |  |  |
+| Posicionamiento consultivo | Se ve “Discovery gratuito · 7-10 min”, “mini sesión consultiva” y “Empieza con una escena real” |  |  |
 | Discovery en vivo | Se ve bloque “Discovery en vivo” y queda claro que no es un formulario |  |  |
 | Empezar diagnóstico | Se oculta starter, aparece chat y composer |  |  |
 | Primer mensaje | Pide contexto de negocio de forma conversacional |  |  |

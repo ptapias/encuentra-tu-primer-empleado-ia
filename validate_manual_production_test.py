@@ -26,6 +26,7 @@ CRITICAL_ROWS = [
     "CRM con login",
     "Privacidad",
     "Abrir landing",
+    "Posicionamiento consultivo",
     "Discovery en vivo",
     "Discovery adaptativa",
     "Progreso lateral",

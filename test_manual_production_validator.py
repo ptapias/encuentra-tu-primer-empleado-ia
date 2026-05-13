@@ -62,6 +62,7 @@ def test_filled_doc_passes():
 def test_template_tracks_core_product_promises():
     template = validate_manual_production_test.TEMPLATE_PATH.read_text(encoding="utf-8")
     for label in [
+        "Posicionamiento consultivo",
         "Discovery en vivo",
         "Discovery adaptativa",
         "Progreso lateral",
