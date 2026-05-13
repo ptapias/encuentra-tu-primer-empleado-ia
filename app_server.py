@@ -51,6 +51,26 @@ PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.html"}
 ADMIN_STATIC_FILES = {"/CRM_Dashboard.html"}
 
 
+def git_head_short() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return ""
+
+
+STARTUP_APP_VERSION = APP_VERSION or git_head_short() or "unknown"
+
+
 class AiBusyError(RuntimeError):
     pass
 
@@ -1342,22 +1362,7 @@ def diagnostic_location(route) -> str:
 
 
 def app_version() -> str:
-    if APP_VERSION:
-        return APP_VERSION
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=str(ROOT),
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            timeout=2,
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except Exception:
-        pass
-    return "unknown"
+    return STARTUP_APP_VERSION
 
 
 class Handler(SimpleHTTPRequestHandler):

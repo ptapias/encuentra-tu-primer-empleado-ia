@@ -130,7 +130,7 @@ def app_version_checks(env: dict) -> list[dict]:
     version = (env.get("APP_VERSION") or "").strip()
     head = git_head_short()
     if not version:
-        return [check(True, "app_version_dynamic", f"APP_VERSION vacío: /healthz usará commit Git actual {head or 'desconocido'}", level="warning")]
+        return [check(True, "app_version_startup_git", f"APP_VERSION vacío: /healthz usará el commit Git capturado al arrancar el servidor ({head or 'desconocido'}). Reinicia el servicio tras cada deploy.", level="warning")]
     if head and re.fullmatch(r"[0-9a-fA-F]{7,40}", version) and not head.startswith(version) and not version.startswith(head):
         return [check(False, "app_version_matches_git", f"APP_VERSION={version} no coincide con el commit actual {head}; déjalo vacío o actualízalo si no es una etiqueta manual.", level="warning")]
     return [check(True, "app_version", f"APP_VERSION={version}", level="warning")]

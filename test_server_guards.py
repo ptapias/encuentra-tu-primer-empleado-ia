@@ -149,7 +149,8 @@ def test_preflight_warns_about_stale_commit_app_version():
     try:
         preflight_vps.git_head_short = lambda: "abc1234"
         dynamic = preflight_vps.app_version_checks({"APP_VERSION": ""})
-        assert_true(dynamic[0]["ok"] and dynamic[0]["name"] == "app_version_dynamic", "APP_VERSION vacío debería usar commit dinámico")
+        assert_true(dynamic[0]["ok"] and dynamic[0]["name"] == "app_version_startup_git", "APP_VERSION vacío debería usar el commit capturado al arrancar")
+        assert_true("Reinicia el servicio" in dynamic[0]["message"], "El aviso debería recordar reiniciar tras deploy")
 
         stale = preflight_vps.app_version_checks({"APP_VERSION": "deadbee"})
         assert_true(not stale[0]["ok"], "Un APP_VERSION con forma de commit antiguo debería avisar")
@@ -159,6 +160,18 @@ def test_preflight_warns_about_stale_commit_app_version():
         assert_true(manual[0]["ok"], "Una etiqueta manual no hexadecimal debería ser válida")
     finally:
         preflight_vps.git_head_short = original
+
+
+def test_app_version_is_pinned_at_startup():
+    original_startup = app_server.STARTUP_APP_VERSION
+    original_git = app_server.git_head_short
+    try:
+        app_server.STARTUP_APP_VERSION = "boot123"
+        app_server.git_head_short = lambda: "new456"
+        assert_true(app_server.app_version() == "boot123", "/healthz no debería cambiar de versión si Git cambia sin reiniciar")
+    finally:
+        app_server.STARTUP_APP_VERSION = original_startup
+        app_server.git_head_short = original_git
 
 
 def test_codex_live_service_user_requires_root():
@@ -207,6 +220,7 @@ if __name__ == "__main__":
     test_crm_webhook_payload_and_secret_header()
     test_preflight_webhook_checks()
     test_preflight_warns_about_stale_commit_app_version()
+    test_app_version_is_pinned_at_startup()
     test_codex_live_service_user_requires_root()
     test_public_report_renderer_hides_private_context()
     print("server_guards ok")
