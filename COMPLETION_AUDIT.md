@@ -107,7 +107,7 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local antes de esta auditoría: `2498b88`.
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado: `457e7ae`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK; `/api/lead/update`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
@@ -119,7 +119,7 @@ Resultado reciente:
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
-- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK tras cambios de evidencia/consentimiento/CTA; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback, incluyeron `evidence_summary` y recomendaron empleados IA específicos por sector.
+- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK en `457e7ae`; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector. Latencias: clínica dental 133.9s, inmobiliaria 123.1s, consultor B2B 118.8s.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar. En móvil, el compositor queda oculto hasta empezar y aparece activo al iniciar la sesión.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
