@@ -41,6 +41,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `PRIVACY_BETA.html`: página pública de privacidad enlazada desde el diagnóstico.
 - `test_discovery_flow.py`: prueba de producto con casos de clínica dental, inmobiliaria y consultor B2B.
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
+- `test_private_report_link.py`: prueba el enlace privado `/r/<lead_id>/<token>` sin IA: carga informe, añade noindex y bloquea token incorrecto sin exponer email ni conversación.
 - `test_public_ui_flow.py`: prueba de navegador para validar gancho inicial, móvil, arranque sin email y estado de espera del agente.
 - `test_public_report_flow.py`: prueba de navegador del cierre completo: agente listo, email final, informe renderizado y feedback.
 - `test_session_restore_flow.py`: prueba de navegador para recuperar una sesión a mitad de discovery o lista para informe tras recargar.
