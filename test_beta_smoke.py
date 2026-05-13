@@ -7,6 +7,14 @@ import urllib.error
 import urllib.request
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+NO_REDIRECT_OPENER = urllib.request.build_opener(NoRedirect)
+
+
 def request(base, path, *, auth=None, method="GET", payload=None, timeout=30):
     headers = {}
     body = None
@@ -24,6 +32,15 @@ def request(base, path, *, auth=None, method="GET", payload=None, timeout=30):
         if "application/json" in content_type:
             return response.status, json.loads(raw)
         return response.status, raw
+
+
+def request_no_redirect(base, path, *, method="GET", timeout=30):
+    req = urllib.request.Request(base.rstrip("/") + path, method=method)
+    try:
+        with NO_REDIRECT_OPENER.open(req, timeout=timeout) as response:
+            return response.status, dict(response.headers)
+    except urllib.error.HTTPError as exc:
+        return exc.code, dict(exc.headers)
 
 
 def request_raw(base, path, *, auth=None, timeout=30):
@@ -50,6 +67,10 @@ def main():
     auth = (args.admin_user, args.admin_password) if args.admin_user and args.admin_password else None
 
     checks = []
+
+    status, root_headers = request_no_redirect(args.base, "/", method="HEAD")
+    expect(status == 302 and root_headers.get("Location") == "/Agente_Real_CRM.html", "HEAD / debería redirigir al diagnóstico")
+    checks.append({"check": "root_redirect", "status": status})
 
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")

@@ -867,6 +867,11 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_HEAD(self):
         route = parse.urlparse(self.path)
+        if route.path in ("", "/"):
+            self.send_response(302)
+            self.send_header("Location", "/Agente_Real_CRM.html")
+            self.end_headers()
+            return
         if route.path == "/robots.txt":
             text = "User-agent: *\nDisallow: /\n" if BETA_NOINDEX else "User-agent: *\nAllow: /\n"
             encoded = text.encode("utf-8")
