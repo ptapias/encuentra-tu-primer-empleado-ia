@@ -15,7 +15,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Prompt_Investigacion_Procesos.md`: prompt de fondo para el agente investigador de procesos automatizables.
 - `Prompt_Agente_Diagnostico.md`: prompt listo para usar en un agente conversacional.
 - `Scoring_y_CRM.csv`: criterios de scoring y campos internos recomendados.
-- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable y feedback.
+- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable, matriz visual de decisión y feedback.
 - `CRM_Dashboard.html`: dashboard interno para revisar métricas de embudo, leads, conversación, outcome, oferta recomendada, feedback, cambiar estado/oferta manualmente y exportar CSV.
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead`, `/api/metrics`, `/api/export.csv` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
@@ -36,7 +36,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 
 Lanzar primero la versión gratuita como experiencia conversacional adaptativa: el usuario empieza sin registro, habla en lenguaje natural, el agente decide la siguiente pregunta según lo que falta por entender, detecta procesos y pide el email solo al final para entregar el informe. Objetivo normal: 7-10 minutos; puede alargarse a 12-15 preguntas si el caso lo necesita.
 
-La versión actual incluye grabación por micrófono con transcripción local vía Whisper cuando se sirve con `app_server.py`, indicador de fase, matriz de evaluación basada en el framework `AI Use Case Evaluation Framework v0.2` e informe con iniciativas priorizadas.
+La versión actual incluye grabación por micrófono con transcripción local vía Whisper cuando se sirve con `app_server.py`, indicador de fase, matriz de evaluación basada en el framework `AI Use Case Evaluation Framework v0.2` e informe con iniciativas priorizadas. El informe explica por qué una oportunidad va primero y muestra un flujo práctico de cómo trabajaría el empleado IA antes de pasar al plan de 7/30 días.
 
 ## Probar la versión real
 
