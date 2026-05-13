@@ -120,6 +120,7 @@ python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --adm
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription
 python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --mic-optional
+python3 test_discovery_flow.py
 python3 test_launch_go_no_go.py
 python3 test_public_beta_gate.py
 python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription --manual-production-tested --crm-reviewed --mic-tested
@@ -146,7 +147,7 @@ Resultado reciente:
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
-- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK en `457e7ae`; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector. Latencias: clínica dental 133.9s, inmobiliaria 123.1s, consultor B2B 118.8s.
+- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK en `85ba4ea`; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector. Latencias: clínica dental 134.1s, inmobiliaria 130.1s, consultor B2B 140.7s.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar. En móvil, el compositor queda oculto hasta empezar y aparece activo al iniciar la sesión.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
