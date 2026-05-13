@@ -1088,7 +1088,7 @@
     <aside>
       <div class="eyebrow">Diagnóstico gratuito</div>
       <h1>Encuentra tu primer empleado IA</h1>
-      <p class="lead">Una conversación corta para localizar el proceso donde una IA puede ayudarte de verdad, sin convertirlo en un formulario interminable.</p>
+      <p class="lead">Una discovery session ligera para encontrar la fuga concreta: tiempo, dinero, clientes o trabajo que depende demasiado de ti.</p>
       <div class="panel">
         <h2>Empieza por lo que más te pesa</h2>
         <button id="start">Analizar mi negocio</button>
@@ -1154,8 +1154,8 @@
             </div>
             <div class="starter-proof">
               <div class="starter-prompt">
-                <strong>No necesitas saber qué automatizar</strong>
-                <p>No hace falta que lo tengas ordenado. Empieza hablando normal: qué vendes, a quién ayudas, cómo llegan clientes o tareas, y qué parte se queda atascada. El agente irá convirtiendo lo que cuentas en procesos, señales y prioridades.</p>
+                <strong>Empieza con una escena, no con una estrategia</strong>
+                <p>No hace falta que lo tengas ordenado. Cuenta qué vendes, a quién ayudas y una situación reciente donde algo se acumuló, se retrasó o se quedó sin responder. El agente convertirá ese relato en procesos, señales y prioridades.</p>
               </div>
               <div class="live-map" aria-label="Ejemplo de mapa que construye el agente">
                 <div class="live-map-head">
@@ -1575,7 +1575,7 @@
         });
         chat.innerHTML = "";
         input.placeholder = "Cuéntame qué vendes, a quién ayudas y qué tarea se te atasca cada semana.";
-        await addTypingMessage("agent", "Vamos a buscar el primer proceso donde una IA podría ayudarte de verdad.\n\nEmpieza por lo que te salga: qué vendes, a quién ayudas, cómo entra el trabajo o los clientes, y qué tarea se repite tanto que ya te empieza a costar tiempo, dinero o foco.\n\nSi hay una escena reciente que lo explique, mejor: un email, un WhatsApp, una reserva, un lead, una tarea interna... Puedes dictarlo con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
+        await addTypingMessage("agent", "Vamos a buscar el primer proceso donde una IA podría ayudarte de verdad.\n\nNo necesito una respuesta perfecta. Cuéntame en bruto qué vendes, a quién ayudas y dónde notas una fuga: tiempo, dinero, clientes, foco o tareas que dependen demasiado de ti.\n\nSi puedes, empieza con una escena reciente: un email, un WhatsApp, una reserva, un lead, una tarea interna o algo que se quedó parado. Puedes dictarlo con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
         await refreshCapabilities();
         saveSessionState();
         input.focus();

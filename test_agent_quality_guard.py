@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from app_server import attach_discovery_state, enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply, report_readiness
+from app_server import AGENT_INSTRUCTIONS, attach_discovery_state, enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply, report_readiness
 
 
 def assert_true(condition, message):
@@ -219,6 +219,15 @@ def test_report_readiness_allows_evidenced_discovery():
     assert_true(ready, f"Una discovery con evidencia debería permitir informe: {missing}")
 
 
+def test_agent_prompt_prioritizes_adaptive_discovery():
+    prompt = AGENT_INSTRUCTIONS.lower()
+    assert_true("no eres un formulario" in prompt, "El prompt debe rechazar comportamiento de formulario")
+    assert_true("dónde se escapa tiempo, dinero o clientes" in prompt, "El prompt debe conservar el marco comercial")
+    assert_true("outlook" in prompt and "10-15 emails al día" in prompt, "El prompt debe tratar respuestas cortas como señal útil")
+    assert_true("no pidas \"más detalle\" de forma genérica" in prompt, "El prompt debe evitar repreguntas genéricas")
+    assert_true("clasificación" in prompt and "registro en crm" in prompt, "El prompt debe rescatar respuestas tipo 'no sé' con opciones")
+
+
 if __name__ == "__main__":
     test_repeated_example_request_is_repaired()
     test_frustration_is_acknowledged()
@@ -227,4 +236,5 @@ if __name__ == "__main__":
     test_report_always_exposes_evidence_summary()
     test_report_readiness_blocks_empty_discovery()
     test_report_readiness_allows_evidenced_discovery()
+    test_agent_prompt_prioritizes_adaptive_discovery()
     print("agent_quality_guard ok")
