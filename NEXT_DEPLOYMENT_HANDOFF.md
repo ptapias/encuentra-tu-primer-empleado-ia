@@ -6,7 +6,7 @@ Estado actual: la app local esta en verde para demo controlada. El agente real c
 
 Abre `VPS_ANSWERS.local.json` y completa solo lo que falta. Importante: no renombres las claves; deben quedar exactamente como aparecen en el JSON.
 
-Si prefieres que el asistente pregunte solo los campos pendientes:
+Si prefieres que el asistente pregunte solo los campos pendientes o valores bloqueantes:
 
 ```bash
 python3 generate_vps_inputs.py --fill-missing-answers VPS_ANSWERS.local.json
