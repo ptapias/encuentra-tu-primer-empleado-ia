@@ -1746,6 +1746,8 @@ class Handler(SimpleHTTPRequestHandler):
         with_feedback = 0
         with_cta_interest = 0
         started_chat = 0
+        useful_discovery = 0
+        ready_for_report = 0
         total_turns = 0
         offer_counts: dict[str, int] = {}
         use_case_counts: dict[str, int] = {}
@@ -1773,6 +1775,13 @@ class Handler(SimpleHTTPRequestHandler):
             total_turns += turns
             if turns:
                 started_chat += 1
+            discovery = facts.get("_discovery") if isinstance(facts.get("_discovery"), dict) else {}
+            has_discovery_focus = bool(humanize(discovery.get("current_focus")) or humanize(facts.get("selected_process")))
+            has_discovery_evidence = bool(ensure_list(discovery.get("candidate_processes")) or ensure_list(discovery.get("live_insights")))
+            if turns and has_discovery_focus and has_discovery_evidence:
+                useful_discovery += 1
+            if discovery.get("ready_for_report"):
+                ready_for_report += 1
             if row["email"]:
                 with_email += 1
             if row["feedback_json"]:
@@ -1813,6 +1822,9 @@ class Handler(SimpleHTTPRequestHandler):
 
         def pct(part):
             return round((part / total) * 100, 1) if total else 0
+
+        def pct_of(part, base):
+            return round((part / base) * 100, 1) if base else 0
 
         def top_items(items):
             return [
@@ -1866,12 +1878,18 @@ class Handler(SimpleHTTPRequestHandler):
         metrics = {
             "total_leads": total,
             "started_chat": started_chat,
+            "useful_discovery": useful_discovery,
+            "ready_for_report": ready_for_report,
             "email_captured": with_email,
             "consent_captured": with_consent,
             "reports_generated": with_report,
             "feedback_received": with_feedback,
             "cta_interest": with_cta_interest,
             "chat_start_rate": pct(started_chat),
+            "useful_discovery_rate": pct(useful_discovery),
+            "ready_for_report_rate": pct(ready_for_report),
+            "email_from_ready_rate": pct_of(with_email, ready_for_report),
+            "report_from_email_rate": pct_of(with_report, with_email),
             "email_capture_rate": pct(with_email),
             "consent_rate": pct(with_consent),
             "report_rate": pct(with_report),
@@ -1928,6 +1946,7 @@ class Handler(SimpleHTTPRequestHandler):
             "cta_clicked_at",
             "discovery_focus",
             "discovery_confidence",
+            "discovery_ready",
             "candidate_processes",
             "open_gaps",
             "live_insights",
@@ -1986,6 +2005,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "cta_clicked_at": cta_interest.get("clicked_at") or "",
                     "discovery_focus": humanize(discovery.get("current_focus")) or humanize(facts.get("selected_process")),
                     "discovery_confidence": humanize(discovery.get("confidence")),
+                    "discovery_ready": "yes" if discovery.get("ready_for_report") else "no",
                     "candidate_processes": humanize(discovery.get("candidate_processes")),
                     "open_gaps": humanize(discovery.get("open_gaps")),
                     "live_insights": humanize(discovery.get("live_insights")),

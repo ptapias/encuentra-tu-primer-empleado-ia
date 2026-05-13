@@ -449,9 +449,11 @@
       metricsEl.innerHTML = [
         renderMetric("Leads", metrics.total_leads, "Total capturado"),
         renderMetric("Conversan", `${metrics.chat_start_rate}%`, `${metrics.started_chat} con mensajes`),
-        renderMetric("Email", `${metrics.email_capture_rate}%`, `${metrics.email_captured} contactos`),
+        renderMetric("Discovery útil", `${metrics.useful_discovery_rate || 0}%`, `${metrics.useful_discovery || 0} con foco y evidencia`),
+        renderMetric("Listos informe", `${metrics.ready_for_report_rate || 0}%`, `${metrics.ready_for_report || 0} ready_for_report`),
+        renderMetric("Email final", `${metrics.email_from_ready_rate || 0}%`, `${metrics.email_captured} de listos`),
         renderMetric("Consentimiento", `${metrics.consent_rate || 0}%`, `${metrics.consent_captured || 0} aceptados`),
-        renderMetric("Informe", `${metrics.report_rate}%`, `${metrics.reports_generated} generados`),
+        renderMetric("Informe", `${metrics.report_from_email_rate || 0}%`, `${metrics.reports_generated} de emails`),
         renderMetric("Interés CTA", `${metrics.cta_interest_rate || 0}%`, `${metrics.cta_interest || 0} señales`),
         renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
         renderMetric("Utilidad", metrics.avg_feedback_rating ? `${metrics.avg_feedback_rating}/5` : "sin datos", topMissing ? `Falta: ${topMissing.name}` : "Aún sin patrones"),

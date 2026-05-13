@@ -364,6 +364,8 @@ def main():
     expect("webhook_errors" in metrics["metrics"], "las métricas no exponen errores de webhook")
     expect("recent_operational_events" in metrics["metrics"], "las métricas no exponen incidencias operativas recientes")
     expect("avg_chat_latency_seconds" in metrics["metrics"] and "avg_report_latency_seconds" in metrics["metrics"], "las métricas no exponen latencia de IA")
+    expect("useful_discovery_rate" in metrics["metrics"] and "ready_for_report_rate" in metrics["metrics"], "las métricas no exponen embudo de discovery")
+    expect("email_from_ready_rate" in metrics["metrics"] and "report_from_email_rate" in metrics["metrics"], "las métricas no exponen conversión del email-gate final")
     expect(metrics["metrics"].get("avg_feedback_rating", 0) >= 4, "las métricas no calculan utilidad media del feedback")
     expect(any(item.get("name") == "Costes estimados" for item in metrics["metrics"].get("top_feedback_missing", [])), "las métricas no agregan faltantes de feedback")
     expect(any(item.get("name") == "cohort" for item in metrics["metrics"].get("top_cta_interest", [])), "las métricas no agregan CTA por segmento")
@@ -384,7 +386,7 @@ def main():
     export_header = export_csv.splitlines()[0]
     expect("source,medium,campaign,video,ref" in export_header, "el export CSV no incluye atribución")
     expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
-    expect("discovery_focus,discovery_confidence,candidate_processes,open_gaps,live_insights" in export_header, "el export CSV no incluye discovery viva")
+    expect("discovery_focus,discovery_confidence,discovery_ready,candidate_processes,open_gaps,live_insights" in export_header, "el export CSV no incluye discovery viva")
     expect("cta_interest,cta_clicked_at" in export_header, "el export CSV no incluye intención de CTA")
     expect("first_opportunity,first_step" in export_header, "el export CSV no incluye resumen de acción")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
