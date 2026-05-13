@@ -5,7 +5,10 @@ import sys
 from pathlib import Path
 
 
-DEFAULT_PATH = Path(__file__).resolve().parent / "VPS_INPUTS.md"
+ROOT = Path(__file__).resolve().parent
+TEMPLATE_PATH = ROOT / "VPS_INPUTS.md"
+LOCAL_PATH = ROOT / "VPS_INPUTS.local.md"
+DEFAULT_PATH = LOCAL_PATH if LOCAL_PATH.exists() else TEMPLATE_PATH
 PLACEHOLDER_MARKERS = {
     "",
     "por ejemplo `diagnostico.tuprimerempleadoia.com`.",
@@ -122,7 +125,7 @@ def validate(path: Path) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Valida que VPS_INPUTS.md esté listo antes del despliegue")
-    parser.add_argument("--path", default=str(DEFAULT_PATH))
+    parser.add_argument("--path", default=str(DEFAULT_PATH), help="Por defecto usa VPS_INPUTS.local.md si existe; si no, valida la plantilla versionada")
     args = parser.parse_args()
     result = validate(Path(args.path))
     import json

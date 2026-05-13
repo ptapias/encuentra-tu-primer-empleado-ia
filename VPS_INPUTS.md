@@ -2,6 +2,13 @@
 
 Rellena esta ficha antes de ejecutar `DEPLOYMENT_VPS.md`. La idea es evitar decisiones improvisadas mientras estamos conectados al servidor.
 
+No escribas contraseñas ni datos legales reales en este archivo versionado. Crea una copia local ignorada por Git:
+
+```bash
+cp VPS_INPUTS.md VPS_INPUTS.local.md
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
+```
+
 ## Acceso y dominio
 
 - Dominio/subdominio público:

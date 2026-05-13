@@ -20,7 +20,9 @@ Este documento convierte el despliegue en una operación corta y verificable. La
 Con esos datos, en el VPS:
 
 ```bash
-python3 validate_vps_inputs.py --path VPS_INPUTS.md
+cp VPS_INPUTS.md VPS_INPUTS.local.md
+nano VPS_INPUTS.local.md
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
 cp privacy_config.example.json privacy_config.json
 nano privacy_config.json
 python3 render_privacy.py --config privacy_config.json
