@@ -6,6 +6,7 @@ APP_USER="${APP_USER:-primeria}"
 APP_GROUP="${APP_GROUP:-primeria}"
 DOMAIN="${DOMAIN:-}"
 ADMIN_USER="${ADMIN_USER:-admin}"
+CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE:-true}"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Ejecuta este script con sudo desde el VPS." >&2
@@ -54,7 +55,11 @@ chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
 chmod 700 "${APP_DIR}"
 chmod 600 "${APP_DIR}/.env"
 
-python3 preflight_vps.py --env .env
+PREFLIGHT=(python3 preflight_vps.py --env .env --service-user "${APP_USER}")
+if [[ "${CHECK_CODEX_LIVE}" == "true" ]]; then
+  PREFLIGHT+=(--check-codex-live)
+fi
+"${PREFLIGHT[@]}"
 python3 release_check.py --env .env
 
 cp deploy/primer-empleado-ia.service /etc/systemd/system/

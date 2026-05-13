@@ -49,10 +49,31 @@ def can_write(directory: Path) -> bool:
         return False
 
 
-def codex_live_check(codex_bin: str) -> dict:
+def user_exists(user: str) -> bool:
+    if not user:
+        return False
     try:
         result = subprocess.run(
-            [codex_bin, "exec", "--skip-git-repo-check", "--ephemeral", "Responde solo: ok"],
+            ["id", user],
+            text=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+def codex_live_check(codex_bin: str, service_user: str = "") -> dict:
+    command = [codex_bin, "exec", "--skip-git-repo-check", "--ephemeral", "Responde solo: ok"]
+    if service_user:
+        if os.geteuid() != 0:
+            return {"ok": False, "message": f"Para comprobar Codex como {service_user}, ejecuta el preflight con sudo/root."}
+        command = ["sudo", "-H", "-u", service_user, *command]
+    try:
+        result = subprocess.run(
+            command,
             cwd=str(ROOT),
             text=True,
             stdout=subprocess.PIPE,
@@ -91,6 +112,7 @@ def main():
     parser = argparse.ArgumentParser(description="Preflight VPS para Encuentra Tu Primer Empleado IA")
     parser.add_argument("--env", default=".env", help="Ruta al archivo .env")
     parser.add_argument("--check-codex-live", action="store_true", help="Ejecuta una llamada real a Codex CLI")
+    parser.add_argument("--service-user", default="", help="Usuario systemd que ejecutará la app; si se indica, Codex se comprueba como ese usuario")
     args = parser.parse_args()
 
     env_path = Path(args.env)
@@ -126,9 +148,12 @@ def main():
 
     if provider == "codex":
         checks.append(check(command_exists(codex_bin), "codex_bin", f"Codex CLI disponible: {codex_bin or 'no encontrado'}"))
+        if args.service_user:
+            checks.append(check(user_exists(args.service_user), "service_user", f"Usuario de servicio disponible: {args.service_user}"))
         if args.check_codex_live and command_exists(codex_bin):
-            live = codex_live_check(codex_bin)
-            checks.append(check(live["ok"], "codex_live", live["message"]))
+            live = codex_live_check(codex_bin, args.service_user)
+            check_name = "codex_live_service_user" if args.service_user else "codex_live"
+            checks.append(check(live["ok"], check_name, live["message"]))
     elif provider == "openai":
         checks.append(check(bool(openai_key), "openai_api_key", "OPENAI_API_KEY configurada"))
     else:

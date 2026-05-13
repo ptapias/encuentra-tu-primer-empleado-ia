@@ -34,7 +34,7 @@ Recomendación inicial: `AI_PROVIDER=codex` solo para beta privada o semi-privad
 Condiciones mínimas:
 
 - Codex CLI instalado en el VPS.
-- Sesión de Codex iniciada en el VPS.
+- Sesión de Codex iniciada en el VPS con el usuario de servicio (`primeria` por defecto), no solo con `root`.
 - `ALLOW_AI_FALLBACK=false`.
 - `MAX_AI_CONCURRENCY=1`.
 - El usuario acepta que, si Codex tarda o falla, la app mostrará error honesto en vez de inventar un diagnóstico.
@@ -94,7 +94,7 @@ Antes de pasar un enlace a nadie:
 
 ```bash
 cd /opt/primer-empleado-ia
-python3 preflight_vps.py --env .env --check-codex-live
+sudo python3 preflight_vps.py --env .env --service-user primeria --check-codex-live
 python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --admin-password 'PASSWORD_REAL'
 python3 test_beta_smoke.py --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password 'PASSWORD_REAL'
 ```

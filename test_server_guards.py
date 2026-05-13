@@ -116,6 +116,14 @@ def test_preflight_webhook_checks():
     assert_true({"crm_webhook_https", "crm_webhook_secret", "crm_webhook_timeout"}.issubset(failed), "Preflight debería avisar de webhook inseguro")
 
 
+def test_codex_live_service_user_requires_root():
+    if preflight_vps.os.geteuid() == 0:
+        return
+    result = preflight_vps.codex_live_check("/bin/echo", "primeria")
+    assert_true(not result["ok"], "Comprobar Codex como usuario de servicio sin root debería fallar")
+    assert_true("sudo/root" in result["message"], "El error debería explicar que hace falta sudo/root")
+
+
 if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
@@ -124,4 +132,5 @@ if __name__ == "__main__":
     test_client_ip_only_trusts_proxy_header_from_loopback()
     test_crm_webhook_payload_and_secret_header()
     test_preflight_webhook_checks()
+    test_codex_live_service_user_requires_root()
     print("server_guards ok")

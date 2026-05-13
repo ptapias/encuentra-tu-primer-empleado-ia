@@ -4,6 +4,7 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/opt/primer-empleado-ia}"
 DOMAIN="${DOMAIN:-}"
 ADMIN_USER="${ADMIN_USER:-admin}"
+APP_USER="${APP_USER:-primeria}"
 PUBLIC_BETA="${PUBLIC_BETA:-false}"
 CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE:-true}"
 
@@ -35,7 +36,7 @@ if [[ -z "${ADMIN_PASSWORD}" || "${ADMIN_PASSWORD}" == "change-me" ]]; then
   exit 1
 fi
 
-PREFLIGHT=(python3 preflight_vps.py --env .env)
+PREFLIGHT=(python3 preflight_vps.py --env .env --service-user "${APP_USER}")
 if [[ "${CHECK_CODEX_LIVE}" == "true" ]]; then
   PREFLIGHT+=(--check-codex-live)
 fi

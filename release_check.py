@@ -123,9 +123,11 @@ def deploy_config_check() -> dict:
         "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
         "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
         "install_script_smoke": "test_beta_smoke.py" in install_script,
+        "install_script_preflight_service_user": "--service-user" in install_script and "CHECK_CODEX_LIVE" in install_script,
         "verify_script_executable": VERIFY_SCRIPT.exists() and bool(VERIFY_SCRIPT.stat().st_mode & 0o111),
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
         "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
+        "verify_script_preflight_service_user": "--service-user" in verify_script and "APP_USER" in verify_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
     }
@@ -162,6 +164,7 @@ def main():
     parser.add_argument("--admin-user", default="")
     parser.add_argument("--admin-password", default="")
     parser.add_argument("--check-codex-live", action="store_true")
+    parser.add_argument("--service-user", default="", help="Usuario systemd para comprobar Codex en VPS")
     parser.add_argument("--require-privacy-final", action="store_true", help="Falla si PRIVACY_BETA.md sigue con placeholders")
     parser.add_argument("--public-beta", action="store_true", help="Gate estricto antes de abrir la beta pública en VPS")
     args = parser.parse_args()
@@ -208,6 +211,8 @@ def main():
         steps.append(public_beta_gate(args, env))
 
     preflight_cmd = [sys.executable, "preflight_vps.py", "--env", args.env]
+    if args.service_user:
+        preflight_cmd += ["--service-user", args.service_user]
     if check_codex_live:
         preflight_cmd.append("--check-codex-live")
     steps.append(run_step("preflight", preflight_cmd, timeout=180 if check_codex_live else 60))

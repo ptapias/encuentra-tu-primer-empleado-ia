@@ -10,11 +10,11 @@ sudo mkdir -p /opt/primer-empleado-ia
 sudo chown -R primeria:primeria /opt/primer-empleado-ia
 ```
 
-Instala Python 3.10+ y Caddy. Instala Codex CLI y ejecuta login en el servidor con la cuenta que quieras usar para la beta interna:
+Instala Python 3.10+ y Caddy. Instala Codex CLI y ejecuta login con el usuario que ejecutará el servicio (`primeria` por defecto). Esto es importante: si haces login como `root` pero systemd corre como `primeria`, el agente puede fallar aunque el preflight básico pase.
 
 ```bash
-codex login
-codex exec --skip-git-repo-check --ephemeral 'Responde solo: ok'
+sudo -H -u primeria codex login
+sudo -H -u primeria codex exec --skip-git-repo-check --ephemeral 'Responde solo: ok'
 ```
 
 ## 2. Subir aplicación
@@ -81,7 +81,7 @@ python3 preflight_vps.py --env .env
 Si quieres comprobar también que Codex CLI está logueado y responde:
 
 ```bash
-python3 preflight_vps.py --env .env --check-codex-live
+sudo python3 preflight_vps.py --env .env --service-user primeria --check-codex-live
 ```
 
 También puedes ejecutar el chequeo de release. Este comando agrupa sintaxis, copy público, privacidad beta, preflight y, si la app ya está arrancada, smoke test:

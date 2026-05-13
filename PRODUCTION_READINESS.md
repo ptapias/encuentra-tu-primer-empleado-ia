@@ -73,7 +73,7 @@ Debe validar:
 - App viva en HTTPS.
 - CRM protegido.
 - Privacidad final sin placeholders.
-- Codex CLI respondiendo en vivo, si se usa `AI_PROVIDER=codex`.
+- Codex CLI respondiendo en vivo como el usuario systemd (`primeria` por defecto), si se usa `AI_PROVIDER=codex`.
 - Página pública sin textos internos.
 - Email y consentimiento obligatorios antes del informe.
 - Informe bloqueado si se llama a la API sin consentimiento.
