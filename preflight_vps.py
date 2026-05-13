@@ -82,6 +82,8 @@ def main():
     allow_fallback = env.get("ALLOW_AI_FALLBACK", "false").lower() in {"1", "true", "yes", "on"}
     host = env.get("HOST", "")
     port = env.get("PORT", "")
+    max_ai_concurrency = env.get("MAX_AI_CONCURRENCY", "1")
+    ai_queue_wait = env.get("AI_QUEUE_WAIT_SECONDS", "8")
     whisper_bin = env.get("WHISPER_BIN") or shutil.which("whisper") or ""
     ffmpeg_bin = env.get("FFMPEG_BIN") or shutil.which("ffmpeg") or ""
 
@@ -91,6 +93,8 @@ def main():
         check(provider in {"codex", "openai", "fallback"}, "ai_provider", f"AI_PROVIDER={provider}"),
         check(bool(host), "host", f"HOST={host or 'vacío'}", level="warning"),
         check(bool(port and str(port).isdigit()), "port", f"PORT={port or 'vacío'}"),
+        check(str(max_ai_concurrency).isdigit() and int(max_ai_concurrency) >= 1, "max_ai_concurrency", f"MAX_AI_CONCURRENCY={max_ai_concurrency}"),
+        check(str(ai_queue_wait).replace(".", "", 1).isdigit(), "ai_queue_wait", f"AI_QUEUE_WAIT_SECONDS={ai_queue_wait}"),
         check(bool(admin_password and admin_password != "change-me"), "admin_password", "ADMIN_PASSWORD debe estar configurado y no ser el valor de ejemplo"),
         check(not allow_fallback, "ai_fallback_disabled", "ALLOW_AI_FALLBACK debería estar en false para beta pública"),
         check(can_write(ROOT), "app_directory_writable", f"Directorio escribible: {ROOT}"),

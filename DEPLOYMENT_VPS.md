@@ -36,6 +36,8 @@ CODEX_BIN=/usr/local/bin/codex
 ALLOW_AI_FALLBACK=false
 ADMIN_USER=admin
 ADMIN_PASSWORD=una-password-larga
+MAX_AI_CONCURRENCY=1
+AI_QUEUE_WAIT_SECONDS=8
 WHISPER_BIN=/usr/local/bin/whisper
 FFMPEG_BIN=/usr/bin/ffmpeg
 ```
@@ -109,6 +111,7 @@ python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --
 
 - Revisa el CRM una vez al día.
 - Mira las métricas superiores del CRM: inicio de conversación, captura de email, informes generados, feedback y media de turnos.
+- Mantén `MAX_AI_CONCURRENCY=1` en beta con Codex CLI para evitar que varios diagnósticos simultáneos saturen el VPS. Si el agente está ocupado, el usuario verá un mensaje para reintentar en unos segundos.
 - Haz backup de CRM antes de cambios o una vez al día durante beta:
 
 ```bash

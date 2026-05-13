@@ -87,8 +87,10 @@ def main():
                 "preflight_vps.py",
                 "backup_crm.py",
                 "release_check.py",
+                "test_ai_concurrency.py",
             ],
         ),
+        run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
         static_page_check(),
         privacy_check(args.require_privacy_final),
     ]

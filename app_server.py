@@ -11,6 +11,7 @@ import shutil
 import sqlite3
 import subprocess
 import tempfile
+import threading
 import time
 import uuid
 
@@ -33,7 +34,14 @@ MAX_BODY_BYTES = int(os.environ.get("MAX_BODY_BYTES", "1200000"))
 MAX_PUBLIC_EVENTS_PER_HOUR = int(os.environ.get("MAX_PUBLIC_EVENTS_PER_HOUR", "80"))
 MAX_MESSAGE_CHARS = int(os.environ.get("MAX_MESSAGE_CHARS", "3500"))
 MAX_USER_TURNS = int(os.environ.get("MAX_USER_TURNS", "14"))
+MAX_AI_CONCURRENCY = max(1, int(os.environ.get("MAX_AI_CONCURRENCY", "1")))
+AI_QUEUE_WAIT_SECONDS = max(0.0, float(os.environ.get("AI_QUEUE_WAIT_SECONDS", "8")))
 RATE_BUCKETS: dict[str, list[int]] = {}
+AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
+
+
+class AiBusyError(RuntimeError):
+    pass
 
 
 AGENT_INSTRUCTIONS = """
@@ -513,13 +521,19 @@ Responde solo con JSON. Debe incluir:
 def call_ai(instructions: str, input_text: str) -> dict:
     if AI_PROVIDER == "fallback":
         raise RuntimeError("AI_PROVIDER=fallback")
-    if AI_PROVIDER == "codex":
+    acquired = AI_SEMAPHORE.acquire(timeout=AI_QUEUE_WAIT_SECONDS)
+    if not acquired:
+        raise AiBusyError("El agente está atendiendo otro diagnóstico. Espera unos segundos y vuelve a intentarlo.")
+    try:
+        if AI_PROVIDER == "codex":
+            return call_codex_cli(instructions, input_text)
+        if AI_PROVIDER == "openai":
+            return call_openai(instructions, input_text)
+        if os.environ.get("OPENAI_API_KEY"):
+            return call_openai(instructions, input_text)
         return call_codex_cli(instructions, input_text)
-    if AI_PROVIDER == "openai":
-        return call_openai(instructions, input_text)
-    if os.environ.get("OPENAI_API_KEY"):
-        return call_openai(instructions, input_text)
-    return call_codex_cli(instructions, input_text)
+    finally:
+        AI_SEMAPHORE.release()
 
 
 def should_fallback() -> bool:
@@ -831,7 +845,12 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             return
         if route.path == "/healthz":
-            self._json({"ok": True, "provider": AI_PROVIDER, "transcription": transcription_status()["available"]})
+            self._json({
+                "ok": True,
+                "provider": AI_PROVIDER,
+                "transcription": transcription_status()["available"],
+                "ai_concurrency": MAX_AI_CONCURRENCY,
+            })
             return
         if route.path == "/api/capabilities":
             self._json({"transcription": transcription_status()})
@@ -948,6 +967,10 @@ class Handler(SimpleHTTPRequestHandler):
         prompt = json.dumps({"lead": lead, "latest_user_message": user_text}, ensure_ascii=False)
         try:
             result = call_ai(AGENT_INSTRUCTIONS, prompt)
+        except AiBusyError as exc:
+            insert_event(lead_id, "ai_busy", {"stage": "chat", "error": str(exc)})
+            self._json({"error": str(exc)}, 429)
+            return
         except Exception as exc:
             if not should_fallback():
                 insert_event(lead_id, "ai_error", {"stage": "chat", "error": str(exc)})
@@ -978,6 +1001,10 @@ class Handler(SimpleHTTPRequestHandler):
         prompt = json.dumps({"lead": lead}, ensure_ascii=False)
         try:
             report = call_ai(REPORT_INSTRUCTIONS, prompt)
+        except AiBusyError as exc:
+            insert_event(lead_id, "ai_busy", {"stage": "report", "error": str(exc)})
+            self._json({"error": str(exc)}, 429)
+            return
         except Exception as exc:
             if not should_fallback():
                 insert_event(lead_id, "ai_error", {"stage": "report", "error": str(exc)})

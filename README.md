@@ -27,6 +27,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
+- `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `backup_crm.py`: copia segura de `crm.sqlite3` y `crm_leads.jsonl` para operación de beta.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.
@@ -56,6 +57,8 @@ Luego abre:
 Por defecto el backend intenta usar `AI_PROVIDER=codex`, que llama a Codex CLI autenticado localmente con tu cuenta de ChatGPT/Codex. Esto sirve para pruebas internas en tu máquina o en un servidor donde hayas iniciado sesión con Codex CLI. No es la vía recomendada para una web pública con tráfico abierto.
 
 En pruebas locales, un turno de conversación con Codex CLI tarda alrededor de 9-15 segundos y un informe puede tardar 30-60 segundos. Es suficiente para validar internamente el producto y enseñar demos controladas, pero conviene medirlo antes de abrirlo a mucho tráfico.
+
+En beta con Codex CLI, el backend limita por defecto la IA a un diagnóstico concurrente (`MAX_AI_CONCURRENCY=1`). Si dos personas piden respuesta a la vez, la segunda espera unos segundos y, si no hay hueco, recibe un mensaje de reintento en lugar de lanzar procesos ilimitados en el VPS.
 
 También puedes usar:
 
