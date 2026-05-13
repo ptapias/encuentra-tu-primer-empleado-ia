@@ -71,7 +71,7 @@ python3 test_discovery_flow.py
 
 Checklist completo en `VALIDACION_LOCAL.md`.
 
-Si el proveedor elegido falla, el sistema entra en modo fallback local para poder probar flujo, CRM, informe y feedback sin romper la experiencia.
+Para pruebas puedes usar `AI_PROVIDER=fallback` o `ALLOW_AI_FALLBACK=true`. Para beta pública deja `ALLOW_AI_FALLBACK=false`: si Codex/OpenAI fallan, es mejor mostrar un error honesto que entregar un diagnóstico mediocre.
 
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
 

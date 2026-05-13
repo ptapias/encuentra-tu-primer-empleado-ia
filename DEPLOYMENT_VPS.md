@@ -33,6 +33,7 @@ HOST=127.0.0.1
 PORT=8787
 AI_PROVIDER=codex
 CODEX_BIN=/usr/local/bin/codex
+ALLOW_AI_FALLBACK=false
 ADMIN_USER=admin
 ADMIN_PASSWORD=una-password-larga
 WHISPER_BIN=/usr/local/bin/whisper

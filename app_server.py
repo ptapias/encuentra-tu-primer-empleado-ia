@@ -24,6 +24,7 @@ OPENAI_URL = "https://api.openai.com/v1/responses"
 DEFAULT_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "codex").lower()
 CODEX_BIN = os.environ.get("CODEX_BIN") or shutil.which("codex") or "/Applications/Codex.app/Contents/Resources/codex"
+ALLOW_AI_FALLBACK = os.environ.get("ALLOW_AI_FALLBACK", "false").lower() in {"1", "true", "yes", "on"}
 HOST = os.environ.get("HOST", "localhost")
 PORT = int(os.environ.get("PORT", "8787"))
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
@@ -521,6 +522,10 @@ def call_ai(instructions: str, input_text: str) -> dict:
     return call_codex_cli(instructions, input_text)
 
 
+def should_fallback() -> bool:
+    return AI_PROVIDER == "fallback" or ALLOW_AI_FALLBACK
+
+
 def call_openai(instructions: str, input_text: str) -> dict:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
@@ -940,6 +945,10 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             result = call_ai(AGENT_INSTRUCTIONS, prompt)
         except Exception as exc:
+            if not should_fallback():
+                insert_event(lead_id, "ai_error", {"stage": "chat", "error": str(exc)})
+                self._json({"error": "Ahora mismo no puedo generar una respuesta fiable. Inténtalo de nuevo en un momento."}, 502)
+                return
             result = fallback_agent(lead, user_text)
             result["api_error"] = str(exc)
         result = normalize_agent_result(result, lead)
@@ -966,6 +975,10 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             report = call_ai(REPORT_INSTRUCTIONS, prompt)
         except Exception as exc:
+            if not should_fallback():
+                insert_event(lead_id, "ai_error", {"stage": "report", "error": str(exc)})
+                self._json({"error": "Ahora mismo no puedo generar el informe con garantías. Inténtalo de nuevo en un momento."}, 502)
+                return
             report = fallback_report(lead)
             report["api_error"] = str(exc)
         report = normalize_report(report, lead)
@@ -1270,6 +1283,7 @@ def main():
     print(f"CRM dashboard on http://{HOST}:{PORT}/CRM_Dashboard.html")
     print("SQLite CRM:", DB_FILE)
     print("AI provider:", AI_PROVIDER)
+    print("AI fallback:", "enabled" if ALLOW_AI_FALLBACK else "disabled")
     print("CRM auth:", "enabled" if ADMIN_PASSWORD else "disabled")
     print("Local transcription endpoint enabled at /transcribe")
     server.serve_forever()

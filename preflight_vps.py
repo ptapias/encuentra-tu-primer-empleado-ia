@@ -79,6 +79,7 @@ def main():
     codex_bin = env.get("CODEX_BIN") or shutil.which("codex") or ""
     openai_key = env.get("OPENAI_API_KEY", "")
     admin_password = env.get("ADMIN_PASSWORD", "")
+    allow_fallback = env.get("ALLOW_AI_FALLBACK", "false").lower() in {"1", "true", "yes", "on"}
     host = env.get("HOST", "")
     port = env.get("PORT", "")
     whisper_bin = env.get("WHISPER_BIN") or shutil.which("whisper") or ""
@@ -91,6 +92,7 @@ def main():
         check(bool(host), "host", f"HOST={host or 'vacío'}", level="warning"),
         check(bool(port and str(port).isdigit()), "port", f"PORT={port or 'vacío'}"),
         check(bool(admin_password and admin_password != "change-me"), "admin_password", "ADMIN_PASSWORD debe estar configurado y no ser el valor de ejemplo"),
+        check(not allow_fallback, "ai_fallback_disabled", "ALLOW_AI_FALLBACK debería estar en false para beta pública"),
         check(can_write(ROOT), "app_directory_writable", f"Directorio escribible: {ROOT}"),
     ]
 
@@ -123,4 +125,3 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
