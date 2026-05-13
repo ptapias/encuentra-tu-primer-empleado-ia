@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import tempfile
 from pathlib import Path
 
 import render_privacy
@@ -42,12 +43,22 @@ def answers_state(path: Path) -> dict:
     required = [label for label in validate_vps_inputs.REQUIRED_LABELS if not str(answers.get(label, "")).strip()]
     known_labels = {label for _section, label, _default, _help in generate_vps_inputs.FIELDS}
     unknown = sorted(label for label in answers if label not in known_labels)
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-answers-state-") as tmp:
+        rendered = Path(tmp) / "VPS_INPUTS.local.md"
+        rendered.write_text(generate_vps_inputs.render(answers), encoding="utf-8")
+        validation = validate_vps_inputs.validate(rendered)
+    validation_errors = [
+        error
+        for error in validation.get("errors", [])
+        if not error.startswith("Falta rellenar:")
+    ]
     state.update(
         {
-            "ok": not required and not unknown,
-            "errors": [f"Faltan campos obligatorios en JSON: {', '.join(required[:6])}"] if required else [],
+            "ok": not required and not unknown and not validation_errors,
+            "errors": ([f"Faltan campos obligatorios en JSON: {', '.join(required[:6])}"] if required else []) + validation_errors,
             "warnings": [f"Campos no reconocidos en JSON: {', '.join(unknown[:6])}"] if unknown else [],
             "empty_required": required,
+            "blocking_values": validation_errors,
             "filled_required": len(validate_vps_inputs.REQUIRED_LABELS) - len(required),
             "required_fields": len(validate_vps_inputs.REQUIRED_LABELS),
         }
@@ -148,6 +159,12 @@ def plain_report(result: dict) -> str:
         lines.append("")
         lines.append("Datos que faltan en VPS_ANSWERS.local.json:")
         for item in missing:
+            lines.append(f"- {item}")
+    blocking_values = answers.get("blocking_values") or []
+    if blocking_values:
+        lines.append("")
+        lines.append("Valores ya rellenados que también bloquean:")
+        for item in blocking_values:
             lines.append(f"- {item}")
     actions = result.get("next_actions") or []
     if actions:

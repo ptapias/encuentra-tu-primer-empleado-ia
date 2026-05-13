@@ -6,6 +6,7 @@ from pathlib import Path
 import beta_readiness_status
 import generate_vps_inputs
 import prepare_vps_launch_files
+import validate_vps_inputs
 from test_manual_production_validator import filled_doc
 from test_vps_inputs_validator import VALID_INPUTS
 
@@ -70,6 +71,23 @@ def test_existing_answers_json_is_reported_and_prioritized():
     assert_true("Siguiente acción:" in plain, "La salida legible debería listar siguientes pasos")
 
 
+def test_answers_json_reports_blocking_filled_values():
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
+        answers = Path(tmp) / "VPS_ANSWERS.local.json"
+        full = generate_vps_inputs.answers_template()
+        for label in full:
+            if not str(full[label]).strip():
+                full[label] = "valor-validado"
+        full["Proveedor IA inicial"] = "codex"
+        full["¿Codex CLI ya está logueado con ese usuario?"] = "no"
+        answers.write_text(json.dumps(full, ensure_ascii=False), encoding="utf-8")
+        state = beta_readiness_status.answers_state(answers)
+    assert_true(not state["ok"], state)
+    assert_true(any("Codex CLI" in error for error in state["blocking_values"]), state)
+    plain = beta_readiness_status.plain_report({"ok": False, "status": "blocked", "checks": {"answers_json": state}, "next_actions": []})
+    assert_true("Valores ya rellenados que también bloquean:" in plain, plain)
+
+
 def test_complete_artifacts_are_ready_for_public_go_no_go():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
         base = Path(tmp)
@@ -117,9 +135,11 @@ def test_complete_answers_json_state_is_ok():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
         answers = Path(tmp) / "VPS_ANSWERS.local.json"
         full = generate_vps_inputs.answers_template()
+        valid = validate_vps_inputs.extract_fields(VALID_INPUTS)
         for label in full:
             if not str(full[label]).strip():
-                full[label] = "valor-validado"
+                full[label] = valid.get(label, "valor-validado")
+        full.update(valid)
         answers.write_text(json.dumps(full, ensure_ascii=False), encoding="utf-8")
         state = beta_readiness_status.answers_state(answers)
     assert_true(state["ok"], state)
@@ -129,6 +149,7 @@ def test_complete_answers_json_state_is_ok():
 if __name__ == "__main__":
     test_default_repo_is_blocked_on_launch_inputs()
     test_existing_answers_json_is_reported_and_prioritized()
+    test_answers_json_reports_blocking_filled_values()
     test_complete_artifacts_are_ready_for_public_go_no_go()
     test_valid_inputs_recommend_deploy_command_generator()
     test_complete_answers_json_state_is_ok()
