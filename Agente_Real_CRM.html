@@ -617,6 +617,47 @@
       aside.sidebar .sheet-handle { display: none; }
     }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 6 — WAITING STATE
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .turn.waiting {
+      border: 1px solid var(--rule);
+      background: var(--bg-elev);
+      padding: 18px 22px;
+      max-width: 70%;
+      display: grid; gap: 10px;
+    }
+    .turn.waiting .label { color: var(--cyan-2); }
+    .turn.waiting .cursor {
+      display: inline-block; width: 8px; height: 16px;
+      background: var(--cyan-2); margin-left: 6px;
+      vertical-align: middle;
+      animation: cursor-blink 1.2s infinite;
+    }
+    @keyframes cursor-blink { 50% { opacity: 0; } }
+
+    .wait-bar {
+      height: 1px; background: var(--rule-strong); position: relative; overflow: hidden;
+    }
+    .wait-bar > i {
+      display: block; height: 100%;
+      background: var(--cyan);
+      width: 0%;
+      transition: width 600ms ease-out;
+    }
+    .wait-eta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--ink-muted);
+    }
+    .wait-extended {
+      font-size: var(--t-small);
+      color: var(--ink-muted);
+      font-style: italic;
+    }
+
   </style>
 </head>
 <body>
@@ -828,6 +869,8 @@
     async function sendMessage(text, opts = {}) {
       if (!SESSION.lead_id || !text.trim()) return;
       appendTurn("user", text);
+      showWaitingTurn();
+      const startTs = performance.now();
       const sendBtn = document.getElementById("sendBtn");
       const composer = document.getElementById("composer");
       if (sendBtn) { sendBtn.disabled = true; sendBtn.innerHTML = "Enviando ▍"; }
@@ -842,6 +885,8 @@
           body: JSON.stringify(body),
         });
         const data = await res.json().catch(() => ({}));
+        const elapsed = (performance.now() - startTs) / 1000;
+        dismissWaitingTurn(elapsed);
         if (res.status === 429) {
           appendTurn("agent", data.error || "Estoy con otra sesión. Vuelvo en unos segundos.");
           return;
@@ -862,6 +907,7 @@
         if (typeof facts.phase === "number") setPhase(facts.phase);
         setSaveStatus("syncing", "GUARDADO HACE 0s");
       } catch (e) {
+        dismissWaitingTurn();
         setSaveStatus("reconnect", "RECONECTANDO ▍");
       } finally {
         if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`; }
@@ -1027,6 +1073,74 @@
 
     window.renderSidebarChat = renderSidebarChat;
     window.updateSidebarFromTurn = updateSidebarFromTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 6 — WAITING STATE
+       showWaitingTurn(), dismissWaitingTurn()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const ETA_HISTORY = [];
+    const WAIT_DEFAULT_ETA_S = 10;
+    const WAIT_EXTENDED_THRESHOLD_MS = 25000;
+    const WAIT_ASYMPTOTE_PCT = 90;
+    let _waitTimers = [];
+
+    function showWaitingTurn() {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return null;
+      if (scroll.lastElementChild && !scroll.lastElementChild.classList.contains("turn-separator")) {
+        const sep = document.createElement("div");
+        sep.className = "turn-separator";
+        scroll.appendChild(sep);
+      }
+      const eta = ETA_HISTORY.length
+        ? Math.round(ETA_HISTORY.reduce((a, b) => a + b, 0) / ETA_HISTORY.length)
+        : WAIT_DEFAULT_ETA_S;
+      const turn = document.createElement("div");
+      turn.className = "turn waiting";
+      turn.id = "waitingTurn";
+      turn.dataset.role = "agent";
+      turn.innerHTML = `
+        <span class="label">Agente <span class="cursor"></span></span>
+        <div class="wait-bar"><i></i></div>
+        <div class="wait-eta">respondiendo · ~${eta}s</div>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      // Asintótico hacia 90% en el ETA
+      const fill = turn.querySelector(".wait-bar > i");
+      let pct = 0;
+      const tick = setInterval(() => {
+        pct = pct + (WAIT_ASYMPTOTE_PCT - pct) * 0.08;
+        fill.style.width = `${Math.min(pct, WAIT_ASYMPTOTE_PCT)}%`;
+      }, 600);
+      // Mensaje extendido a 25s
+      const extendedTimer = setTimeout(() => {
+        const note = document.createElement("div");
+        note.className = "wait-extended";
+        note.textContent = "Está pensando una buena pregunta. Aguanta un momento.";
+        turn.appendChild(note);
+      }, WAIT_EXTENDED_THRESHOLD_MS);
+      _waitTimers.push(tick, extendedTimer);
+      return turn;
+    }
+
+    function dismissWaitingTurn(elapsedSeconds) {
+      const turn = document.getElementById("waitingTurn");
+      _waitTimers.forEach(id => { try { clearInterval(id); } catch (e) {} try { clearTimeout(id); } catch (e) {} });
+      _waitTimers = [];
+      if (!turn) return;
+      const fill = turn.querySelector(".wait-bar > i");
+      if (fill) fill.style.width = "100%";
+      setTimeout(() => turn.remove(), 200);
+      if (typeof elapsedSeconds === "number" && elapsedSeconds > 0) {
+        ETA_HISTORY.push(elapsedSeconds);
+        if (ETA_HISTORY.length > 3) ETA_HISTORY.shift();
+      }
+    }
+
+    window.showWaitingTurn = showWaitingTurn;
+    window.dismissWaitingTurn = dismissWaitingTurn;
   </script>
 </body>
 
