@@ -466,9 +466,9 @@
       background: #fff;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 18px;
+      padding: clamp(18px, 3vw, 28px);
       display: grid;
-      gap: 14px;
+      gap: 16px;
     }
     .report h2, .report h3 {
       margin: 0;
@@ -477,6 +477,28 @@
     .report h2 { font-size: 28px; }
     .report h3 { font-size: 19px; }
     .report p { margin: 0; }
+    .report-hero {
+      border: 1px solid #cfe1d8;
+      background: linear-gradient(135deg, #f7fbf8, #fffdf8);
+      border-radius: 8px;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+    .report-hero h2 {
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1;
+    }
+    .report-label {
+      width: fit-content;
+      color: var(--accent-dark);
+      background: #e8f3ed;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
     .score-grid, .opportunity-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -491,6 +513,20 @@
     .score-card strong {
       display: block;
       font-size: 24px;
+    }
+    .diagnosis-card {
+      border: 1px solid var(--line);
+      background: #fbfaf6;
+      border-radius: 8px;
+      padding: 13px;
+      display: grid;
+      gap: 5px;
+    }
+    .diagnosis-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
     }
     .section-list {
       margin: 0;
@@ -1068,17 +1104,21 @@
       }).join("");
       const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
       return `<div class="report">
-        <span class="badge">${escapeHtml(readable(report.readiness))}</span>
-        <h2>${escapeHtml(report.recommended_employee)}</h2>
-        <p>${escapeHtml(report.summary)}</p>
-        <div class="mini-card"><span>Snapshot del negocio</span>${escapeHtml(report.business_snapshot)}</div>
-        <p><strong>Por qué:</strong> ${escapeHtml(report.recommendation_reason)}</p>
-        <div class="score-grid">
-          <div class="score-card"><strong>${escapeHtml(report.crm_summary?.score || "")}</strong><span>Score CRM</span></div>
-          <div class="score-card"><strong>${escapeHtml(report.cta?.segment || "")}</strong><span>Segmento</span></div>
-          <div class="score-card"><strong>${escapeHtml(report.crm_summary?.offer || "")}</strong><span>Oferta</span></div>
+        <div class="report-hero">
+          <span class="report-label">Diagnóstico generado</span>
+          <h2>Tu primer empleado IA debería ser: ${escapeHtml(report.recommended_employee)}</h2>
+          <p>${escapeHtml(report.summary)}</p>
         </div>
-        <h3>Top oportunidades</h3>
+        <div class="mini-grid">
+          <div class="diagnosis-card"><span>Lo que he entendido</span>${escapeHtml(report.business_snapshot)}</div>
+          <div class="diagnosis-card"><span>Por qué empezar aquí</span>${escapeHtml(report.recommendation_reason)}</div>
+        </div>
+        <div class="score-grid">
+          <div class="score-card"><strong>${escapeHtml(readable(report.readiness) || "En revisión")}</strong><span>Preparación</span></div>
+          <div class="score-card"><strong>${escapeHtml((report.opportunities || []).length || "1")}</strong><span>Oportunidades</span></div>
+          <div class="score-card"><strong>7 días</strong><span>Primer plan</span></div>
+        </div>
+        <h3>Oportunidades prioritarias</h3>
         <div class="opportunity-grid">${opportunities}</div>
         <h3>No automatizar todavía</h3>
         ${list(report.do_not_automate_yet)}
@@ -1089,7 +1129,7 @@
         <h3>Siguiente paso</h3>
         <p>${escapeHtml(report.cta?.message || "")}</p>
         <div class="field">
-          <label>Feedback para mejorar el diagnóstico</label>
+          <label>¿Qué mejorarías de este diagnóstico?</label>
           <textarea id="feedbackText" placeholder="¿Qué te faltó? ¿Qué te dio claridad?"></textarea>
         </div>
         <button onclick="saveFeedback()">Guardar feedback</button>
