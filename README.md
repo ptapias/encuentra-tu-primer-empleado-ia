@@ -49,6 +49,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
 - `local_acceptance_check.py`: semáforo local de una sola orden; comprueba servidor, release check y navegador antes de enseñar la demo o pasar al VPS.
 - `launch_go_no_go.py`: veredicto operativo final antes de enseñar la beta, combinando release check, navegador/transcripción y confirmaciones manuales.
+- `generate_vps_inputs.py`: asistente guiado para crear `VPS_INPUTS.local.md` sin subir datos sensibles a Git.
 - `validate_vps_inputs.py`: valida que `VPS_INPUTS.md` esté completo antes de tocar el VPS.
 - `prepare_vps_launch_files.py`: genera `.env.generated` y `privacy_config.json` desde `VPS_INPUTS.local.md`.
 - `test_public_beta_gate.py`: prueba unitaria del gate público para no abrir por error en localhost, sin HTTPS o con credenciales incorrectas.
@@ -146,5 +147,13 @@ Para enseñarlo a público real, usa `.env.example` como base y define `ADMIN_PA
 La beta genera el informe en pantalla y guarda el lead en CRM. Todavía no envía emails automáticamente; si quieres entrega por correo habrá que conectar Resend, Beehiiv, ConvertKit u otro proveedor.
 
 La guía de VPS está en `DEPLOYMENT_VPS.md`.
+
+Para preparar los datos reales del VPS sin editar la plantilla a mano:
+
+```bash
+python3 generate_vps_inputs.py
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
+python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
+```
 
 Nota clave: una web pública no puede usar directamente tu suscripción personal de Codex como API. Sí puedes usar Codex para pruebas locales o para procesar manualmente conversaciones recogidas por la web durante la validación.
