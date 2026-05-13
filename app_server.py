@@ -833,6 +833,21 @@ def normalize_report(report: dict, lead: dict) -> dict:
     return normalized
 
 
+def forbidden_static_path(path: str) -> bool:
+    clean = parse.unquote(path).strip("/")
+    if not clean:
+        return False
+    parts = [part for part in clean.split("/") if part]
+    first = parts[0] if parts else ""
+    name = parts[-1] if parts else ""
+    suffix = Path(name).suffix.lower()
+    if first in {"backups", "deploy", ".git", "__pycache__"}:
+        return True
+    if name in {".env", ".env.example", "crm.sqlite3", "crm_leads.jsonl"}:
+        return True
+    return suffix in {".py", ".pyc", ".sqlite", ".sqlite3", ".db", ".jsonl", ".log", ".toml"}
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -868,6 +883,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if route.path == "/api/export.csv":
             self._handle_export_csv()
+            return
+        if forbidden_static_path(route.path):
+            self.send_error(404, "Not found")
             return
         super().do_GET()
 

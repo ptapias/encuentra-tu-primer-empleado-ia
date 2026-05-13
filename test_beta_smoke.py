@@ -57,6 +57,17 @@ def main():
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
 
+    blocked_static = ["/.env", "/crm.sqlite3", "/crm_leads.jsonl", "/app_server.py", "/backup_crm.py", "/backups/"]
+    blocked_statuses = {}
+    for path in blocked_static:
+        try:
+            request(args.base, path)
+            blocked_statuses[path] = 200
+        except urllib.error.HTTPError as exc:
+            blocked_statuses[path] = exc.code
+    expect(all(status == 404 for status in blocked_statuses.values()), f"archivos sensibles expuestos: {blocked_statuses}")
+    checks.append({"check": "sensitive_static_files", "statuses": blocked_statuses})
+
     status, session = request(args.base, "/api/session", payload={})
     expect(status == 200 and session.get("lead_id"), "no se puede crear sesión pública")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
