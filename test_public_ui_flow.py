@@ -73,7 +73,7 @@ def main() -> int:
             result["checks"].append("start_without_email")
 
             def chat_handler(route):
-                time.sleep(1.1)
+                time.sleep(1.8)
                 route.fulfill(
                     status=200,
                     content_type="application/json",
@@ -112,7 +112,7 @@ def main() -> int:
             page.route("**/api/chat", chat_handler)
             page.fill("#input", "Tengo una newsletter y recibo 10 o 15 emails al día que no sé cómo aprovechar.")
             page.click("#send")
-            page.get_by_text("El agente está leyendo tu respuesta").wait_for(timeout=2500)
+            page.get_by_text("El agente está leyendo tu respuesta").wait_for(timeout=5000)
             page.get_by_text("Explorando email con valor comercial").wait_for(timeout=8000)
             page.get_by_text("Veo una señal clara en email").wait_for(timeout=8000)
             page.get_by_text("email y oportunidades sin responder").wait_for(timeout=5000)
