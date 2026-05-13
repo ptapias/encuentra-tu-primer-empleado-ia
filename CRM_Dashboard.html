@@ -427,6 +427,7 @@
         renderMetric("Interés CTA", `${metrics.cta_interest_rate || 0}%`, `${metrics.cta_interest || 0} señales`),
         renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
         renderMetric("Turnos", metrics.avg_user_turns, "Media usuario"),
+        renderMetric("Salud IA", metrics.operational_status || "ok", `${metrics.ai_errors || 0} errores · ${metrics.ai_busy || 0} ocupados`),
         renderMetric("CTA top", topCta?.name || "sin datos", topCta ? `${topCta.count} leads` : "Aún sin clics"),
         renderMetric("Origen top", topSource?.name || "sin datos", topSource ? `${topSource.count} leads` : "Añade UTM al enlace")
       ].join("");
