@@ -31,7 +31,8 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Cierre eficiente de discovery | `enforce_readiness_window()` en `app_server.py` | Con 4 turnos, foco, candidatos y confianza alta, activa informe aunque queden detalles finos; `test_discovery_flow.py` exige `ready_for_report` en clínica, inmobiliaria y consultor | Hecho base |
 | Entrevista en lenguaje natural | UI chat en `Agente_Real_CRM.html` | Navegador local muestra inicio conversacional y typewriter | Hecho |
 | Entiende procesos reales | Campos `facts`, `signals`, `candidate_processes`, `current_focus` | Test de clínica, inmobiliaria, consultor B2B; prueba real de email | Hecho local |
-| Progreso e insights vivos | Sidebar "Lo que estoy entendiendo" en `Agente_Real_CRM.html` | DOM verificado en navegador; `updateDiscovery()` actualiza claridad, foco, señales y gaps | Hecho |
+| Progreso e insights vivos | Sidebar "Lo que estoy entendiendo" en `Agente_Real_CRM.html` | DOM verificado en navegador; `updateDiscovery()` actualiza claridad, foco, señales, procesos candidatos y gaps | Hecho |
+| Procesos candidatos visibles durante discovery | `candidateList`, `renderCandidates()` y `candidate_processes` en `Agente_Real_CRM.html` | La UI muestra hasta 3 procesos candidatos con evidencia y confianza; `test_beta_smoke.py` valida presencia y `test_public_report_flow.py` valida que un candidato aparece durante el cierre | Hecho base |
 | Informe accionable y vendible | `/api/report`, `REPORT_INSTRUCTIONS`, `normalize_report()` | Informe real generado con empleado IA, oportunidades, riesgos y plan; normalización añadida tras detectar formato irregular | Hecho local |
 | Informe con decisión clara | `reportHtml()` en `Agente_Real_CRM.html` | Añade "Por qué esta va primero", prioridad inicial y flujo práctico Entrada -> Clasifica -> Prepara -> Revisión | Hecho base |
 | Informe con evidencia trazable | `evidence_summary` en `REPORT_INSTRUCTIONS`, `normalize_report()`, `Agente_Real_CRM.html`, `CRM_Dashboard.html`, CSV | El informe público/PDF muestra "Señales detectadas"; CRM muestra "Señales de decisión"; export CSV incluye `evidence_summary`; `test_agent_quality_guard.py` valida fallback de evidencia | Hecho base |
@@ -39,6 +40,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Informe portable para usuario | `printLatestReport()` y `printableReportHtml()` en `Agente_Real_CRM.html` | Botón "Guardar PDF" abre versión imprimible; smoke test valida que está presente | Hecho base |
 | Guarda leads en CRM | SQLite `crm.sqlite3`, endpoints `/api/session`, `/api/email`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` | `test_discovery_flow.py` crea leads y reportes; dashboard lee datos | Hecho |
 | CRM con métricas de beta | `/api/metrics`, `CRM_Dashboard.html` | `curl /api/metrics` devuelve leads, inicio, email, informe, feedback y turnos | Hecho |
+| CRM con discovery viva antes/después del informe | `CRM_Dashboard.html`, `facts._discovery`, `/api/export.csv` | El detalle del CRM muestra foco, claridad, señales, huecos y procesos candidatos; el CSV exporta `discovery_focus`, `discovery_confidence`, `candidate_processes`, `open_gaps` y `live_insights`; smoke test valida la presencia | Hecho base |
 | Atribución de funnel | `collectAttribution()` en `Agente_Real_CRM.html`, `/api/session`, CRM, métricas y CSV | `test_beta_smoke.py` valida UTM de sesión, disponibilidad en CRM, agregación en métricas y columnas CSV | Hecho base |
 | Inteligencia comercial interna | `sales_intelligence` en informe, `CRM_Dashboard.html`, CSV | CRM muestra frases útiles, objeciones e ideas de contenido; CSV exporta objeciones e ideas sin exponerlo en UI pública | Hecho base |
 | CRM operable manualmente | `/api/lead/update`, controles de "Operación interna" en `CRM_Dashboard.html` | Permite cambiar estado, oferta y notas internas desde el detalle del lead; `test_beta_smoke.py` valida edición con y sin auth | Hecho base |
@@ -117,6 +119,7 @@ python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription
+python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --mic-optional
 python3 test_launch_go_no_go.py
 python3 test_public_beta_gate.py
 python3 launch_go_no_go.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787 --with-browser --with-transcription --manual-production-tested --crm-reviewed --mic-tested
@@ -132,12 +135,14 @@ Resultado reciente:
 - `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado: `457e7ae`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK en `1761140` con instancia temporal en `localhost:8791`; `/api/lead/update`, `/api/lead/delete`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
-- Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
+- Release check local ampliado: OK en `c9252ce` con `.env` temporal válido, URL local, pruebas Playwright de UI/informe/sesión y transcripción local real; privacidad beta queda como warning mientras no se completen datos legales.
+- Go/no-go local/controlado: OK con `--mic-optional` contra `localhost`; sigue sin equivaler a beta pública porque no valida HTTPS, datos legales ni prueba manual real.
 - Preflight valida `MAX_AI_CONCURRENCY` y `AI_QUEUE_WAIT_SECONDS`; `healthz` expone `ai_concurrency`; `test_ai_concurrency.py` prueba el error de agente ocupado.
 - Smoke test valida que `HEAD /` redirige al diagnóstico para que checks externos no vean un falso 404.
 - El informe normalizado incluye `evidence_summary` aunque el modelo no lo devuelva explícitamente; lo deriva de frases útiles o facts como frecuencia, impacto, herramienta y riesgo.
 - `.env.example` usa `HOST=127.0.0.1`; `preflight_vps.py` avisa si la app queda expuesta públicamente sin pasar por Caddy.
 - Métricas locales: el CRM registra leads, conversaciones iniciadas, emails, informes y feedback; el CSV exporta rating, claridad, faltantes y mejora sugerida.
+- Discovery viva: la página pública muestra procesos candidatos con evidencia y confianza durante la entrevista; el CRM y CSV conservan esos datos incluso antes del informe.
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
