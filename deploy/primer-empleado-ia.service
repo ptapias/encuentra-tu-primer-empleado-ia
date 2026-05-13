@@ -1,6 +1,7 @@
 [Unit]
 Description=Encuentra Tu Primer Empleado IA
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=simple
@@ -11,6 +12,15 @@ Restart=always
 RestartSec=5
 User=primeria
 Group=primeria
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/opt/primer-empleado-ia
+SystemCallArchitectures=native
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
 
 [Install]
 WantedBy=multi-user.target

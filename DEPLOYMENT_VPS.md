@@ -65,6 +65,8 @@ python3 release_check.py --env .env --check-codex-live
 
 ## 3. Servicio
 
+El servicio queda limitado a `/opt/primer-empleado-ia` con hardening básico de systemd. La app debe escuchar en `127.0.0.1` y exponerse solo a través de Caddy/HTTPS.
+
 ```bash
 sudo cp deploy/primer-empleado-ia.service /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -95,10 +97,11 @@ ls -lah backups/
 
 ## 4. HTTPS con Caddy
 
-Edita `deploy/Caddyfile.example` con el dominio real y cópialo:
+Edita `deploy/Caddyfile.example` con el dominio real y cópialo. El ejemplo incluye proxy local, límite de cuerpo de 2 MB y headers básicos de seguridad:
 
 ```bash
 sudo cp deploy/Caddyfile.example /etc/caddy/Caddyfile
+sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
 

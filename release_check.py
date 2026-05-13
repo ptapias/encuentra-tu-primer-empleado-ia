@@ -9,6 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 PUBLIC_PAGE = ROOT / "Agente_Real_CRM.html"
 PRIVACY_PAGE = ROOT / "PRIVACY_BETA.md"
+APP_SERVICE = ROOT / "deploy" / "primer-empleado-ia.service"
+BACKUP_SERVICE = ROOT / "deploy" / "primer-empleado-ia-backup.service"
+CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 
 
 def run_step(name: str, command: list[str], *, timeout=120) -> dict:
@@ -66,6 +69,27 @@ def privacy_check(require_final: bool) -> dict:
     }
 
 
+def deploy_config_check() -> dict:
+    app_service = APP_SERVICE.read_text(encoding="utf-8") if APP_SERVICE.exists() else ""
+    backup_service = BACKUP_SERVICE.read_text(encoding="utf-8") if BACKUP_SERVICE.exists() else ""
+    caddyfile = CADDYFILE.read_text(encoding="utf-8") if CADDYFILE.exists() else ""
+    required = {
+        "app_service_NoNewPrivileges": "NoNewPrivileges=true" in app_service,
+        "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
+        "app_service_network_online": "network-online.target" in app_service,
+        "backup_service_NoNewPrivileges": "NoNewPrivileges=true" in backup_service,
+        "caddy_hsts": "Strict-Transport-Security" in caddyfile,
+        "caddy_body_limit": "max_size 2MB" in caddyfile,
+        "caddy_reverse_proxy_local": "reverse_proxy 127.0.0.1:8787" in caddyfile,
+    }
+    missing = [name for name, ok in required.items() if not ok]
+    return {
+        "name": "deploy_config",
+        "ok": not missing,
+        "missing": missing,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Release check de beta para Encuentra Tu Primer Empleado IA")
     parser.add_argument("--env", default=".env", help="Archivo .env que validará preflight_vps.py")
@@ -95,6 +119,7 @@ def main():
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
         static_page_check(),
         privacy_check(args.require_privacy_final),
+        deploy_config_check(),
     ]
 
     preflight_cmd = [sys.executable, "preflight_vps.py", "--env", args.env]
