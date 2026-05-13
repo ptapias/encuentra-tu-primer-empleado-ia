@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from urllib.parse import urlparse
 
 
 ROOT = Path(__file__).resolve().parent
@@ -64,6 +65,28 @@ def codex_live_check(codex_bin: str) -> dict:
     return {"ok": result.returncode == 0 and "ok" in output.lower(), "message": output[-500:]}
 
 
+def webhook_checks(env: dict) -> list[dict]:
+    url = (env.get("CRM_WEBHOOK_URL") or "").strip()
+    secret = (env.get("CRM_WEBHOOK_SECRET") or "").strip()
+    timeout = (env.get("CRM_WEBHOOK_TIMEOUT") or "5").strip()
+    if not url:
+        return [
+            check(True, "crm_webhook_optional", "CRM_WEBHOOK_URL vacío: sincronización externa desactivada", level="warning")
+        ]
+    parsed = urlparse(url)
+    checks = [
+        check(parsed.scheme in {"https", "http"} and bool(parsed.netloc), "crm_webhook_url", "CRM_WEBHOOK_URL tiene formato de URL"),
+        check(parsed.scheme == "https", "crm_webhook_https", "CRM_WEBHOOK_URL debería usar HTTPS", level="warning"),
+        check(bool(secret), "crm_webhook_secret", "CRM_WEBHOOK_SECRET debería configurarse para validar origen", level="warning"),
+    ]
+    try:
+        timeout_value = float(timeout)
+    except ValueError:
+        timeout_value = 0
+    checks.append(check(1 <= timeout_value <= 20, "crm_webhook_timeout", f"CRM_WEBHOOK_TIMEOUT={timeout}"))
+    return checks
+
+
 def main():
     parser = argparse.ArgumentParser(description="Preflight VPS para Encuentra Tu Primer Empleado IA")
     parser.add_argument("--env", default=".env", help="Ruta al archivo .env")
@@ -113,6 +136,7 @@ def main():
 
     checks.append(check(command_exists(ffmpeg_bin), "ffmpeg", f"ffmpeg disponible: {ffmpeg_bin or 'no encontrado'}", level="warning"))
     checks.append(check(command_exists(whisper_bin), "whisper", f"Whisper disponible: {whisper_bin or 'no encontrado'}", level="warning"))
+    checks.extend(webhook_checks(env))
 
     errors = [item for item in checks if item["level"] == "error" and not item["ok"]]
     warnings = [item for item in checks if item["level"] == "warning" and not item["ok"]]

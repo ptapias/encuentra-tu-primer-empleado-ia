@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import app_server
 import json
+import preflight_vps
 
 
 def assert_true(condition, message):
@@ -95,6 +96,26 @@ def test_crm_webhook_payload_and_secret_header():
         app_server.request.urlopen = original_urlopen
 
 
+def test_preflight_webhook_checks():
+    disabled = preflight_vps.webhook_checks({})
+    assert_true(disabled[0]["ok"], "Webhook vacío debería ser válido porque es opcional")
+
+    configured = preflight_vps.webhook_checks({
+        "CRM_WEBHOOK_URL": "https://example.com/webhook",
+        "CRM_WEBHOOK_SECRET": "secreto",
+        "CRM_WEBHOOK_TIMEOUT": "5",
+    })
+    assert_true(all(item["ok"] for item in configured), "Webhook HTTPS con secreto y timeout válido debería pasar")
+
+    risky = preflight_vps.webhook_checks({
+        "CRM_WEBHOOK_URL": "http://example.com/webhook",
+        "CRM_WEBHOOK_SECRET": "",
+        "CRM_WEBHOOK_TIMEOUT": "0",
+    })
+    failed = {item["name"] for item in risky if not item["ok"]}
+    assert_true({"crm_webhook_https", "crm_webhook_secret", "crm_webhook_timeout"}.issubset(failed), "Preflight debería avisar de webhook inseguro")
+
+
 if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
@@ -102,4 +123,5 @@ if __name__ == "__main__":
     test_admin_without_password_only_allowed_on_local_host()
     test_client_ip_only_trusts_proxy_header_from_loopback()
     test_crm_webhook_payload_and_secret_header()
+    test_preflight_webhook_checks()
     print("server_guards ok")
