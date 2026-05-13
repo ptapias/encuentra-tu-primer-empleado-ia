@@ -1760,9 +1760,9 @@
       input.value = "";
       send.disabled = true;
       startWaitStatus([
-        "El agente está leyendo tu respuesta",
-        "Buscando procesos y señales útiles",
-        "Afinando la siguiente pregunta",
+        "El agente está leyendo tu respuesta y extrayendo señales",
+        "Buscando dónde se escapa tiempo, dinero o clientes",
+        "Comparando procesos candidatos",
         "Sigue trabajando; Codex puede tardar un poco"
       ]);
       try {
@@ -1811,7 +1811,7 @@
       reportBtn.disabled = true;
       startWaitStatus([
         "Generando diagnóstico",
-        "Priorizando oportunidades",
+        "Priorizando impacto frente a factibilidad",
         "Preparando matriz e informe",
         "Sigue trabajando; el informe tarda más que una respuesta"
       ]);
