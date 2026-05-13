@@ -522,6 +522,101 @@
       .turn { max-width: 90%; }
     }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 5 — SIDEBAR DE CHAT
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .sidebar-chat {
+      display: grid; gap: var(--gap-3);
+    }
+    .sidebar-chat .block {
+      display: grid; gap: var(--gap-1);
+    }
+    .sidebar-chat .block-value {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 1.8vw, 22px);
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .sidebar-chat .block-list {
+      list-style: none; padding: 0; margin: 0;
+      display: grid; gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+    .sidebar-chat .block-list.warn li { color: var(--refine); }
+    .sidebar-chat .block-list li { padding-left: 14px; position: relative; }
+    .sidebar-chat .block-list li::before {
+      content: "·"; position: absolute; left: 0; color: var(--cyan-2);
+    }
+
+    /* Mini phase line vertical (4 fases — espejo del top frame) */
+    .sidebar-chat .vline {
+      display: grid; gap: 6px;
+      border-left: 1px solid var(--rule);
+      padding-left: var(--gap-2);
+      margin-top: var(--gap-1);
+    }
+    .sidebar-chat .vline .vstep {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      position: relative;
+    }
+    .sidebar-chat .vline .vstep::before {
+      content: ""; position: absolute; left: -19px; top: 6px;
+      width: 6px; height: 6px;
+      border: 1px solid currentColor;
+    }
+    .sidebar-chat .vline .vstep[data-state="active"] {
+      color: var(--cyan-2);
+    }
+    .sidebar-chat .vline .vstep[data-state="active"]::before { background: var(--cyan-2); }
+    .sidebar-chat .vline .vstep[data-state="done"] { color: var(--ink-muted); }
+    .sidebar-chat .vline .vstep[data-state="done"]::before { background: var(--ink-muted); }
+
+    /* Slide-in subtle entre turnos */
+    .sidebar-chat .block.is-updated { animation: sb-update 250ms var(--ease); }
+    @keyframes sb-update {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* === MOBILE BOTTOM SHEET (≤800px) === */
+    @media (max-width: 800px) {
+      aside.sidebar.is-chat-mode {
+        position: fixed; left: 0; right: 0; bottom: 0;
+        max-height: 60dvh;
+        background: var(--bg-elev);
+        border-top: 1px solid var(--rule-strong);
+        border-right: none;
+        padding: var(--gap-2) var(--pad-x);
+        transform: translateY(calc(100% - 60px));
+        transition: transform var(--duration-3) var(--ease);
+        z-index: 10;
+        overflow-y: auto;
+      }
+      aside.sidebar.is-chat-mode[data-open="true"] { transform: none; }
+      aside.sidebar.is-chat-mode .sheet-handle {
+        display: flex; justify-content: space-between; align-items: center;
+        cursor: pointer; padding: 8px 0;
+        font-family: var(--font-mono);
+        font-size: 11px; letter-spacing: 0.22em;
+        text-transform: uppercase; color: var(--ink-soft);
+      }
+      aside.sidebar.is-chat-mode .sheet-handle::before {
+        content: "▴"; color: var(--cyan-2); margin-right: 8px;
+      }
+      aside.sidebar.is-chat-mode[data-open="true"] .sheet-handle::before { content: "▾"; }
+    }
+    @media (min-width: 801px) {
+      aside.sidebar .sheet-handle { display: none; }
+    }
+
   </style>
 </head>
 <body>
@@ -694,6 +789,7 @@
           </div>
         </div>
       `;
+      renderSidebarChat({ phase: 2 });
       document.getElementById("composer").focus();
     }
 
@@ -755,6 +851,15 @@
           return;
         }
         appendTurn("agent", data.reply || "");
+        // Refresh del sidebar entre turnos (single coherent update)
+        const facts = data.facts || {};
+        updateSidebarFromTurn({
+          focus: facts.focus_current || facts.focus || facts.focus_summary,
+          signals: facts.signals || facts.evidence || [],
+          gaps: facts.gaps || facts.missing || [],
+          phase: typeof facts.phase === "number" ? facts.phase : undefined,
+        });
+        if (typeof facts.phase === "number") setPhase(facts.phase);
         setSaveStatus("syncing", "GUARDADO HACE 0s");
       } catch (e) {
         setSaveStatus("reconnect", "RECONECTANDO ▍");
@@ -838,6 +943,90 @@
     window.appendTurn = appendTurn;
     window.sendMessage = sendMessage;
     window.rewindToTurn = rewindToTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 5 — SIDEBAR DE CHAT
+       renderSidebarChat(), updateSidebarFromTurn()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    function renderSidebarChat(state = {}) {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      const phases = ["Contexto","Proceso","Decisión","Cierre"];
+      const activePhase = state.phase || 2;
+      const phasesHtml = phases.map((p, i) => {
+        const idx = i + 1;
+        let s = "";
+        if (idx < activePhase) s = "done";
+        else if (idx === activePhase) s = "active";
+        return `<div class="vstep" data-state="${s}">${p}</div>`;
+      }).join("");
+      const focoText = state.foco || "Buscando el primer proceso claro";
+      const signalsHtml = (state.signals || ["Aún esperando contexto."]).map(s => `<li>${s}</li>`).join("");
+      const nextHtml = (state.next || ["Negocio, cliente y proceso repetitivo."]).map(s => `<li>${s}</li>`).join("");
+      sidebar.classList.add("is-chat-mode");
+      sidebar.innerHTML = `
+        <div class="sheet-handle" id="sheetHandle">
+          <span>Lo que estoy entendiendo</span>
+          <span class="block-value" style="font-size: 14px; color: var(--cyan-2);">${focoText.slice(0, 40)}</span>
+        </div>
+        <div class="sidebar-chat">
+          <div class="block">
+            <div class="eyebrow muted">02 / Discovery en vivo</div>
+          </div>
+          <div class="block">
+            <div class="eyebrow muted">Foco</div>
+            <div class="block-value" id="sbFoco" aria-live="polite">${focoText}</div>
+          </div>
+          <div class="vline" id="sbVline">${phasesHtml}</div>
+          <div class="block">
+            <div class="eyebrow muted">Señales</div>
+            <ul class="block-list" id="sbSignals">${signalsHtml}</ul>
+          </div>
+          <div class="block">
+            <div class="eyebrow muted">Próximo</div>
+            <ul class="block-list warn" id="sbNext">${nextHtml}</ul>
+          </div>
+        </div>
+      `;
+      const handle = document.getElementById("sheetHandle");
+      if (handle) handle.addEventListener("click", () => {
+        sidebar.dataset.open = sidebar.dataset.open === "true" ? "false" : "true";
+      });
+    }
+
+    function updateSidebarFromTurn(facts = {}) {
+      const focoEl = document.getElementById("sbFoco");
+      if (focoEl && typeof facts.focus === "string") {
+        focoEl.textContent = facts.focus;
+        focoEl.parentElement.classList.add("is-updated");
+        setTimeout(() => focoEl.parentElement.classList.remove("is-updated"), 260);
+      }
+      const sigEl = document.getElementById("sbSignals");
+      if (sigEl && Array.isArray(facts.signals)) {
+        sigEl.innerHTML = facts.signals.map(s => `<li>${typeof s === "string" ? s : (s.text || s.label || JSON.stringify(s))}</li>`).join("");
+        sigEl.parentElement.classList.add("is-updated");
+        setTimeout(() => sigEl.parentElement.classList.remove("is-updated"), 260);
+      }
+      const nextEl = document.getElementById("sbNext");
+      if (nextEl && Array.isArray(facts.gaps)) {
+        nextEl.innerHTML = facts.gaps.map(s => `<li>${typeof s === "string" ? s : (s.text || s.label || JSON.stringify(s))}</li>`).join("");
+        nextEl.parentElement.classList.add("is-updated");
+        setTimeout(() => nextEl.parentElement.classList.remove("is-updated"), 260);
+      }
+      if (typeof facts.phase === "number") {
+        const steps = document.querySelectorAll("#sbVline .vstep");
+        steps.forEach((s, i) => {
+          const idx = i + 1;
+          if (idx < facts.phase) s.dataset.state = "done";
+          else if (idx === facts.phase) s.dataset.state = "active";
+          else s.removeAttribute("data-state");
+        });
+      }
+    }
+
+    window.renderSidebarChat = renderSidebarChat;
+    window.updateSidebarFromTurn = updateSidebarFromTurn;
   </script>
 </body>
 
