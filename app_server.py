@@ -1628,6 +1628,7 @@ class Handler(SimpleHTTPRequestHandler):
         event_counts = {row["event"]: row["count"] for row in event_rows}
         ai_errors = event_counts.get("ai_error", 0)
         ai_busy = event_counts.get("ai_busy", 0)
+        webhook_errors = event_counts.get("webhook_error", 0)
         operational_status = "revisar IA" if ai_errors else ("cola ocupada" if ai_busy else "ok")
 
         metrics = {
@@ -1647,6 +1648,7 @@ class Handler(SimpleHTTPRequestHandler):
             "avg_user_turns": round(total_turns / total, 1) if total else 0,
             "ai_errors": ai_errors,
             "ai_busy": ai_busy,
+            "webhook_errors": webhook_errors,
             "operational_status": operational_status,
             "events": event_counts,
             "top_offers": top_items(offer_counts),

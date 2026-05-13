@@ -309,6 +309,7 @@ def main():
     expect(metrics["metrics"].get("consent_captured", 0) >= 1, "las métricas no cuentan consentimiento")
     expect(metrics["metrics"].get("cta_interest", 0) >= 1, "las métricas no cuentan interés de CTA")
     expect("operational_status" in metrics["metrics"] and "ai_errors" in metrics["metrics"], "las métricas no exponen salud operativa de IA")
+    expect("webhook_errors" in metrics["metrics"], "las métricas no exponen errores de webhook")
     expect(any(item.get("name") == "cohort" for item in metrics["metrics"].get("top_cta_interest", [])), "las métricas no agregan CTA por segmento")
     checks.append({"check": "metrics", "auth_required": bool(auth), "status_without_auth": metrics_without_auth})
 
