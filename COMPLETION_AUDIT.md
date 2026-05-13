@@ -38,7 +38,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin UI mediocre ni términos internos | Búsqueda pública eliminó JSON, fallback, CRM, "informe potente" | `test_beta_smoke.py` comprueba gancho y ausencia de textos internos básicos | Hecho base |
-| Micrófono | `MediaRecorder`, `/transcribe`, Whisper local | Probado previamente local; smoke test no cubre permisos/micrófono | Parcial |
+| Micrófono | `MediaRecorder`, `/transcribe`, `WHISPER_BIN`, `FFMPEG_BIN`, `/api/capabilities` | Smoke test cubre disponibilidad del servicio; permisos/grabación real siguen siendo prueba manual | Parcial |
 | Feedback al final | UI de informe con textarea y `/api/feedback` | Endpoint y dashboard leen feedback; hay 1 feedback registrado en métricas | Hecho |
 
 ## Evidencia de comandos recientes
@@ -62,7 +62,7 @@ Resultado reciente:
 |---|---|---|
 | VPS no desplegado todavía | "Listo para beta pública" requiere comprobar dominio, HTTPS, systemd, auth y persistencia en servidor real | Ejecutar `DEPLOYMENT_VPS.md` en el VPS y correr `test_beta_smoke.py` contra el dominio |
 | Codex CLI en producción es frágil para tráfico abierto | Puede tardar, romper sesión o no estar pensado como backend multiusuario | Beta privada primero; si hay uso real, migrar a API oficial o cola supervisada |
-| Micrófono no cubierto por smoke test | Los permisos del navegador y Whisper pueden fallar en otro entorno | Probar micrófono manualmente en local y decidir transcripción para VPS |
+| Grabación real de micrófono no cubierta por smoke test | Los permisos del navegador requieren prueba manual aunque `/api/capabilities` valide binarios | Probar micrófono manualmente en local y en VPS con HTTPS |
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
 | Calidad adaptativa probada en pocos casos reales con Codex | Un caso bueno no garantiza robustez en sectores distintos | Ejecutar 5 discovery sessions reales: newsletter, clínica, inmobiliaria, agencia, ecommerce |
 | No hay exportación CSV desde dashboard | Para operación comercial puede hacer falta mover leads a CRM externo | Añadir export CSV o integración cuando haya los primeros testers |
@@ -72,4 +72,3 @@ Resultado reciente:
 No se puede marcar el objetivo como completo todavía.
 
 El MVP local está en estado fuerte para pruebas internas y demo controlada. La pieza que falta para cumplir literalmente "beta pública en VPS" es ejecutar despliegue real, activar autenticación, correr el smoke test contra el dominio y hacer 3-5 pruebas externas.
-

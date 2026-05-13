@@ -43,7 +43,11 @@ def main():
 
     status, health = request(args.base, "/healthz")
     expect(status == 200 and health.get("ok"), "healthz no responde correctamente")
-    checks.append({"check": "health", "provider": health.get("provider")})
+    checks.append({"check": "health", "provider": health.get("provider"), "transcription": health.get("transcription")})
+
+    status, capabilities = request(args.base, "/api/capabilities")
+    expect(status == 200 and "transcription" in capabilities, "capabilities no devuelve estado de transcripción")
+    checks.append({"check": "capabilities", "transcription": capabilities["transcription"].get("available")})
 
     status, public_html = request(args.base, "/Agente_Real_CRM.html")
     expect(status == 200, "la página pública no carga")
@@ -79,4 +83,3 @@ if __name__ == "__main__":
     except (AssertionError, urllib.error.URLError, TimeoutError) as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
         raise SystemExit(1)
-

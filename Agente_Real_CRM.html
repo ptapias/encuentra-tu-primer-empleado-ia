@@ -832,6 +832,7 @@
     let listening = false;
     let capturedEmail = "";
     let pendingReport = false;
+    let transcriptionAvailable = true;
 
     const stagePct = {
       contexto: 12,
@@ -943,6 +944,19 @@
       return json;
     }
 
+    async function refreshCapabilities() {
+      try {
+        const result = await api("/api/capabilities", null, "GET");
+        transcriptionAvailable = Boolean(result.transcription?.available);
+      } catch (error) {
+        transcriptionAvailable = false;
+      }
+      micBtn.disabled = !leadId || !transcriptionAvailable;
+      if (!transcriptionAvailable) {
+        setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
+      }
+    }
+
     async function startSession() {
       setCrm("Preparando el diagnóstico...", "");
       start.disabled = true;
@@ -955,7 +969,7 @@
         pendingReport = false;
         input.disabled = false;
         send.disabled = false;
-        micBtn.disabled = false;
+        micBtn.disabled = true;
         reportBtn.disabled = true;
         reportBtn.hidden = true;
         setCrm("Diagnóstico iniciado. Estoy buscando el primer proceso claro.", "ok");
@@ -971,6 +985,7 @@
         chat.innerHTML = "";
         input.placeholder = "Cuéntame a qué te dedicas, cómo llegan los clientes y qué proceso te gustaría automatizar.";
         await addTypingMessage("agent", "Vamos a hacerlo como una mini sesión de diagnóstico.\n\nCuéntame con tus palabras: ¿a qué se dedica tu negocio, cómo llegan clientes o trabajo, y dónde notas que se te escapa más tiempo, dinero o clientes?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
+        await refreshCapabilities();
         input.focus();
       } catch (error) {
         setCrm(error.message, "error");
@@ -1156,6 +1171,10 @@
     }
 
     async function startRecording() {
+      if (!transcriptionAvailable) {
+        setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
+        return;
+      }
       activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioChunks = [];
       const mimeType = supportedAudioMimeType();

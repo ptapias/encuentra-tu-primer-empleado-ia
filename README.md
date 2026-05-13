@@ -72,7 +72,7 @@ Si el proveedor elegido falla, el sistema entra en modo fallback local para pode
 
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
 
-Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo.
+Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo. En VPS, define `WHISPER_BIN` y `FFMPEG_BIN` si no están en el `PATH`; si faltan, la app desactiva el micro y mantiene el flujo por texto.
 
 ## Producción beta
 

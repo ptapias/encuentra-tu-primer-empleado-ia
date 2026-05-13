@@ -35,7 +35,11 @@ AI_PROVIDER=codex
 CODEX_BIN=/usr/local/bin/codex
 ADMIN_USER=admin
 ADMIN_PASSWORD=una-password-larga
+WHISPER_BIN=/usr/local/bin/whisper
+FFMPEG_BIN=/usr/bin/ffmpeg
 ```
+
+Si no vas a usar micrófono en la primera beta, la app seguirá funcionando por texto. El endpoint `/api/capabilities` indicará si la transcripción está disponible y la UI desactivará el botón de micro si faltan binarios.
 
 ## 3. Servicio
 

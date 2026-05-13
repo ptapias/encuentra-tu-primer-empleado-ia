@@ -14,8 +14,8 @@ import uuid
 
 
 ROOT = Path(__file__).resolve().parent
-WHISPER = "/opt/homebrew/bin/whisper"
-FFMPEG = "/opt/homebrew/bin/ffmpeg"
+WHISPER = os.environ.get("WHISPER_BIN") or shutil.which("whisper") or "/opt/homebrew/bin/whisper"
+FFMPEG = os.environ.get("FFMPEG_BIN") or shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
 DB_FILE = ROOT / "crm.sqlite3"
 JSONL_FILE = ROOT / "crm_leads.jsonl"
 OPENAI_URL = "https://api.openai.com/v1/responses"
@@ -201,6 +201,16 @@ def valid_email(email: str) -> bool:
         return False
     local, _, domain = email.partition("@")
     return bool(local and "." in domain and not any(char.isspace() for char in email))
+
+
+def transcription_status() -> dict:
+    whisper_path = shutil.which(WHISPER) if not Path(WHISPER).exists() else WHISPER
+    ffmpeg_path = shutil.which(FFMPEG) if not Path(FFMPEG).exists() else FFMPEG
+    return {
+        "available": bool(whisper_path and ffmpeg_path),
+        "whisper": whisper_path or "",
+        "ffmpeg": ffmpeg_path or "",
+    }
 
 
 def db():
@@ -797,7 +807,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             return
         if route.path == "/healthz":
-            self._json({"ok": True, "provider": AI_PROVIDER})
+            self._json({"ok": True, "provider": AI_PROVIDER, "transcription": transcription_status()["available"]})
+            return
+        if route.path == "/api/capabilities":
+            self._json({"transcription": transcription_status()})
             return
         if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead", "/api/metrics") and not self._require_admin():
             return
@@ -1115,10 +1128,11 @@ def append_jsonl(payload: dict):
 
 
 def transcribe_audio(body: bytes) -> str:
-    if not Path(WHISPER).exists():
-        raise RuntimeError("Whisper local no está instalado en /opt/homebrew/bin/whisper")
-    if not Path(FFMPEG).exists():
-        raise RuntimeError("ffmpeg local no está instalado en /opt/homebrew/bin/ffmpeg")
+    status = transcription_status()
+    if not status["whisper"]:
+        raise RuntimeError("Whisper no está instalado o WHISPER_BIN no apunta a un binario válido")
+    if not status["ffmpeg"]:
+        raise RuntimeError("ffmpeg no está instalado o FFMPEG_BIN no apunta a un binario válido")
 
     with tempfile.TemporaryDirectory(prefix="primer-empleado-ia-") as tmp:
         tmpdir = Path(tmp)
@@ -1127,7 +1141,7 @@ def transcribe_audio(body: bytes) -> str:
         webm.write_bytes(body)
 
         subprocess.run(
-            [FFMPEG, "-y", "-i", str(webm), "-ar", "16000", "-ac", "1", str(wav)],
+            [status["ffmpeg"], "-y", "-i", str(webm), "-ar", "16000", "-ac", "1", str(wav)],
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -1135,7 +1149,7 @@ def transcribe_audio(body: bytes) -> str:
 
         subprocess.run(
             [
-                WHISPER,
+                status["whisper"],
                 str(wav),
                 "--model",
                 "tiny",
