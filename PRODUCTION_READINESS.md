@@ -20,6 +20,7 @@ Completar antes de usar `--public-beta`:
 - Responsable legal o datos fiscales.
 - Email de contacto para privacidad.
 - Proveedores reales usados: VPS/hosting, correo si aplica, IA/transcripción.
+- Si se configura `CRM_WEBHOOK_URL`, proveedor/destino concreto del webhook y datos enviados.
 - Plazo de conservación.
 - Si los leads entran también a newsletter o solo al diagnóstico.
 - Actualizar también `PRIVACY_BETA.html`; el gate falla si la página pública conserva notas de beta como “antes de abrir tráfico público amplio”.
