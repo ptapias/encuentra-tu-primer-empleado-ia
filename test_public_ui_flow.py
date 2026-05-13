@@ -81,7 +81,8 @@ def main() -> int:
 
             page.locator("section.starter button.start-primary").click()
             page.wait_for_selector("textarea#input:not([disabled])", timeout=8000)
-            page.get_by_text("Vamos a buscar el primer proceso").wait_for(timeout=8000)
+            page.get_by_text("Voy a hacerte de consultor durante unos minutos").wait_for(timeout=8000)
+            page.get_by_text("última escena donde sentiste que se escapaba tiempo").wait_for(timeout=8000)
             assert_true(page.locator("#starter").count() == 0, "El bloque inicial debe desaparecer al arrancar")
             result["checks"].append("start_without_email")
 

@@ -288,6 +288,100 @@
       color: #363832;
       font-size: clamp(18px, 2vw, 23px);
     }
+    .diagnostic-preview {
+      max-width: 880px;
+      border: 1px solid rgba(23,23,23,.12);
+      background: #171717;
+      color: #fffdf8;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 20px 54px rgba(23,23,23,.16);
+    }
+    .diagnostic-preview-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255,253,248,.12);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: rgba(255,253,248,.72);
+    }
+    .diagnostic-preview-head strong {
+      color: #fffdf8;
+      font-size: 13px;
+    }
+    .diagnostic-preview-body {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 1px;
+      background: rgba(255,253,248,.10);
+    }
+    .diagnostic-preview-body::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(110, 231, 183, .92), transparent);
+      animation: scanLine 2.8s ease-in-out infinite;
+    }
+    .preview-dialogue, .preview-map {
+      background: #171717;
+      padding: 15px;
+      display: grid;
+      gap: 10px;
+    }
+    .preview-turn {
+      display: grid;
+      gap: 4px;
+    }
+    .preview-turn span {
+      color: rgba(255,253,248,.54);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .preview-turn p {
+      margin: 0;
+      color: rgba(255,253,248,.86);
+      font-size: 14px;
+    }
+    .preview-turn.agent p {
+      color: #d7f7e8;
+    }
+    .preview-map-row {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 9px;
+      padding: 9px 0;
+      border-top: 1px solid rgba(255,253,248,.10);
+    }
+    .preview-map-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .preview-map-row span {
+      color: #6ee7b7;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .preview-map-row strong {
+      display: block;
+      color: #fffdf8;
+      font-size: 14px;
+    }
+    .preview-map-row p {
+      margin: 2px 0 0;
+      color: rgba(255,253,248,.62);
+      font-size: 12px;
+    }
     .starter-proof {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
@@ -1064,6 +1158,11 @@
       100% { box-shadow: 0 0 0 0 rgba(31,122,91,0); }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes scanLine {
+      0%, 100% { transform: translateY(0); opacity: .2; }
+      45% { transform: translateY(176px); opacity: .88; }
+      55% { transform: translateY(176px); opacity: .44; }
+    }
     @keyframes caretBlink {
       0%, 49% { opacity: 1; }
       50%, 100% { opacity: 0; }
@@ -1077,7 +1176,7 @@
       aside { order: 2; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       aside > .panel:first-of-type { display: none; }
-      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid, .starter-proof { grid-template-columns: 1fr; }
+      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid, .starter-proof, .diagnostic-preview-body { grid-template-columns: 1fr; }
       .priority-map-canvas { min-height: 300px; }
       .priority-label { max-width: 150px; }
     }
@@ -1091,7 +1190,7 @@
       <p class="lead">Una discovery session ligera para encontrar la fuga concreta: tiempo, dinero, clientes o trabajo que depende demasiado de ti.</p>
       <div class="panel">
         <h2>Empieza por lo que más te pesa</h2>
-        <button id="start">Analizar mi negocio</button>
+        <button id="start">Empezar diagnóstico</button>
         <button class="secondary" id="resetSession" type="button" hidden>Nuevo diagnóstico</button>
         <div class="crm-status" id="crmStatus">Sin formularios largos. Primero entendemos tu caso.</div>
         <p class="privacy-note">El agente irá tirando del hilo hasta encontrar un proceso automatizable real. <a href="/PRIVACY_BETA.html" target="_blank" rel="noreferrer">Privacidad beta</a></p>
@@ -1149,8 +1248,44 @@
             <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
             <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: escucha, repregunta, detecta patrones y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
             <div class="starter-start">
-              <button class="start-primary" type="button" onclick="startSession()">Analizar mi negocio</button>
+              <button class="start-primary" type="button" onclick="startSession()">Empezar diagnóstico</button>
               <p class="privacy-note" id="microAdvice">Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.</p>
+            </div>
+            <div class="diagnostic-preview" aria-label="Vista previa del tipo de análisis que hará el agente">
+              <div class="diagnostic-preview-head">
+                <strong>Discovery en vivo</strong>
+                <span>No formulario · preguntas según tu caso</span>
+              </div>
+              <div class="diagnostic-preview-body">
+                <div class="preview-dialogue">
+                  <div class="preview-turn agent">
+                    <span>Agente</span>
+                    <p>Cuéntame una escena reciente donde algo se quedó parado: un email, un lead, una reserva, una tarea interna.</p>
+                  </div>
+                  <div class="preview-turn">
+                    <span>Tú</span>
+                    <p>Recibo muchos mensajes buenos, pero no sé cuáles responder ni cómo sacarles partido.</p>
+                  </div>
+                  <div class="preview-turn agent">
+                    <span>Agente</span>
+                    <p>Ahí puede haber una fuga de oportunidades. Voy a mirar volumen, criterio de respuesta, riesgo y primer paso viable.</p>
+                  </div>
+                </div>
+                <div class="preview-map">
+                  <div class="preview-map-row">
+                    <span>Fuga</span>
+                    <div><strong>Oportunidades sin seguimiento</strong><p>Mensajes que llegan, pero no se convierten en acción.</p></div>
+                  </div>
+                  <div class="preview-map-row">
+                    <span>Proceso</span>
+                    <div><strong>Clasificar, resumir y proponer respuesta</strong><p>La IA prepara; la persona aprueba.</p></div>
+                  </div>
+                  <div class="preview-map-row">
+                    <span>Informe</span>
+                    <div><strong>Primer empleado IA recomendado</strong><p>Con datos necesarios, riesgos y plan de 7 días.</p></div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="starter-proof">
               <div class="starter-prompt">
@@ -1574,8 +1709,8 @@
           progress_label: "Entendiendo el negocio"
         });
         chat.innerHTML = "";
-        input.placeholder = "Cuéntame qué vendes, a quién ayudas y qué tarea se te atasca cada semana.";
-        await addTypingMessage("agent", "Vamos a buscar el primer proceso donde una IA podría ayudarte de verdad.\n\nNo necesito una respuesta perfecta. Cuéntame en bruto qué vendes, a quién ayudas y dónde notas una fuga: tiempo, dinero, clientes, foco o tareas que dependen demasiado de ti.\n\nSi puedes, empieza con una escena reciente: un email, un WhatsApp, una reserva, un lead, una tarea interna o algo que se quedó parado. Puedes dictarlo con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
+        input.placeholder = "Háblame en bruto: negocio, cliente y una escena reciente donde se escapó tiempo, dinero o clientes.";
+        await addTypingMessage("agent", "Voy a hacerte de consultor durante unos minutos para encontrar el primer proceso que merezca automatizarse.\n\nPara empezar, háblame en bruto: qué vendes, a quién ayudas, cómo te llegan clientes o solicitudes y cuál fue la última escena donde sentiste que se escapaba tiempo, dinero, clientes o foco.\n\nPuede ser un email sin responder, un WhatsApp, una reserva, un lead, una tarea interna o algo que depende demasiado de ti. Si puedes, dicta 45-60 segundos con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
         await refreshCapabilities();
         saveSessionState();
         input.focus();
