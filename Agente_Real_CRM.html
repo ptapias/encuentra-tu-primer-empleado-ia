@@ -432,6 +432,9 @@
       border-top: 1px solid var(--line);
       background: #faf8f1;
     }
+    .composer[hidden] {
+      display: none;
+    }
     .composer-grid {
       display: grid;
       grid-template-columns: 1fr auto auto;
@@ -1024,7 +1027,7 @@
           </div>
         </section>
       </div>
-      <div class="composer">
+      <div class="composer" id="composer" hidden>
         <div class="composer-grid">
           <textarea id="input" placeholder="Cuando empieces, cuéntame tu negocio o dicta con el micro." disabled></textarea>
           <button class="secondary icon" id="mic" type="button" aria-label="Micrófono" title="Micrófono" disabled>
@@ -1047,6 +1050,7 @@
 
   <script>
     const chat = document.getElementById("chat");
+    const composer = document.getElementById("composer");
     const input = document.getElementById("input");
     const send = document.getElementById("send");
     const start = document.getElementById("start");
@@ -1260,6 +1264,7 @@
         latestReport = null;
         capturedEmail = "";
         pendingReport = false;
+        composer.hidden = false;
         input.disabled = false;
         send.disabled = false;
         micBtn.disabled = true;
@@ -1649,6 +1654,7 @@
       start.hidden = true;
       start.disabled = true;
       resetSession.hidden = false;
+      composer.hidden = false;
       leadId = saved.leadId;
       capturedEmail = saved.capturedEmail || "";
       transcript = [];
