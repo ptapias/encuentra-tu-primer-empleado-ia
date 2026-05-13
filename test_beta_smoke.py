@@ -133,6 +133,7 @@ def main():
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Matriz de priorización" in public_html and "Impacto frente a factibilidad" in public_html, "el informe no incluye matriz visual de priorización")
+    expect("Procesos candidatos" in public_html and "candidateList" in public_html, "el diagnóstico no muestra procesos candidatos durante la discovery")
     expect("Guardar PDF" in public_html and "printLatestReport" in public_html, "el informe no permite guardar/imprimir PDF")
     expect("Señales detectadas" in public_html, "el informe no explica la evidencia usada para recomendar")
     expect("Generar informe" in public_html and "Recibir informe" not in public_html, "el email-gate promete entrega por correo sin integración")

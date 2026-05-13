@@ -918,6 +918,53 @@
       font-size: 13px;
       line-height: 1.35;
     }
+    .candidate-list {
+      display: grid;
+      gap: 8px;
+    }
+    .candidate-empty {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .candidate-item {
+      border: 1px solid #d8e4dc;
+      background: #fbfffc;
+      border-radius: 8px;
+      padding: 9px;
+      display: grid;
+      gap: 6px;
+    }
+    .candidate-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .candidate-head strong {
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .candidate-score {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent-dark);
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .candidate-item p {
+      margin: 0;
+      color: #3f4741;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .candidate-evidence {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
     .confidence-meter {
       height: 8px;
       background: #e6dfd2;
@@ -1004,6 +1051,12 @@
           <ul class="discovery-list" id="insightList">
             <li>Aún estoy esperando contexto.</li>
           </ul>
+        </div>
+        <div class="discovery-card">
+          <span>Procesos candidatos</span>
+          <div class="candidate-list" id="candidateList">
+            <div class="candidate-empty">Aparecerán cuando el agente detecte oportunidades reales.</div>
+          </div>
         </div>
         <div class="discovery-card">
           <span>Falta por aclarar</span>
@@ -1132,6 +1185,7 @@
     const confidenceFill = document.getElementById("confidenceFill");
     const insightList = document.getElementById("insightList");
     const gapList = document.getElementById("gapList");
+    const candidateList = document.getElementById("candidateList");
     let leadId = null;
     let transcript = [];
     let latestReport = null;
@@ -1222,13 +1276,42 @@
       return safeItems.slice(0, 4).map(item => `<li>${escapeHtml(readable(item))}</li>`).join("");
     }
 
+    function normalizeConfidence(value) {
+      const number = Number(value || 0);
+      if (!Number.isFinite(number) || number <= 0) return 0;
+      return Math.max(0, Math.min(1, number > 1 ? number / 5 : number));
+    }
+
+    function renderCandidates(candidates = []) {
+      const safeCandidates = Array.isArray(candidates) ? candidates.filter(Boolean).slice(0, 3) : [];
+      if (!safeCandidates.length) {
+        candidateList.innerHTML = `<div class="candidate-empty">Aparecerán cuando el agente detecte oportunidades reales.</div>`;
+        return;
+      }
+      candidateList.innerHTML = safeCandidates.map((candidate, index) => {
+        const name = readable(candidate.name || candidate.process || candidate.title) || `Proceso candidato ${index + 1}`;
+        const why = readable(candidate.why_it_matters || candidate.why || candidate.reason) || "Podría ahorrar tiempo, capturar valor o reducir trabajo manual.";
+        const evidence = readable(candidate.evidence || candidate.signal || candidate.source);
+        const confidence = Math.round(normalizeConfidence(candidate.confidence) * 100);
+        return `<div class="candidate-item">
+          <div class="candidate-head">
+            <strong>${escapeHtml(name)}</strong>
+            <span class="candidate-score">${confidence || 45}%</span>
+          </div>
+          <p>${escapeHtml(why)}</p>
+          ${evidence ? `<div class="candidate-evidence">Evidencia: ${escapeHtml(evidence)}</div>` : ""}
+        </div>`;
+      }).join("");
+    }
+
     function updateDiscovery(result = {}) {
       discoveryPanel.classList.add("active");
-      const confidence = Math.max(0, Math.min(1, Number(result.confidence || 0)));
+      const confidence = normalizeConfidence(result.confidence);
       const focus = result.current_focus || result.facts?.selected_process || "Proceso por descubrir";
       focusText.textContent = readable(focus);
       confidenceFill.style.width = `${Math.round(confidence * 100)}%`;
       insightList.innerHTML = listHtml(result.live_insights, "Estoy buscando patrones en tus respuestas.");
+      renderCandidates(result.candidate_processes);
       gapList.innerHTML = listHtml(result.open_gaps, result.ready_for_report ? "Ya tengo suficiente para preparar el diagnóstico." : "Necesito un ejemplo real para afinar.");
       if (result.progress_label) statusEl.textContent = result.progress_label;
     }
@@ -1406,6 +1489,7 @@
           confidence: 0.08,
           current_focus: "Entender tu negocio",
           live_insights: ["Todavía no hay proceso candidato: necesito contexto inicial."],
+          candidate_processes: [],
           open_gaps: ["Qué vendes", "Quién es tu cliente", "Dónde se repite trabajo manual"],
           progress_label: "Entendiendo el negocio"
         });

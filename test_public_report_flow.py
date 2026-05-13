@@ -134,8 +134,10 @@ def main() -> int:
             page.fill("#input", "Tengo una newsletter y se me quedan correos importantes sin responder.")
             page.click("#send")
             page.get_by_text("Ya tengo suficiente para prepararte un diagnóstico útil").wait_for(timeout=10000)
+            page.get_by_text("triage de email").wait_for(timeout=5000)
             page.locator("#report").wait_for(state="visible", timeout=5000)
             result["checks"].append("agent_closes_discovery")
+            result["checks"].append("live_candidate_process_visible")
 
             page.locator("#report").click()
             page.get_by_text("Ya tengo suficiente para preparar tu informe.").wait_for(timeout=5000)
