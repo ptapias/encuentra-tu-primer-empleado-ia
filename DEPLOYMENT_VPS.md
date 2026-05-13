@@ -80,6 +80,18 @@ python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --adm
 python3 release_check.py --env .env --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
 ```
 
+Activa también el backup diario del CRM:
+
+```bash
+sudo cp deploy/primer-empleado-ia-backup.service /etc/systemd/system/
+sudo cp deploy/primer-empleado-ia-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now primer-empleado-ia-backup.timer
+sudo systemctl list-timers primer-empleado-ia-backup.timer
+sudo systemctl start primer-empleado-ia-backup.service
+ls -lah backups/
+```
+
 ## 4. HTTPS con Caddy
 
 Edita `deploy/Caddyfile.example` con el dominio real y cópialo:
@@ -113,10 +125,11 @@ python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --
 - Mira las métricas superiores del CRM: inicio de conversación, captura de email, informes generados, feedback y media de turnos.
 - Mantén `MAX_AI_CONCURRENCY=1` en beta con Codex CLI para evitar que varios diagnósticos simultáneos saturen el VPS. Si el agente está ocupado, el usuario verá un mensaje para reintentar en unos segundos.
 - Si alguien pide eliminar sus datos, abre el CRM, selecciona el lead y usa `Borrar lead`; esto elimina el lead y sus eventos asociados.
-- Haz backup de CRM antes de cambios o una vez al día durante beta:
+- Haz backup de CRM antes de cambios importantes. El timer diario debería cubrir el respaldo rutinario:
 
 ```bash
 python3 backup_crm.py
+journalctl -u primer-empleado-ia-backup.service -n 50 --no-pager
 ```
 
 - Mira logs con `journalctl -u primer-empleado-ia -f`.

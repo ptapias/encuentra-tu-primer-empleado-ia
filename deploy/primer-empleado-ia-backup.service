@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup CRM - Encuentra Tu Primer Empleado IA
+Wants=primer-empleado-ia.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/primer-empleado-ia
+ExecStart=/usr/bin/python3 /opt/primer-empleado-ia/backup_crm.py
+User=primeria
+Group=primeria

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily CRM backup - Encuentra Tu Primer Empleado IA
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+Persistent=true
+RandomizedDelaySec=10m
+Unit=primer-empleado-ia-backup.service
+
+[Install]
+WantedBy=timers.target
