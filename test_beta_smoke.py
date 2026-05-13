@@ -185,6 +185,12 @@ def main():
     except urllib.error.HTTPError as exc:
         cta_without_consent = exc.code
     expect(cta_without_consent == 400, "el CTA no debería guardarse sin email y consentimiento")
+    try:
+        request(args.base, "/api/feedback", payload={"lead_id": session["lead_id"], "feedback": {"rating": 5}})
+        feedback_without_consent = 200
+    except urllib.error.HTTPError as exc:
+        feedback_without_consent = exc.code
+    expect(feedback_without_consent == 400, "el feedback no debería guardarse sin email y consentimiento")
     status, email_saved = request(
         args.base,
         "/api/email",

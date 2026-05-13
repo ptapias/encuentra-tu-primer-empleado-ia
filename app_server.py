@@ -1308,6 +1308,11 @@ class Handler(SimpleHTTPRequestHandler):
         if not lead_id:
             self._json({"error": "lead_id is required"}, 400)
             return
+        lead = get_lead(lead_id)
+        consent = lead.get("facts", {}).get("consent") if isinstance(lead.get("facts", {}).get("consent"), dict) else {}
+        if not valid_email(lead.get("email", "")) or consent.get("accepted") is not True:
+            self._json({"error": "Para guardar feedback necesitamos email y consentimiento explícito."}, 400)
+            return
         update_lead(lead_id, feedback=feedback, status="feedback_saved")
         insert_event(lead_id, "feedback_saved", feedback)
         self._json({"ok": True})
