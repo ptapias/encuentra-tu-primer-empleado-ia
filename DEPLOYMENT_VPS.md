@@ -54,6 +54,12 @@ Si quieres comprobar también que Codex CLI está logueado y responde:
 python3 preflight_vps.py --env .env --check-codex-live
 ```
 
+También puedes ejecutar el chequeo de release. Este comando agrupa sintaxis, copy público, privacidad beta, preflight y, si la app ya está arrancada, smoke test:
+
+```bash
+python3 release_check.py --env .env --check-codex-live
+```
+
 ## 3. Servicio
 
 ```bash
@@ -69,6 +75,7 @@ Comprueba:
 ```bash
 curl http://127.0.0.1:8787/healthz
 python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
+python3 release_check.py --env .env --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
 ```
 
 ## 4. HTTPS con Caddy
@@ -89,6 +96,13 @@ Smoke test público tras activar el dominio:
 
 ```bash
 python3 test_beta_smoke.py --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password una-password-larga
+python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password una-password-larga
+```
+
+Para una apertura pública más allá de beta controlada, completa antes `PRIVACY_BETA.md` y usa:
+
+```bash
+python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password una-password-larga --require-privacy-final
 ```
 
 ## 6. Operación de beta

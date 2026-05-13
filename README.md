@@ -26,6 +26,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_discovery_flow.py`: prueba de producto con casos de clínica dental, inmobiliaria y consultor B2B.
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
+- `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
 - `backup_crm.py`: copia segura de `crm.sqlite3` y `crm_leads.jsonl` para operación de beta.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.

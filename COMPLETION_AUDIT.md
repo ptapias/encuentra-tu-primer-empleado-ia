@@ -40,6 +40,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Backups de beta | `backup_crm.py`, `backups/` ignorado por Git | Script genera copia SQLite consistente y JSONL si existe | Hecho |
 | Privacidad beta | `PRIVACY_BETA.md`, enlace en UI, texto corto en email-gate | Basado en enfoque de información por capas de AEPD; pendiente completar datos legales reales | Parcial |
 | Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight y smoke test locales OK; despliegue real no ejecutado | Parcial |
+| Gate de release para VPS | `release_check.py` | Agrupa sintaxis, copy público, privacidad beta, preflight y smoke test contra URL local/dominio | Hecho base |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin degradación silenciosa a fallback | `ALLOW_AI_FALLBACK=false`, errores `502` e evento `ai_error` cuando falla el proveedor real | Preflight exige fallback desactivado para beta pública | Hecho |
@@ -54,6 +55,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 python3 -m py_compile app_server.py test_discovery_flow.py test_beta_smoke.py
 python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
+python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
 curl http://localhost:8787/healthz
 curl http://localhost:8787/api/metrics
 curl -X POST http://localhost:8787/api/lead/update
@@ -64,6 +66,7 @@ Resultado reciente:
 - `healthz`: `{"ok": true, "provider": "codex"}`
 - Smoke test local: OK, incluyendo actualización de lead.
 - Smoke test con `ADMIN_PASSWORD`: OK; `/api/lead/update`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth.
+- Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
 - Métricas locales: 43 leads, 41 conversaciones iniciadas, 35 emails, 30 informes, 1 feedback.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar.
