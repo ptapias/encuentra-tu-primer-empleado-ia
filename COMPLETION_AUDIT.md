@@ -149,11 +149,11 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado por smoke: `f2e03e7`, con commit posterior `e24c2cf` que conecta `verify_vps.sh` con el go/no-go operativo cuando `PUBLIC_BETA=true`.
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado por aceptación local: `3163180`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK en `1761140` con instancia temporal en `localhost:8791`; `/api/lead/update`, `/api/lead/delete`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local ampliado: OK en `cf94a71` y de nuevo tras endurecer el lanzamiento VPS hasta `e24c2cf`, con `.env` temporal válido, URL local, pruebas Playwright de UI/informe/sesión y transcripción local real; privacidad beta queda como warning mientras no se completen datos legales.
-- Aceptación local completa: `python3 local_acceptance_check.py --base http://localhost:8787 --with-transcription` devuelve `GO_LOCAL` en `9da6f47`, incluyendo `release_check.py --with-browser --with-transcription`, UI pública, cierre de informe, restauración de sesión y transcripción real. Mantiene warning porque no se ejecutó `--with-real-agent` en esa pasada.
+- Aceptación local completa: `python3 local_acceptance_check.py --base http://localhost:8787 --with-transcription` devuelve `GO_LOCAL` en `3163180`, incluyendo `release_check.py --with-browser --with-transcription`, UI pública, cierre de informe, restauración de sesión y transcripción real. Mantiene warning porque no se ejecutó `--with-real-agent` en esa pasada.
 - Go/no-go local/controlado: OK con `--mic-optional` contra `localhost`; sigue sin equivaler a beta pública porque no valida HTTPS, datos legales ni prueba manual real.
 - Preflight valida `MAX_AI_CONCURRENCY` y `AI_QUEUE_WAIT_SECONDS`; `healthz` expone `ai_concurrency`; `test_ai_concurrency.py` prueba el error de agente ocupado.
 - Smoke test valida que `HEAD /` redirige al diagnóstico para que checks externos no vean un falso 404.
@@ -175,6 +175,7 @@ Resultado reciente:
 - Prueba UI pública reusable: `test_public_ui_flow.py` valida escritorio, móvil, arranque sin email y estado de espera del agente.
 - Prueba de cierre público reusable: `test_public_report_flow.py` valida que el usuario solo deja email al final y que el informe/feedback aparecen correctamente.
 - Prueba de transcripción real: `test_transcription_local.py` valida audio generado localmente contra `/transcribe`; la prueba puede saltarse si faltan `say`, `ffmpeg` o Whisper.
+- Último ajuste de discovery: `3163180` refuerza el arranque con "fuga" y escena reciente, y endurece el prompt para tratar respuestas cortas como señal diagnóstica, evitar "más detalle" genérico, rescatar "no sé" con opciones y avanzar a magnitud, viabilidad o riesgo. `test_agent_quality_guard.py` lo cubre.
 - Pruebas de navegador y transcripción usan IPs de prueba separadas para no pisarse con el rate limit antiabuso durante release checks repetidos.
 - Generador guiado de inputs VPS: `test_generate_vps_inputs.py` valida creación de `VPS_INPUTS.local.md`, rechazo de sobrescritura accidental, plantilla JSON con todos los campos y compatibilidad con `validate_vps_inputs.py`; `release_check.py` lo incluye como paso obligatorio. Camino no interactivo: `generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json` y `--answers-json`.
 - Validación de inputs VPS: `test_vps_inputs_validator.py` cubre plantilla vacía, inputs válidos, webhook sin URL, dominio sin DNS, Codex sin login systemd, respuestas sí/no ambiguas y valores peligrosos para `.env`/systemd.
