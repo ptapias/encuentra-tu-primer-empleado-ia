@@ -109,7 +109,7 @@ ls -lah backups/
 
 ## 4. HTTPS con Caddy
 
-Edita `deploy/Caddyfile.example` con el dominio real y cópialo. El ejemplo incluye proxy local, límite de cuerpo de 2 MB y headers básicos de seguridad:
+Edita `deploy/Caddyfile.example` con el dominio real y cópialo. El ejemplo incluye proxy local, límite de cuerpo de 2 MB, permiso explícito de micrófono para el propio dominio y headers básicos de seguridad:
 
 ```bash
 sudo cp deploy/Caddyfile.example /etc/caddy/Caddyfile

@@ -96,6 +96,7 @@ def deploy_config_check() -> dict:
         "app_service_network_online": "network-online.target" in app_service,
         "backup_service_NoNewPrivileges": "NoNewPrivileges=true" in backup_service,
         "caddy_hsts": "Strict-Transport-Security" in caddyfile,
+        "caddy_microphone_policy": "microphone=(self)" in caddyfile,
         "caddy_body_limit": "max_size 2MB" in caddyfile,
         "caddy_reverse_proxy_local": "reverse_proxy 127.0.0.1:8787" in caddyfile,
         "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
