@@ -450,7 +450,7 @@
         renderMetric("Leads", metrics.total_leads, "Total capturado"),
         renderMetric("Conversan", `${metrics.chat_start_rate}%`, `${metrics.started_chat} con mensajes`),
         renderMetric("Discovery útil", `${metrics.useful_discovery_rate || 0}%`, `${metrics.useful_discovery || 0} con foco y evidencia`),
-        renderMetric("Listos informe", `${metrics.ready_for_report_rate || 0}%`, `${metrics.ready_for_report || 0} ready_for_report`),
+        renderMetric("Listos informe", `${metrics.ready_for_report_rate || 0}%`, `${metrics.ready_for_report || 0} con evidencia suficiente`),
         renderMetric("Email final", `${metrics.email_from_ready_rate || 0}%`, `${metrics.email_captured} de listos`),
         renderMetric("Consentimiento", `${metrics.consent_rate || 0}%`, `${metrics.consent_captured || 0} aceptados`),
         renderMetric("Informe", `${metrics.report_from_email_rate || 0}%`, `${metrics.reports_generated} de emails`),
