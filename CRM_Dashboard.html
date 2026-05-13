@@ -60,6 +60,31 @@
       border-radius: 8px;
       min-width: 0;
     }
+    .metrics {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 13px;
+      display: grid;
+      gap: 5px;
+      min-height: 92px;
+    }
+    .metric span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .metric strong {
+      font-size: 28px;
+      line-height: 1;
+    }
     .panel-head {
       padding: 14px 16px;
       border-bottom: 1px solid var(--line);
@@ -140,7 +165,7 @@
     @media (max-width: 980px) {
       header, main { padding-left: 18px; padding-right: 18px; }
       header { align-items: start; flex-direction: column; }
-      main, .grid { grid-template-columns: 1fr; }
+      main, .grid, .metrics { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -153,6 +178,14 @@
     <a class="button" href="/Agente_Real_CRM.html">Volver al agente</a>
   </header>
   <main>
+    <section class="metrics" id="metrics">
+      <div class="metric"><span>Leads</span><strong>--</strong><p>Total capturado</p></div>
+      <div class="metric"><span>Conversan</span><strong>--</strong><p>Empiezan chat</p></div>
+      <div class="metric"><span>Email</span><strong>--</strong><p>Dejan contacto</p></div>
+      <div class="metric"><span>Informe</span><strong>--</strong><p>Llegan a outcome</p></div>
+      <div class="metric"><span>Feedback</span><strong>--</strong><p>Responden mejora</p></div>
+      <div class="metric"><span>Turnos</span><strong>--</strong><p>Media usuario</p></div>
+    </section>
     <section class="panel">
       <div class="panel-head">
         <h2>Leads capturados</h2>
@@ -188,6 +221,7 @@
     const rows = document.getElementById("rows");
     const detail = document.getElementById("detail");
     const selected = document.getElementById("selected");
+    const metricsEl = document.getElementById("metrics");
 
     function escapeHtml(text) {
       return String(text || "").replace(/[&<>"']/g, char => ({
@@ -226,6 +260,22 @@
       rows.querySelectorAll("tr").forEach(row => row.addEventListener("click", () => loadLead(row.dataset.id)));
     }
 
+    function renderMetric(label, value, note) {
+      return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><p>${escapeHtml(note)}</p></div>`;
+    }
+
+    async function loadMetrics() {
+      const { metrics } = await api("/api/metrics");
+      metricsEl.innerHTML = [
+        renderMetric("Leads", metrics.total_leads, "Total capturado"),
+        renderMetric("Conversan", `${metrics.chat_start_rate}%`, `${metrics.started_chat} con mensajes`),
+        renderMetric("Email", `${metrics.email_capture_rate}%`, `${metrics.email_captured} contactos`),
+        renderMetric("Informe", `${metrics.report_rate}%`, `${metrics.reports_generated} generados`),
+        renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
+        renderMetric("Turnos", metrics.avg_user_turns, "Media usuario")
+      ].join("");
+    }
+
     function list(items) {
       return `<ul>${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
     }
@@ -258,8 +308,12 @@
       <div class="card"><span>Conversación</span>${transcript || "<p>Sin conversación.</p>"}</div>`;
     }
 
-    document.getElementById("refresh").addEventListener("click", loadLeads);
-    loadLeads().catch(error => {
+    async function refreshAll() {
+      await Promise.all([loadMetrics(), loadLeads()]);
+    }
+
+    document.getElementById("refresh").addEventListener("click", refreshAll);
+    refreshAll().catch(error => {
       rows.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message)}</td></tr>`;
     });
   </script>

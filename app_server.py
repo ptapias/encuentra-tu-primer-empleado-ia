@@ -697,6 +697,18 @@ def score_1_to_5(value, default=3):
     return max(1, min(5, round(score, 1)))
 
 
+def score_0_to_100(value, fallback_score):
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        score = float(fallback_score)
+    if score <= 5:
+        score = score * 20
+    elif score <= 10:
+        score = score * 10
+    return max(0, min(100, round(score, 1)))
+
+
 def human_list(value) -> list[str]:
     return [text for text in (humanize(item) for item in ensure_list(value)) if text]
 
@@ -761,7 +773,7 @@ def normalize_report(report: dict, lead: dict) -> dict:
         "crm_summary": {
             "sector": humanize(crm_summary.get("sector")),
             "use_case": humanize(crm_summary.get("use_case")) or normalized_opportunities[0]["name"],
-            "score": crm_summary.get("score", round(normalized_opportunities[0]["composite_score"] * 20)),
+            "score": score_0_to_100(crm_summary.get("score"), normalized_opportunities[0]["composite_score"] * 20),
             "urgency": humanize(crm_summary.get("urgency")),
             "budget": humanize(crm_summary.get("budget")),
             "offer": humanize(crm_summary.get("offer")),
@@ -787,13 +799,16 @@ class Handler(SimpleHTTPRequestHandler):
         if route.path == "/healthz":
             self._json({"ok": True, "provider": AI_PROVIDER})
             return
-        if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead") and not self._require_admin():
+        if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead", "/api/metrics") and not self._require_admin():
             return
         if route.path == "/api/leads":
             self._handle_list_leads()
             return
         if route.path == "/api/lead":
             self._handle_get_lead(route.query)
+            return
+        if route.path == "/api/metrics":
+            self._handle_metrics()
             return
         super().do_GET()
 
@@ -963,7 +978,7 @@ class Handler(SimpleHTTPRequestHandler):
                     "status": row["status"],
                     "sector": outcome.get("crm_summary", {}).get("sector") if outcome else "",
                     "use_case": outcome.get("crm_summary", {}).get("use_case") if outcome else facts.get("selected_process", ""),
-                    "score": outcome.get("crm_summary", {}).get("score") if outcome else 0,
+                    "score": score_0_to_100(outcome.get("crm_summary", {}).get("score"), 0) if outcome else 0,
                     "offer": outcome.get("crm_summary", {}).get("offer") if outcome else "",
                     "signals": signals,
                     "has_feedback": bool(feedback),
@@ -986,6 +1001,86 @@ class Handler(SimpleHTTPRequestHandler):
             self._json({"error": "Lead not found"}, 404)
             return
         self._json({"lead": lead})
+
+    def _handle_metrics(self):
+        with db() as conn:
+            lead_rows = conn.execute(
+                """
+                SELECT email, stage, status, outcome_json, feedback_json, transcript_json, updated_at
+                FROM leads
+                """
+            ).fetchall()
+            event_rows = conn.execute(
+                """
+                SELECT event, COUNT(*) AS count
+                FROM events
+                GROUP BY event
+                """
+            ).fetchall()
+
+        total = len(lead_rows)
+        with_email = 0
+        with_report = 0
+        with_feedback = 0
+        started_chat = 0
+        total_turns = 0
+        offer_counts: dict[str, int] = {}
+        use_case_counts: dict[str, int] = {}
+        recent_reports = []
+        for row in lead_rows:
+            transcript = json.loads(row["transcript_json"] or "[]")
+            turns = len([m for m in transcript if m.get("role") == "user"])
+            total_turns += turns
+            if turns:
+                started_chat += 1
+            if row["email"]:
+                with_email += 1
+            if row["feedback_json"]:
+                with_feedback += 1
+            outcome = json.loads(row["outcome_json"]) if row["outcome_json"] else None
+            if outcome:
+                with_report += 1
+                crm = outcome.get("crm_summary", {})
+                offer = humanize(crm.get("offer")) or "sin oferta"
+                use_case = humanize(crm.get("use_case")) or humanize(outcome.get("recommended_employee")) or "sin caso"
+                offer_counts[offer] = offer_counts.get(offer, 0) + 1
+                use_case_counts[use_case] = use_case_counts.get(use_case, 0) + 1
+                recent_reports.append(
+                    {
+                        "updated_at": row["updated_at"],
+                        "email": row["email"] or "sin email",
+                        "recommended_employee": humanize(outcome.get("recommended_employee")),
+                        "use_case": use_case,
+                        "score": score_0_to_100(crm.get("score"), 0),
+                    }
+                )
+
+        def pct(part):
+            return round((part / total) * 100, 1) if total else 0
+
+        def top_items(items):
+            return [
+                {"name": name, "count": count}
+                for name, count in sorted(items.items(), key=lambda pair: pair[1], reverse=True)[:5]
+            ]
+
+        metrics = {
+            "total_leads": total,
+            "started_chat": started_chat,
+            "email_captured": with_email,
+            "reports_generated": with_report,
+            "feedback_received": with_feedback,
+            "chat_start_rate": pct(started_chat),
+            "email_capture_rate": pct(with_email),
+            "report_rate": pct(with_report),
+            "feedback_rate": pct(with_feedback),
+            "avg_user_turns": round(total_turns / total, 1) if total else 0,
+            "events": {row["event"]: row["count"] for row in event_rows},
+            "top_offers": top_items(offer_counts),
+            "top_use_cases": top_items(use_case_counts),
+            "recent_reports": sorted(recent_reports, key=lambda item: item["updated_at"], reverse=True)[:5],
+        }
+        self._json({"metrics": metrics})
 
     def _handle_crm(self):
         payload = read_json(self)

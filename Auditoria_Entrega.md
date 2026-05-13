@@ -14,7 +14,8 @@ Objetivo auditado: construir una versión "Ontora-lite" para pymes españolas de
 | Email al final | Hecho | `/api/session` permite empezar sin email; `/api/email` lo captura solo antes del informe |
 | Informe | Hecho | `/api/report` genera recomendación, oportunidades, riesgos, plan de 7 y 30 días y CTA |
 | Feedback | Hecho | `/api/feedback` guarda feedback asociado al lead |
-| CRM interno | Hecho | `CRM_Dashboard.html`, SQLite `crm.sqlite3`, endpoints `/api/leads` y `/api/lead` |
+| CRM interno | Hecho | `CRM_Dashboard.html`, SQLite `crm.sqlite3`, endpoints `/api/leads`, `/api/lead` y `/api/metrics` |
+| Métricas de beta | Hecho | Dashboard con leads, inicio de conversación, captura de email, informes, feedback y media de turnos |
 | Validación automatizada | Hecho | `test_discovery_flow.py` prueba clínica dental, inmobiliaria y consultor B2B |
 | VPS | Preparado, no desplegado | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example` |
 | GitHub | Hecho | Repositorio `ptapias/encuentra-tu-primer-empleado-ia` ya existe y tiene historial de commits |
@@ -25,6 +26,8 @@ Objetivo auditado: construir una versión "Ontora-lite" para pymes españolas de
 - Validación JavaScript: script de `Agente_Real_CRM.html` sin errores de sintaxis.
 - Test funcional local en `AI_PROVIDER=fallback`: 3 casos pasan y generan informe.
 - Revisión en navegador interno: la pantalla inicial muestra el gancho correcto y no enseña términos internos como JSON, CRM, fallback o "informe potente".
+- Endpoint `/api/metrics`: devuelve métricas de embudo y está protegido junto al CRM cuando `ADMIN_PASSWORD` está configurado.
+- Prueba de protección CRM: `/api/metrics` devuelve `401` sin auth y `200` con auth básica cuando `ADMIN_PASSWORD` está activo.
 
 ## Lo que ya no debe volver
 
@@ -51,4 +54,3 @@ Objetivo auditado: construir una versión "Ontora-lite" para pymes españolas de
 3. Activar autenticación del CRM.
 4. Subir a VPS como beta privada.
 5. Enviar a 10-20 usuarios de confianza y recoger feedback cualitativo.
-
