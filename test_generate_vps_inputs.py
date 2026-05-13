@@ -73,6 +73,9 @@ def test_deployment_handoff_uses_exact_json_keys():
     ]:
         assert_true(f"`{label}`" in handoff, f"El handoff no contiene la clave exacta `{label}`")
     assert_true("no renombres las claves" in handoff, "El handoff debería advertir que no se renombren las claves JSON")
+    assert_true("Copia al VPS `VPS_INPUTS.local.md`" in handoff, "El handoff debería priorizar la ficha local para el lanzador guiado")
+    assert_true("deploy/launch_from_inputs.sh" in handoff, "El handoff debería nombrar el lanzador guiado")
+    assert_true("deploy/install_vps.sh" in handoff, "El handoff debería reservar install_vps.sh para instalación manual")
 
 
 if __name__ == "__main__":

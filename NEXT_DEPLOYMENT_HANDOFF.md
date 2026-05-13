@@ -48,7 +48,9 @@ git clone https://github.com/ptapias/encuentra-tu-primer-empleado-ia.git /opt/pr
 cd /opt/primer-empleado-ia
 ```
 
-Copia al VPS los archivos generados que hagan falta para instalar, especialmente `VPS_INPUTS.local.md` o `.env.generated`/`privacy_config.json` si decides llevarlos ya preparados.
+Copia al VPS `VPS_INPUTS.local.md`. Ese es el camino recomendado: `deploy/launch_from_inputs.sh` volverá a validar la ficha y generará allí `.env.generated` y `privacy_config.json`.
+
+Solo copies `.env.generated` o `privacy_config.json` si decides saltarte el flujo guiado y hacer una instalación manual con `deploy/install_vps.sh`.
 
 Despues ejecuta:
 
