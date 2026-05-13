@@ -1274,12 +1274,12 @@
       <div class="chat" id="chat">
         <section class="starter" id="starter">
           <div class="starter-hero">
-            <div class="starter-kicker">Diagnóstico IA gratuito · 7-10 minutos</div>
+            <div class="starter-kicker">Sesión de discovery gratuita · 7-10 minutos</div>
             <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
             <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: escucha, repregunta, detecta patrones y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
             <div class="starter-start">
               <button class="start-primary" type="button" onclick="startSession()">Empezar diagnóstico</button>
-              <p class="privacy-note" id="microAdvice">Consejo: usa el micro y habla un minuto como si me lo contaras en una llamada.</p>
+              <p class="privacy-note" id="microAdvice">Consejo: usa el micro y cuenta una escena real. No hace falta que lo traigas ordenado.</p>
             </div>
             <div class="diagnostic-preview" aria-label="Vista previa del tipo de análisis que hará el agente">
               <div class="diagnostic-preview-head">
@@ -1320,7 +1320,7 @@
             <div class="starter-proof">
               <div class="starter-prompt">
                 <strong>Empieza con una escena, no con una estrategia</strong>
-                <p>No hace falta que lo tengas ordenado. Cuenta qué vendes, a quién ayudas y una situación reciente donde algo se acumuló, se retrasó o se quedó sin responder. El agente convertirá ese relato en procesos, señales y prioridades.</p>
+                <p>No hace falta que lo tengas ordenado. Cuenta qué vendes, a quién ayudas y una situación reciente donde algo se acumuló, se retrasó o se quedó sin responder. El agente irá convirtiendo ese relato en un mapa de procesos, señales y prioridades.</p>
               </div>
               <div class="live-map" aria-label="Ejemplo de mapa que construye el agente">
                 <div class="live-map-head">
@@ -1742,7 +1742,7 @@
         });
         chat.innerHTML = "";
         input.placeholder = "Háblame en bruto: negocio, cliente y una escena reciente donde se escapó tiempo, dinero o clientes.";
-        await addTypingMessage("agent", "Voy a hacerte de consultor durante unos minutos para encontrar el primer proceso que merezca automatizarse.\n\nPara empezar, háblame en bruto: qué vendes, a quién ayudas, cómo te llegan clientes o solicitudes y cuál fue la última escena donde sentiste que se escapaba tiempo, dinero, clientes o foco.\n\nPuede ser un email sin responder, un WhatsApp, una reserva, un lead, una tarea interna o algo que depende demasiado de ti. Si puedes, dicta 45-60 segundos con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
+        await addTypingMessage("agent", "Voy a hacerte de consultor durante unos minutos para encontrar el primer proceso que merezca automatizarse.\n\nNo necesito que lo expliques perfecto. Para empezar, háblame en bruto: qué vendes, a quién ayudas, cómo te llegan clientes o solicitudes y cuál fue la última escena donde sentiste que se escapaba tiempo, dinero, clientes o foco.\n\nPuede ser un email sin responder, un WhatsApp, una reserva, un lead, una tarea interna o algo que depende demasiado de ti. Si puedes, dicta 45-60 segundos con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
         await refreshCapabilities();
         saveSessionState();
         input.focus();
