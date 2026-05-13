@@ -41,9 +41,10 @@ Con el servidor arrancado:
 
 ```bash
 python3 test_public_ui_flow.py --base http://localhost:8787
+python3 test_public_report_flow.py --base http://localhost:8787
 ```
 
-Esta prueba abre la página como escritorio y móvil, comprueba que el gancho inicial aparece pronto, que se puede empezar sin pedir email y que el estado de espera aparece mientras el agente prepara la respuesta.
+Estas pruebas abren la página como escritorio y móvil, comprueban que el gancho inicial aparece pronto, que se puede empezar sin pedir email, que el estado de espera aparece mientras el agente prepara la respuesta y que el cierre genera email-gate, informe y feedback.
 
 Si quieres probar la transcripción con audio real generado localmente:
 

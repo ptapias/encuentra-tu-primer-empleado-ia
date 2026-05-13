@@ -83,6 +83,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Transcripción con audio real | `test_transcription_local.py`, `/transcribe`, Whisper local | Prueba opcional genera audio con `say`, lo convierte con `ffmpeg`, lo envía a `/transcribe` y exige texto no vacío; no sustituye permisos reales de navegador | Hecho local |
 | Feedback al final | UI de informe con rating, campos de claridad/faltantes/mejora y `/api/feedback` | Requiere email/consentimiento; `test_beta_smoke.py` valida guardado estructurado en CRM; dashboard y CSV muestran campos de feedback | Hecho |
 | Email-gate honesto | `Agente_Real_CRM.html`, `README.md`, `test_beta_smoke.py` | CTA dice "Generar informe" y no promete envío por correo mientras no haya proveedor conectado | Hecho base |
+| Cierre visual completo | `test_public_report_flow.py`, `Agente_Real_CRM.html` | Prueba de navegador con respuestas simuladas valida cierre del agente, botón `Generar informe`, email-gate final con consentimiento, render del informe, matriz, feedback y guardado de feedback | Hecho base |
 | Recuperación ante recarga | `localStorage` en `Agente_Real_CRM.html` conserva `lead_id`, conversación, email y estado de discovery | JS validado; prueba en navegador recupera conversación tras reload | Hecho base |
 
 ## Evidencia de comandos recientes
@@ -93,6 +94,7 @@ python3 test_agent_quality_guard.py
 python3 test_server_guards.py
 python3 test_privacy_renderer.py
 python3 test_public_ui_flow.py --base http://localhost:8787
+python3 test_public_report_flow.py --base http://localhost:8787
 python3 test_transcription_local.py --base http://localhost:8787
 python3 test_crm_webhook_sync.py
 python3 test_beta_smoke.py --base http://localhost:8787
@@ -128,6 +130,7 @@ Resultado reciente:
 - `test_privacy_renderer.py`: valida que la privacidad con placeholders falle y que una configuración final genere MD/HTML sin marcadores de beta.
 - UI de espera lenta: prueba con navegador simulando `/api/chat` confirma que se muestra estado progresivo y vuelve al progreso normal cuando llega la respuesta.
 - Prueba UI pública reusable: `test_public_ui_flow.py` valida escritorio, móvil, arranque sin email y estado de espera del agente.
+- Prueba de cierre público reusable: `test_public_report_flow.py` valida que el usuario solo deja email al final y que el informe/feedback aparecen correctamente.
 - Prueba de transcripción real: `test_transcription_local.py` valida audio generado localmente contra `/transcribe`; la prueba puede saltarse si faltan `say`, `ffmpeg` o Whisper.
 - Prueba de sincronización CRM: `test_crm_webhook_sync.py` crea una base temporal, levanta un receptor webhook local, envía un snapshot y comprueba cabeceras, payload y recibo `crm_webhook_snapshot_synced`.
 - Prueba anti-fallback silencioso: con `CODEX_BIN` inválido y `ALLOW_AI_FALLBACK=false`, `/api/chat` devuelve `502` y no genera respuesta fallback.

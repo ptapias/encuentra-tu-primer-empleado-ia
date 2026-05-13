@@ -198,6 +198,7 @@ def main():
                 "test_backup_crm.py",
                 "test_privacy_renderer.py",
                 "test_public_ui_flow.py",
+                "test_public_report_flow.py",
                 "test_crm_webhook_sync.py",
                 "test_transcription_local.py",
                 "render_privacy.py",
