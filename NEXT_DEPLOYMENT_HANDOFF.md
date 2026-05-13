@@ -26,6 +26,7 @@ python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json
 python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
 python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 python3 render_privacy.py --config privacy_config.json
+python3 print_vps_deploy_commands.py --inputs VPS_INPUTS.local.md
 ```
 
 Resultado esperado:
@@ -39,32 +40,15 @@ Todos esos archivos locales sensibles estan ignorados por Git cuando corresponde
 
 ## 3. Sube al VPS
 
-En el VPS:
-
-```bash
-sudo mkdir -p /opt/primer-empleado-ia
-sudo chown -R "$USER":"$USER" /opt/primer-empleado-ia
-git clone https://github.com/ptapias/encuentra-tu-primer-empleado-ia.git /opt/primer-empleado-ia
-cd /opt/primer-empleado-ia
-```
-
-Copia al VPS `VPS_INPUTS.local.md`. Ese es el camino recomendado: `deploy/launch_from_inputs.sh` volverá a validar la ficha y generará allí `.env.generated` y `privacy_config.json`.
-
-Para que te imprima los comandos SSH/SCP exactos desde la ficha validada:
+Usa los comandos que imprime este script desde tu máquina local:
 
 ```bash
 python3 print_vps_deploy_commands.py --inputs VPS_INPUTS.local.md
 ```
 
+Ese es el camino recomendado: copia `VPS_INPUTS.local.md` al VPS y `deploy/launch_from_inputs.sh` volverá a validar la ficha y generará allí `.env.generated` y `privacy_config.json`.
+
 Solo copies `.env.generated` o `privacy_config.json` si decides saltarte el flujo guiado y hacer una instalación manual con `deploy/install_vps.sh`.
-
-Despues ejecuta:
-
-```bash
-sudo env DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
-```
-
-Cambia `diagnostico.tu-dominio.com` por el dominio real.
 
 ## 4. Condicion especial si usamos Codex
 
