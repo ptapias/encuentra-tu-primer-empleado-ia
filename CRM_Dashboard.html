@@ -114,6 +114,29 @@
       font-size: 28px;
       line-height: 1;
     }
+    .ops-events {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 13px;
+      display: grid;
+      gap: 8px;
+    }
+    .ops-events span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .ops-events ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
     .panel-head {
       padding: 14px 16px;
       border-bottom: 1px solid var(--line);
@@ -418,6 +441,10 @@
       const { metrics } = await api("/api/metrics");
       const topSource = (metrics.top_sources || [])[0];
       const topCta = (metrics.top_cta_interest || [])[0];
+      const opsEvents = (metrics.recent_operational_events || []).slice(0, 5);
+      const opsEventsHtml = opsEvents.length
+        ? `<div class="ops-events"><span>Incidencias recientes</span><ul>${opsEvents.map(item => `<li>${escapeHtml(item.event)} ${item.stage ? `· ${escapeHtml(item.stage)}` : ""}${item.source_event ? `· ${escapeHtml(item.source_event)}` : ""}: ${escapeHtml(item.error || "sin detalle")}</li>`).join("")}</ul></div>`
+        : `<div class="ops-events"><span>Incidencias recientes</span><p>Sin errores recientes de IA, cola o webhook.</p></div>`;
       metricsEl.innerHTML = [
         renderMetric("Leads", metrics.total_leads, "Total capturado"),
         renderMetric("Conversan", `${metrics.chat_start_rate}%`, `${metrics.started_chat} con mensajes`),
@@ -430,7 +457,8 @@
         renderMetric("Salud IA", metrics.operational_status || "ok", `${metrics.ai_errors || 0} errores · ${metrics.ai_busy || 0} ocupados`),
         renderMetric("Webhook", metrics.webhook_errors ? "revisar" : "ok", `${metrics.webhook_errors || 0} errores`),
         renderMetric("CTA top", topCta?.name || "sin datos", topCta ? `${topCta.count} leads` : "Aún sin clics"),
-        renderMetric("Origen top", topSource?.name || "sin datos", topSource ? `${topSource.count} leads` : "Añade UTM al enlace")
+        renderMetric("Origen top", topSource?.name || "sin datos", topSource ? `${topSource.count} leads` : "Añade UTM al enlace"),
+        opsEventsHtml
       ].join("");
     }
 

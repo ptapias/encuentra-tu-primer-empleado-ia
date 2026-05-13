@@ -1562,6 +1562,15 @@ class Handler(SimpleHTTPRequestHandler):
                 GROUP BY event
                 """
             ).fetchall()
+            operational_event_rows = conn.execute(
+                """
+                SELECT lead_id, event, payload_json, created_at
+                FROM events
+                WHERE event IN ('ai_error', 'ai_busy', 'webhook_error')
+                ORDER BY created_at DESC
+                LIMIT 8
+                """
+            ).fetchall()
 
         total = len(lead_rows)
         with_email = 0
@@ -1630,6 +1639,22 @@ class Handler(SimpleHTTPRequestHandler):
         ai_busy = event_counts.get("ai_busy", 0)
         webhook_errors = event_counts.get("webhook_error", 0)
         operational_status = "revisar IA" if ai_errors else ("cola ocupada" if ai_busy else "ok")
+        recent_operational_events = []
+        for row in operational_event_rows:
+            try:
+                payload = json.loads(row["payload_json"] or "{}")
+            except json.JSONDecodeError:
+                payload = {}
+            recent_operational_events.append(
+                {
+                    "lead_id": row["lead_id"] or "",
+                    "event": row["event"],
+                    "created_at": row["created_at"],
+                    "stage": humanize(payload.get("stage")),
+                    "source_event": humanize(payload.get("event")),
+                    "error": humanize(payload.get("error"))[:240],
+                }
+            )
 
         metrics = {
             "total_leads": total,
@@ -1656,6 +1681,7 @@ class Handler(SimpleHTTPRequestHandler):
             "top_sources": top_items(source_counts),
             "top_cta_interest": top_items(cta_counts),
             "recent_reports": sorted(recent_reports, key=lambda item: item["updated_at"], reverse=True)[:5],
+            "recent_operational_events": recent_operational_events,
         }
         self._json({"metrics": metrics})
 
