@@ -156,4 +156,14 @@ python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
 python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 ```
 
+Si prefieres preparar las respuestas en un archivo local y revisarlo con calma:
+
+```bash
+python3 generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json
+nano VPS_ANSWERS.local.json
+python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json
+```
+
+`VPS_ANSWERS.local.json` y `VPS_INPUTS.local.md` están ignorados por Git.
+
 Nota clave: una web pública no puede usar directamente tu suscripción personal de Codex como API. Sí puedes usar Codex para pruebas locales o para procesar manualmente conversaciones recogidas por la web durante la validación.

@@ -51,8 +51,17 @@ def test_cli_with_answers_json_generates_file():
         assert_true(result["ok"], result)
 
 
+def test_answers_template_has_all_fields_and_defaults():
+    template = generate_vps_inputs.answers_template()
+    labels = [label for _section, label, _default, _help in generate_vps_inputs.FIELDS]
+    assert_true(set(template) == set(labels), "La plantilla JSON debería cubrir todas las preguntas")
+    assert_true(template["Puerto SSH"] == "22", "La plantilla debería conservar defaults útiles")
+    assert_true(template["Contraseña real CRM"] == "", "La plantilla no debería inventar contraseña")
+
+
 if __name__ == "__main__":
     test_generate_valid_local_inputs()
     test_generate_refuses_overwrite_without_force()
     test_cli_with_answers_json_generates_file()
+    test_answers_template_has_all_fields_and_defaults()
     print("generate_vps_inputs ok")

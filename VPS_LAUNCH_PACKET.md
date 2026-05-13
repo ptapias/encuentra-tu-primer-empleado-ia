@@ -27,6 +27,14 @@ python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 sudo env DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
+Si prefieres rellenarlo sin prompts interactivos:
+
+```bash
+python3 generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json
+nano VPS_ANSWERS.local.json
+python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json
+```
+
 El generador crea la ficha local ignorada por Git. El lanzador vuelve a validar inputs, genera `.env.generated` y `privacy_config.json`, renderiza privacidad pública, instala servicios y ejecuta smoke test local. Si queda algún campo clave vacío, placeholder o contraseña débil, se detiene antes de tocar systemd.
 
 Para lanzar con HTTPS, el validador bloquea si el dominio todavía no apunta al VPS. Para lanzar con Codex, bloquea si Codex CLI no está logueado con el usuario systemd que ejecutará la app.

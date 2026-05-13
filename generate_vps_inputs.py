@@ -50,6 +50,10 @@ def load_answers(path: str) -> dict[str, str]:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def answers_template() -> dict[str, str]:
+    return {label: default for _section, label, default, _help_text in FIELDS}
+
+
 def ask(label: str, default: str, help_text: str, *, secret: bool, answers: dict[str, str]) -> str:
     if label in answers:
         return str(answers[label]).strip()
@@ -120,8 +124,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Genera VPS_INPUTS.local.md de forma guiada y validable")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     parser.add_argument("--answers-json", default="", help="Archivo JSON opcional para generar sin prompts, útil para tests")
+    parser.add_argument("--print-answers-template", action="store_true", help="Imprime una plantilla JSON editable para usar con --answers-json")
     parser.add_argument("--force", action="store_true", help="Sobrescribe el archivo de salida si ya existe")
     args = parser.parse_args()
+    if args.print_answers_template:
+        print(json.dumps(answers_template(), ensure_ascii=False, indent=2))
+        return 0
     result = generate(Path(args.output), load_answers(args.answers_json), force=args.force)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1

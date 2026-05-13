@@ -36,6 +36,7 @@ SENSITIVE_PATHS = [
     "backups/example",
     "privacy_config.json",
     "VPS_INPUTS.local.md",
+    "VPS_ANSWERS.local.json",
     "MANUAL_PRODUCTION_TEST.local.md",
 ]
 
@@ -133,6 +134,7 @@ def sensitive_files_check() -> dict:
         "backups/",
         "privacy_config.json",
         "VPS_INPUTS.local.md",
+        "VPS_ANSWERS.local.json",
         "MANUAL_PRODUCTION_TEST.local.md",
     ]
     for pattern in required_patterns:
