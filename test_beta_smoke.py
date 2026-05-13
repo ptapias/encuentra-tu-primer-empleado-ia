@@ -74,8 +74,16 @@ def main():
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
+    expect("/PRIVACY_BETA.html" in public_html, "la página pública no enlaza a la privacidad HTML")
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
+
+    status, privacy_headers, privacy_html = request_raw(args.base, "/PRIVACY_BETA.html")
+    expect(status == 200 and "Cómo usamos tus datos" in privacy_html, "la página de privacidad no carga")
+    expect("Completar razón social" not in privacy_html and "Contacto | Completar" not in privacy_html, "la privacidad pública contiene placeholders internos")
+    if beta_noindex:
+        expect("noindex" in privacy_headers.get("X-Robots-Tag", ""), "falta X-Robots-Tag en privacidad")
+    checks.append({"check": "privacy_page", "ok": True})
 
     blocked_static = [
         "/.env",
@@ -86,6 +94,7 @@ def main():
         "/backups/",
         "/README.md",
         "/DEPLOYMENT_VPS.md",
+        "/PRIVACY_BETA.md",
         "/Prototipo_Conversacional.html",
         "/Sistema_Completo.md",
     ]

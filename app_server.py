@@ -39,7 +39,7 @@ AI_QUEUE_WAIT_SECONDS = max(0.0, float(os.environ.get("AI_QUEUE_WAIT_SECONDS", "
 BETA_NOINDEX = os.environ.get("BETA_NOINDEX", "true").lower() in {"1", "true", "yes", "on"}
 RATE_BUCKETS: dict[str, list[int]] = {}
 AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
-PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.md"}
+PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.html"}
 ADMIN_STATIC_FILES = {"/CRM_Dashboard.html"}
 
 
