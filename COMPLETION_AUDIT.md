@@ -57,6 +57,7 @@ Resultado reciente:
 - Smoke test local: OK.
 - Métricas locales: 43 leads, 41 conversaciones iniciadas, 35 emails, 30 informes, 1 feedback.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
+- Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
 
 ## Huecos no cerrados
 
