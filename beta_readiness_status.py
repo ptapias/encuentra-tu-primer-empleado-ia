@@ -42,7 +42,8 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
     checks["vps_inputs"] = inputs
     if not inputs.get("ok"):
         blockers.append("Faltan datos reales de VPS/privacidad/CRM.")
-        next_actions.append("Copia `VPS_INPUTS.md` a `VPS_INPUTS.local.md`, rellénalo y ejecuta `python3 validate_vps_inputs.py --path VPS_INPUTS.local.md`.")
+        next_actions.append("Ejecuta `python3 generate_vps_inputs.py` para crear `VPS_INPUTS.local.md` de forma guiada y validable.")
+        next_actions.append("Después ejecuta `python3 validate_vps_inputs.py --path VPS_INPUTS.local.md`.")
 
     env = file_state(env_path)
     env["ok"] = env["exists"]

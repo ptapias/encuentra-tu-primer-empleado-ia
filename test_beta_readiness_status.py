@@ -22,6 +22,10 @@ def test_default_repo_is_blocked_on_launch_inputs():
     )
     assert_true(not result["ok"], "El repo sin inputs locales no debería estar listo para público")
     assert_true(result["status"] in {"blocked_on_launch_inputs", "ready_to_generate_launch_files", "ready_for_vps_manual_test"}, result)
+    assert_true(
+        any("generate_vps_inputs.py" in action for action in result["next_actions"]),
+        "El siguiente paso debería recomendar el generador guiado de inputs",
+    )
 
 
 def test_complete_artifacts_are_ready_for_public_go_no_go():

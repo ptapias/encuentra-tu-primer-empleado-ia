@@ -26,11 +26,17 @@ cd /opt/primer-empleado-ia
 cp .env.example .env
 ```
 
-Si quieres reducir pasos manuales, puedes usar el instalador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`; si no existe, crea `.env` desde `.env.example` y se detiene para que configures la contraseña real:
+Si quieres reducir pasos manuales, genera primero la ficha local guiada. El archivo queda ignorado por Git:
 
 ```bash
-cp VPS_INPUTS.md VPS_INPUTS.local.md
-nano VPS_INPUTS.local.md
+python3 generate_vps_inputs.py
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
+python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
+```
+
+Después puedes usar el lanzador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`; si no existe, crea `.env` desde `.env.example` y se detiene para que configures la contraseña real:
+
+```bash
 sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 

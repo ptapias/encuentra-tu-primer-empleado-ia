@@ -20,12 +20,13 @@ Este documento convierte el despliegue en una operación corta y verificable. La
 Con esos datos, en el VPS:
 
 ```bash
-cp VPS_INPUTS.md VPS_INPUTS.local.md
-nano VPS_INPUTS.local.md
+python3 generate_vps_inputs.py
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
+python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
-El lanzador valida inputs, genera `.env.generated` y `privacy_config.json`, renderiza privacidad pública, instala servicios y ejecuta smoke test local. Si queda algún campo clave vacío, placeholder o contraseña débil, se detiene antes de tocar systemd.
+El generador crea la ficha local ignorada por Git. El lanzador vuelve a validar inputs, genera `.env.generated` y `privacy_config.json`, renderiza privacidad pública, instala servicios y ejecuta smoke test local. Si queda algún campo clave vacío, placeholder o contraseña débil, se detiene antes de tocar systemd.
 
 ## 2. Decisión de proveedor IA para la beta
 
@@ -54,8 +55,9 @@ sudo mkdir -p /opt/primer-empleado-ia
 sudo chown -R "$USER":"$USER" /opt/primer-empleado-ia
 git clone https://github.com/ptapias/encuentra-tu-primer-empleado-ia.git /opt/primer-empleado-ia
 cd /opt/primer-empleado-ia
-cp VPS_INPUTS.md VPS_INPUTS.local.md
-nano VPS_INPUTS.local.md
+python3 generate_vps_inputs.py
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
+python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
