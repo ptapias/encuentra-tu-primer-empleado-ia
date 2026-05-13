@@ -12,6 +12,8 @@ Si prefieres que el asistente pregunte solo los campos pendientes:
 python3 generate_vps_inputs.py --fill-missing-answers VPS_ANSWERS.local.json
 ```
 
+Ese asistente tambien revisa valores ya escritos que bloquean el despliegue, por ejemplo Codex marcado como no logueado, contraseña demasiado corta, email invalido o dominio/DNS no listo.
+
 - `Dominio/subdominio público`: por ejemplo `diagnostico.tuprimerempleadoia.com`.
 - `IP del VPS`: IP pública del servidor.
 - `Usuario SSH`: usuario con permisos para entrar al VPS.

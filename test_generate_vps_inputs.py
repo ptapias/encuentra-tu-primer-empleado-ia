@@ -75,6 +75,26 @@ def test_fill_missing_answers_preserves_existing_values():
     assert_true("Contraseña real CRM" in result["updated"], "Debería reportar campos actualizados")
 
 
+def test_fill_missing_answers_reviews_blocking_values():
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-vps-wizard-") as tmp:
+        answers = Path(tmp) / "VPS_ANSWERS.local.json"
+        full = answers_from_valid_inputs()
+        full["Proveedor IA inicial"] = "codex"
+        full["¿Codex CLI ya está logueado con ese usuario?"] = "no"
+        full["Contraseña real CRM"] = "corta"
+        answers.write_text(json.dumps(full, ensure_ascii=False), encoding="utf-8")
+        provided = {
+            "¿Codex CLI ya está logueado con ese usuario?": "sí",
+            "Contraseña real CRM": "clave-super-larga-2026",
+        }
+        result = generate_vps_inputs.fill_missing_answers(answers, provided)
+        saved = json.loads(answers.read_text(encoding="utf-8"))
+    assert_true(result["ok"], result)
+    assert_true(saved["¿Codex CLI ya está logueado con ese usuario?"] == "sí", "Debería actualizar decisiones bloqueantes")
+    assert_true(saved["Contraseña real CRM"] == "clave-super-larga-2026", "Debería actualizar valores inválidos")
+    assert_true("¿Codex CLI ya está logueado con ese usuario?" in result["updated"], "Debería reportar el campo revisado")
+
+
 def test_deployment_handoff_uses_exact_json_keys():
     handoff = Path("NEXT_DEPLOYMENT_HANDOFF.md").read_text(encoding="utf-8")
     for label in [
@@ -102,5 +122,6 @@ if __name__ == "__main__":
     test_cli_with_answers_json_generates_file()
     test_answers_template_has_all_fields_and_defaults()
     test_fill_missing_answers_preserves_existing_values()
+    test_fill_missing_answers_reviews_blocking_values()
     test_deployment_handoff_uses_exact_json_keys()
     print("generate_vps_inputs ok")

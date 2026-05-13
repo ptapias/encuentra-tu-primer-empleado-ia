@@ -2,6 +2,7 @@
 import argparse
 import getpass
 import json
+import re
 from pathlib import Path
 
 import validate_vps_inputs
@@ -59,6 +60,50 @@ def missing_answer_labels(answers: dict[str, str]) -> list[str]:
     return [label for label in validate_vps_inputs.REQUIRED_LABELS if not str(answers.get(label, "")).strip()]
 
 
+def answer_labels_to_fill(answers: dict[str, str]) -> list[str]:
+    labels = missing_answer_labels(answers)
+
+    def add(label: str):
+        if label not in labels:
+            labels.append(label)
+
+    domain = str(answers.get("Dominio/subdominio público", "")).strip()
+    if domain and not re.search(r"^[a-z0-9.-]+\.[a-z]{2,}$", domain.lower()):
+        add("Dominio/subdominio público")
+
+    email = str(answers.get("Email de contacto privacidad", "")).strip()
+    if email and not re.search(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        add("Email de contacto privacidad")
+
+    password = str(answers.get("Contraseña real CRM", "")).strip()
+    if password and (len(password) < 16 or validate_vps_inputs.unsafe_env_value(password)):
+        add("Contraseña real CRM")
+
+    for label in validate_vps_inputs.YES_NO_LABELS:
+        value = str(answers.get(label, "")).strip().lower()
+        if value and not value.startswith(("s", "n")):
+            add(label)
+
+    if str(answers.get("¿El dominio ya apunta al VPS?", "")).strip().lower().startswith("n"):
+        add("¿El dominio ya apunta al VPS?")
+
+    provider = str(answers.get("Proveedor IA inicial", "")).strip().lower()
+    codex_logged = str(answers.get("¿Codex CLI ya está logueado con ese usuario?", "")).strip().lower()
+    if "codex" in provider and codex_logged.startswith("n"):
+        add("¿Codex CLI ya está logueado con ese usuario?")
+
+    webhook = str(answers.get("¿Webhook externo desde el día 1?", "")).strip().lower()
+    if webhook.startswith("s") and not str(answers.get("URL webhook", "")).strip():
+        add("URL webhook")
+
+    for label in validate_vps_inputs.ENV_VALUE_LABELS:
+        value = str(answers.get(label, "")).strip()
+        if value and validate_vps_inputs.unsafe_env_value(value):
+            add(label)
+
+    return labels
+
+
 def ask(label: str, default: str, help_text: str, *, secret: bool, answers: dict[str, str]) -> str:
     if label in answers:
         return str(answers[label]).strip()
@@ -102,11 +147,11 @@ def fill_missing_answers(path: Path, provided: dict[str, str] | None = None, *, 
         answers = answers_template()
     provided = provided or {}
     labels = {label: (default, help_text) for _section, label, default, help_text in FIELDS}
-    missing = missing_answer_labels(answers)
-    if not missing and not force:
+    labels_to_fill = answer_labels_to_fill(answers)
+    if not labels_to_fill and not force:
         return {"ok": True, "path": str(path), "updated": [], "missing_required": []}
     updated = []
-    for label in missing:
+    for label in labels_to_fill:
         default, help_text = labels.get(label, ("", ""))
         current = str(answers.get(label, "")).strip()
         if label in provided:
@@ -128,6 +173,7 @@ def fill_missing_answers(path: Path, provided: dict[str, str] | None = None, *, 
         "path": str(path),
         "updated": updated,
         "missing_required": missing_answer_labels(answers),
+        "needs_review": answer_labels_to_fill(answers),
         "next_actions": [
             f"python3 generate_vps_inputs.py --answers-json {path}",
             "python3 validate_vps_inputs.py --path VPS_INPUTS.local.md",
