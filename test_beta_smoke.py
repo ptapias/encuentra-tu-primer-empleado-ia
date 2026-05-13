@@ -392,6 +392,7 @@ def main():
     expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
     expect("discovery_focus,discovery_confidence,discovery_ready,candidate_processes,open_gaps,live_insights" in export_header, "el export CSV no incluye discovery viva")
     expect("cta_interest,cta_clicked_at" in export_header, "el export CSV no incluye intención de CTA")
+    expect("public_report_url" in export_header, "el export CSV no incluye enlace privado del informe")
     expect("first_opportunity,first_step" in export_header, "el export CSV no incluye resumen de acción")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
     expect("evidence_summary" in export_header, "el export CSV no incluye señales de evidencia")
