@@ -48,6 +48,29 @@
       align-items: center;
     }
     button:hover, a.button:hover { background: var(--accent-dark); }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    select, input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      min-height: 42px;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font: inherit;
+      text-transform: none;
+    }
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
     main {
       padding: 24px 32px 34px;
       display: grid;
@@ -158,6 +181,20 @@
       white-space: pre-wrap;
     }
     .message.user { border-left-color: var(--accent); }
+    .ops-form {
+      display: grid;
+      gap: 10px;
+    }
+    .ops-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .save-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
     .empty {
       padding: 20px;
       color: var(--muted);
@@ -243,11 +280,40 @@
       return value;
     }
 
-    async function api(path) {
-      const response = await fetch(path);
+    async function api(path, options = {}) {
+      const response = await fetch(path, options);
       const json = await response.json();
       if (!response.ok) throw new Error(json.error || "Error de servidor");
       return json;
+    }
+
+    function statusLabel(value) {
+      return {
+        new: "Nuevo",
+        send_resource: "Enviar recurso",
+        invite_cohort: "Invitar cohort",
+        invite_call: "Invitar llamada",
+        not_fit: "No apto ahora",
+        client: "Cliente",
+        report_generated: "Informe generado",
+        feedback_saved: "Feedback recibido"
+      }[value] || value || "Nuevo";
+    }
+
+    function offerLabel(value) {
+      return {
+        newsletter: "Newsletter",
+        cohort: "Cohort",
+        implementation_call: "Llamada de implementación",
+        resource: "Recurso gratuito",
+        not_ready: "Todavía no está listo",
+        premium_service: "Servicio premium"
+      }[value] || value || "Pendiente";
+    }
+
+    function option(value, current, label) {
+      const selectedAttr = value === current ? " selected" : "";
+      return `<option value="${escapeHtml(value)}"${selectedAttr}>${escapeHtml(label)}</option>`;
     }
 
     async function loadLeads() {
@@ -256,8 +322,8 @@
         <td><strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong><br>${escapeHtml(new Date(lead.updated_at * 1000).toLocaleString())}</td>
         <td>${escapeHtml(lead.recommended_employee || lead.use_case || "sin informe")}<br><span class="badge">${escapeHtml(lead.turns)} turnos</span></td>
         <td>${escapeHtml(readable(lead.score || 0))}</td>
-        <td>${escapeHtml(lead.offer || "pendiente")}</td>
-        <td>${escapeHtml(lead.status)}<br>${escapeHtml(lead.stage)}</td>
+        <td>${escapeHtml(offerLabel(lead.offer))}</td>
+        <td>${escapeHtml(statusLabel(lead.status))}<br>${escapeHtml(lead.stage)}</td>
         <td>${lead.has_feedback ? "sí" : "no"}</td>
       </tr>`).join("");
       rows.querySelectorAll("tr").forEach(row => row.addEventListener("click", () => loadLead(row.dataset.id)));
@@ -288,6 +354,9 @@
       selected.textContent = id.slice(0, 8);
       const report = lead.outcome || {};
       const crm = report.crm_summary || {};
+      const currentOffer = crm.offer || "";
+      const currentStatus = lead.status || crm.status || "new";
+      const currentNotes = crm.internal_notes || "";
       const opportunities = (report.opportunities || []).map(opp => `<div class="card">
         <span>${escapeHtml(opp.triage)}</span>
         <h3>${escapeHtml(opp.name)}</h3>
@@ -297,18 +366,79 @@
       const transcript = (lead.transcript || []).map(item => `<div class="message ${escapeHtml(item.role)}"><strong>${escapeHtml(item.role)}:</strong> ${escapeHtml(item.content)}</div>`).join("");
       detail.innerHTML = `<div class="grid">
         <div class="card"><span>Email</span>${escapeHtml(lead.email || "sin email")}</div>
-        <div class="card"><span>Estado</span>${escapeHtml(lead.status)} · ${escapeHtml(lead.stage)}</div>
+        <div class="card"><span>Estado</span>${escapeHtml(statusLabel(lead.status))} · ${escapeHtml(lead.stage)}</div>
         <div class="card"><span>Score</span>${escapeHtml(readable(crm.score || 0))}</div>
-        <div class="card"><span>Oferta</span>${escapeHtml(crm.offer || "pendiente")}</div>
+        <div class="card"><span>Oferta</span>${escapeHtml(offerLabel(crm.offer))}</div>
         <div class="card"><span>Urgencia</span>${escapeHtml(crm.urgency || "no detectada")}</div>
         <div class="card"><span>Presupuesto</span>${escapeHtml(crm.budget || "no detectado")}</div>
       </div>
+      <form class="card ops-form" id="ops-form">
+        <span>Operación interna</span>
+        <div class="grid">
+          <label>Estado
+            <select name="status">
+              ${option("new", currentStatus, "Nuevo")}
+              ${option("send_resource", currentStatus, "Enviar recurso")}
+              ${option("invite_cohort", currentStatus, "Invitar cohort")}
+              ${option("invite_call", currentStatus, "Invitar llamada")}
+              ${option("not_fit", currentStatus, "No apto ahora")}
+              ${option("client", currentStatus, "Cliente")}
+              ${option("report_generated", currentStatus, "Informe generado")}
+              ${option("feedback_saved", currentStatus, "Feedback recibido")}
+            </select>
+          </label>
+          <label>Oferta recomendada
+            <select name="offer">
+              ${option("", currentOffer, "Pendiente")}
+              ${option("newsletter", currentOffer, "Newsletter")}
+              ${option("cohort", currentOffer, "Cohort")}
+              ${option("implementation_call", currentOffer, "Llamada de implementación")}
+              ${option("resource", currentOffer, "Recurso gratuito")}
+              ${option("not_ready", currentOffer, "Todavía no está listo")}
+              ${option("premium_service", currentOffer, "Servicio premium")}
+            </select>
+          </label>
+        </div>
+        <label>Notas internas
+          <textarea name="notes" placeholder="Ej: buen lead para cohort, preguntar por Outlook y volumen semanal">${escapeHtml(currentNotes)}</textarea>
+        </label>
+        <div class="ops-actions">
+          <button type="submit">Guardar cambios</button>
+          <span class="save-note" id="save-note">Solo visible en el CRM interno.</span>
+        </div>
+      </form>
       <div class="card"><span>Empleado IA recomendado</span><h3>${escapeHtml(report.recommended_employee || "sin informe todavía")}</h3><p>${escapeHtml(report.recommendation_reason || "")}</p></div>
       <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
       <div class="card"><span>Oportunidades</span>${opportunities || "<p>Sin oportunidades calculadas todavía.</p>"}</div>
       <div class="card"><span>No automatizar todavía</span>${list(report.do_not_automate_yet)}</div>
       <div class="card"><span>Feedback</span><p>${escapeHtml(lead.feedback?.text || "Sin feedback todavía.")}</p></div>
       <div class="card"><span>Conversación</span>${transcript || "<p>Sin conversación.</p>"}</div>`;
+      document.getElementById("ops-form").addEventListener("submit", event => saveLeadOps(event, id));
+    }
+
+    async function saveLeadOps(event, id) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const note = document.getElementById("save-note");
+      const data = new FormData(form);
+      note.textContent = "Guardando...";
+      try {
+        await api("/api/lead/update", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            lead_id: id,
+            status: data.get("status"),
+            offer: data.get("offer"),
+            notes: data.get("notes")
+          })
+        });
+        note.textContent = "Cambios guardados.";
+        await Promise.all([loadMetrics(), loadLeads()]);
+        await loadLead(id);
+      } catch (error) {
+        note.textContent = error.message;
+      }
     }
 
     async function refreshAll() {

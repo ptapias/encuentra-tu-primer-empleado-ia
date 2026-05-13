@@ -859,12 +859,16 @@ class Handler(SimpleHTTPRequestHandler):
         if int(self.headers.get("Content-Length", "0")) > MAX_BODY_BYTES:
             self._json({"error": "Payload demasiado grande"}, 413)
             return
+        admin_routes = {"/api/lead/update"}
+        if self.path in admin_routes and not self._require_admin():
+            return
         routes = {
             "/api/session": self._handle_session,
             "/api/email": self._handle_email,
             "/api/chat": self._handle_chat,
             "/api/report": self._handle_report,
             "/api/feedback": self._handle_feedback,
+            "/api/lead/update": self._handle_update_lead_admin,
             "/crm": self._handle_crm,
             "/transcribe": self._handle_transcribe,
         }
@@ -997,6 +1001,58 @@ class Handler(SimpleHTTPRequestHandler):
         update_lead(lead_id, feedback=feedback, status="feedback_saved")
         insert_event(lead_id, "feedback_saved", feedback)
         self._json({"ok": True})
+
+    def _handle_update_lead_admin(self):
+        payload = read_json(self)
+        lead_id = payload.get("lead_id")
+        if not lead_id:
+            self._json({"error": "lead_id is required"}, 400)
+            return
+        try:
+            lead = get_lead(lead_id)
+        except KeyError:
+            self._json({"error": "Lead not found"}, 404)
+            return
+
+        allowed_status = {
+            "new",
+            "send_resource",
+            "invite_cohort",
+            "invite_call",
+            "not_fit",
+            "client",
+            "report_generated",
+            "feedback_saved",
+        }
+        status = humanize(payload.get("status")).strip()
+        offer = humanize(payload.get("offer")).strip()
+        notes = humanize(payload.get("notes")).strip()
+        if status and status not in allowed_status:
+            self._json({"error": "Estado no válido"}, 400)
+            return
+
+        outcome = lead["outcome"] if isinstance(lead["outcome"], dict) else {}
+        crm_summary = outcome.get("crm_summary") if isinstance(outcome.get("crm_summary"), dict) else {}
+        if offer:
+            crm_summary["offer"] = offer
+        if status:
+            crm_summary["status"] = status
+        if notes:
+            crm_summary["internal_notes"] = notes
+        if crm_summary:
+            outcome["crm_summary"] = crm_summary
+
+        update_lead(
+            lead_id,
+            status=status or None,
+            outcome=outcome if outcome else lead["outcome"],
+        )
+        insert_event(
+            lead_id,
+            "lead_admin_updated",
+            {"status": status or lead["status"], "offer": offer or crm_summary.get("offer", ""), "notes": notes},
+        )
+        self._json({"ok": True, "lead": get_lead(lead_id)})
 
     def _handle_list_leads(self):
         with db() as conn:

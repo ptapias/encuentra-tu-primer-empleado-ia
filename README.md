@@ -16,7 +16,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Prompt_Agente_Diagnostico.md`: prompt listo para usar en un agente conversacional.
 - `Scoring_y_CRM.csv`: criterios de scoring y campos internos recomendados.
 - `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable y feedback.
-- `CRM_Dashboard.html`: dashboard interno para revisar métricas de embudo, leads, conversación, outcome, oferta recomendada, feedback y exportación CSV.
+- `CRM_Dashboard.html`: dashboard interno para revisar métricas de embudo, leads, conversación, outcome, oferta recomendada, feedback, cambiar estado/oferta manualmente y exportar CSV.
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead`, `/api/metrics`, `/api/export.csv` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
 - `DEPLOYMENT_VPS.md`: guía para desplegar en VPS con Codex CLI, systemd y Caddy.
@@ -74,6 +74,8 @@ Checklist completo en `VALIDACION_LOCAL.md`.
 Para pruebas puedes usar `AI_PROVIDER=fallback` o `ALLOW_AI_FALLBACK=true`. Para beta pública deja `ALLOW_AI_FALLBACK=false`: si Codex/OpenAI fallan, es mejor mostrar un error honesto que entregar un diagnóstico mediocre.
 
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
+
+Desde `CRM_Dashboard.html` puedes operar la beta sin tocar la base de datos: seleccionar un lead, cambiar su estado, ajustar la oferta recomendada y añadir notas internas. Los cambios quedan registrados como evento interno.
 
 Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo. En VPS, define `WHISPER_BIN` y `FFMPEG_BIN` si no están en el `PATH`; si faltan, la app desactiva el micro y mantiene el flujo por texto.
 
