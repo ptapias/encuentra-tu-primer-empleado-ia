@@ -15,6 +15,19 @@ CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 
 
+def load_env(path: Path) -> dict:
+    values = {}
+    if not path.exists():
+        return values
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
 def run_step(name: str, command: list[str], *, timeout=120) -> dict:
     try:
         result = subprocess.run(
@@ -96,6 +109,24 @@ def deploy_config_check() -> dict:
     }
 
 
+def public_beta_gate(args, env: dict) -> dict:
+    checks = {
+        "base_is_https": args.base.startswith("https://"),
+        "base_is_not_localhost": not any(host in args.base for host in ["localhost", "127.0.0.1", "::1"]),
+        "admin_credentials_supplied": bool(args.admin_user and args.admin_password and args.admin_password != "change-me"),
+        "admin_password_matches_env": bool(args.admin_password and args.admin_password == env.get("ADMIN_PASSWORD", "")),
+        "privacy_final_required": True,
+        "codex_live_checked": bool(args.check_codex_live or env.get("AI_PROVIDER", "codex").lower() != "codex"),
+    }
+    missing = [name for name, ok in checks.items() if not ok]
+    return {
+        "name": "public_beta_gate",
+        "ok": not missing,
+        "missing": missing,
+        "message": "Gate final para abrir beta pública en VPS con HTTPS, auth, privacidad final y proveedor IA verificado.",
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Release check de beta para Encuentra Tu Primer Empleado IA")
     parser.add_argument("--env", default=".env", help="Archivo .env que validará preflight_vps.py")
@@ -104,7 +135,16 @@ def main():
     parser.add_argument("--admin-password", default="")
     parser.add_argument("--check-codex-live", action="store_true")
     parser.add_argument("--require-privacy-final", action="store_true", help="Falla si PRIVACY_BETA.md sigue con placeholders")
+    parser.add_argument("--public-beta", action="store_true", help="Gate estricto antes de abrir la beta pública en VPS")
     args = parser.parse_args()
+    env_path = Path(args.env)
+    if not env_path.is_absolute():
+        env_path = ROOT / env_path
+    env = load_env(env_path)
+    require_privacy_final = args.require_privacy_final or args.public_beta
+    check_codex_live = args.check_codex_live or args.public_beta
+    if args.public_beta:
+        args.check_codex_live = check_codex_live
 
     steps = [
         run_step(
@@ -126,14 +166,16 @@ def main():
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
         run_step("agent_quality_guard", [sys.executable, "test_agent_quality_guard.py"]),
         static_page_check(),
-        privacy_check(args.require_privacy_final),
+        privacy_check(require_privacy_final),
         deploy_config_check(),
     ]
+    if args.public_beta:
+        steps.append(public_beta_gate(args, env))
 
     preflight_cmd = [sys.executable, "preflight_vps.py", "--env", args.env]
-    if args.check_codex_live:
+    if check_codex_live:
         preflight_cmd.append("--check-codex-live")
-    steps.append(run_step("preflight", preflight_cmd, timeout=180 if args.check_codex_live else 60))
+    steps.append(run_step("preflight", preflight_cmd, timeout=180 if check_codex_live else 60))
 
     if args.base:
         smoke_cmd = [sys.executable, "test_beta_smoke.py", "--base", args.base]

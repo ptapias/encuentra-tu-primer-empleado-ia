@@ -30,6 +30,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
+- `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
 - `backup_crm.py`: copia segura de `crm.sqlite3` y `crm_leads.jsonl` para operación de beta.
