@@ -25,6 +25,7 @@ DEPLOYMENT_GUIDE = ROOT / "DEPLOYMENT_VPS.md"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
+LOCAL_VALIDATION = ROOT / "VALIDACION_LOCAL.md"
 LAUNCH_GO_NO_GO = ROOT / "launch_go_no_go.py"
 FIRST_TESTERS_PACKET = ROOT / "FIRST_TESTERS_PACKET.md"
 GITIGNORE = ROOT / ".gitignore"
@@ -149,6 +150,48 @@ def testers_packet_check() -> dict:
     leaked = [item for item in forbidden if item.lower() in text.lower()]
     return {
         "name": "first_testers_packet",
+        "ok": bool(text) and not missing and not leaked,
+        "missing": missing,
+        "leaked": leaked,
+    }
+
+
+def local_validation_check() -> dict:
+    text = LOCAL_VALIDATION.read_text(encoding="utf-8") if LOCAL_VALIDATION.exists() else ""
+    lines = text.splitlines()
+    required = [
+        "./run_local_beta.sh",
+        "REPLACE=true ./run_local_beta.sh",
+        "¿Dónde se te escapa tiempo, dinero o clientes",
+        "analiza el negocio como lo haría un consultor",
+        "Empezar diagnóstico",
+        "Discovery en vivo",
+        "no se siente como 5 preguntas fijas",
+        "Resumen de acción",
+        "first_opportunity",
+        "first_step",
+    ]
+    forbidden = [
+        "Analizar mi negocio",
+        "http://localhost:8787/Agente_Real_CRM.html?v=discovery",
+        "AI_PROVIDER=fallback HOST=localhost PORT=8787 python3 app_server.py",
+        "AI_PROVIDER=codex HOST=localhost PORT=8787 python3 app_server.py",
+    ]
+    contextual_forbidden = ["informe potente"]
+    missing = [item for item in required if item.lower() not in text.lower()]
+    leaked = [item for item in forbidden if item.lower() in text.lower()]
+    for item in contextual_forbidden:
+        bad_lines = [
+            line
+            for line in lines
+            if item.lower() in line.lower()
+            and "no aparecen" not in line.lower()
+            and "evita frases vacías" not in line.lower()
+        ]
+        if bad_lines:
+            leaked.append(item)
+    return {
+        "name": "local_validation_doc",
         "ok": bool(text) and not missing and not leaked,
         "missing": missing,
         "leaked": leaked,
@@ -389,6 +432,7 @@ def main():
         sensitive_files_check(),
         privacy_check(require_privacy_final),
         testers_packet_check(),
+        local_validation_check(),
         deploy_config_check(),
     ]
     if args.public_beta:
