@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib import request, error, parse
 import base64
 import csv
+import ipaddress
 import io
 import json
 import os
@@ -201,9 +202,14 @@ def now() -> int:
 
 def client_ip(handler) -> str:
     forwarded = handler.headers.get("X-Forwarded-For", "")
-    if forwarded:
+    peer_ip = handler.client_address[0]
+    try:
+        peer_is_local = ipaddress.ip_address(peer_ip).is_loopback
+    except ValueError:
+        peer_is_local = peer_ip in {"localhost", "::1"}
+    if forwarded and peer_is_local:
         return forwarded.split(",")[0].strip()
-    return handler.client_address[0]
+    return peer_ip
 
 
 def rate_limited(key: str, limit: int, window_seconds: int = 3600) -> bool:
