@@ -99,7 +99,9 @@ def evaluate(args, release_result: dict) -> dict:
             blockers.append("Falta una contraseña real para el CRM.")
         if not args.manual_production_tested:
             blockers.append("Falta confirmar prueba manual en producción con `--manual-production-tested`.")
-        elif args.manual_test_path:
+        elif not args.manual_test_path:
+            blockers.append("Falta archivo de evidencia manual. Crea `MANUAL_PRODUCTION_TEST.local.md` o pasa `--manual-test-path`.")
+        else:
             manual_result = validate_manual_test(args.manual_test_path)
             if not manual_result.get("ok"):
                 detail = "; ".join(manual_result.get("errors", []))[:500]
