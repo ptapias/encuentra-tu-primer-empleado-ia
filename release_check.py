@@ -145,6 +145,7 @@ def deploy_config_check() -> dict:
         "update_script_backup_before_pull": "backup_crm.py" in update_script and "pull --ff-only" in update_script,
         "update_script_safe_directory": "safe.directory" in update_script,
         "update_script_clean_worktree": "diff --quiet" in update_script and "diff --cached --quiet" in update_script,
+        "update_script_regenerates_privacy": "privacy_config.json" in update_script and "render_privacy.py --config privacy_config.json" in update_script and "checkout -- PRIVACY_BETA.md PRIVACY_BETA.html" in update_script,
         "update_script_rollback": "reset --hard" in update_script and "ROLLBACK_ENABLED" in update_script,
         "update_script_renders_systemd_units": "render_systemd_units" in update_script and "systemctl daemon-reload" in update_script,
         "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script,

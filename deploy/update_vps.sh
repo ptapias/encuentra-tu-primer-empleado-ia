@@ -40,10 +40,44 @@ fi
 
 GIT=(git -c safe.directory="${APP_DIR}")
 
-if ! "${GIT[@]}" diff --quiet || ! "${GIT[@]}" diff --cached --quiet; then
-  echo "El repo tiene cambios locales. No actualizo para no pisar trabajo manual en el VPS." >&2
-  exit 1
-fi
+privacy_dirty_files() {
+  "${GIT[@]}" status --porcelain -- PRIVACY_BETA.md PRIVACY_BETA.html | awk '{print $2}'
+}
+
+only_generated_privacy_dirty() {
+  local status all_files privacy_files
+  status="$("${GIT[@]}" status --porcelain)"
+  if [[ -z "${status}" ]]; then
+    return 1
+  fi
+
+  all_files="$(printf '%s\n' "${status}" | awk '{print $2}' | sort)"
+  privacy_files="$(privacy_dirty_files | sort)"
+
+  [[ -n "${privacy_files}" && "${all_files}" == "${privacy_files}" && -f privacy_config.json ]]
+}
+
+restore_generated_privacy_before_pull() {
+  if only_generated_privacy_dirty; then
+    echo "Detecto privacidad renderizada localmente. La regenero después del pull desde privacy_config.json."
+    "${GIT[@]}" checkout -- PRIVACY_BETA.md PRIVACY_BETA.html
+    return 0
+  fi
+
+  if ! "${GIT[@]}" diff --quiet || ! "${GIT[@]}" diff --cached --quiet; then
+    echo "El repo tiene cambios locales. No actualizo para no pisar trabajo manual en el VPS." >&2
+    echo "Si solo has generado la privacidad final, conserva privacy_config.json y vuelve a lanzar el update." >&2
+    exit 1
+  fi
+}
+
+rerender_privacy_if_configured() {
+  if [[ -f privacy_config.json ]]; then
+    python3 render_privacy.py --config privacy_config.json
+  fi
+}
+
+restore_generated_privacy_before_pull
 
 BEFORE="$("${GIT[@]}" rev-parse --short HEAD)"
 ROLLBACK_ENABLED=false
@@ -59,6 +93,7 @@ rollback() {
   if [[ "${ROLLBACK_ENABLED}" == "true" ]]; then
     echo "Actualización fallida. Intento rollback a ${BEFORE}..." >&2
     "${GIT[@]}" reset --hard "${BEFORE}" || true
+    rerender_privacy_if_configured || true
     chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}" || true
     render_systemd_units || true
     systemctl daemon-reload || true
@@ -81,6 +116,8 @@ AFTER="$("${GIT[@]}" rev-parse --short HEAD)"
 if [[ "${AFTER}" != "${BEFORE}" ]]; then
   ROLLBACK_ENABLED=true
 fi
+
+rerender_privacy_if_configured
 
 echo "3/8 Permisos"
 chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"

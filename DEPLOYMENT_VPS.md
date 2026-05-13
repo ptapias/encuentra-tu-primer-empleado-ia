@@ -213,6 +213,8 @@ cd /opt/primer-empleado-ia
 sudo ./deploy/update_vps.sh
 ```
 
+Si ya generaste la privacidad final desde `privacy_config.json`, el script tolera que `PRIVACY_BETA.md` y `PRIVACY_BETA.html` estén modificados localmente: los restaura antes del `pull` y los vuelve a generar después desde `privacy_config.json`. Si hay cualquier otro cambio local, se detiene para no pisar trabajo manual del VPS.
+
 Con verificación HTTPS después del reinicio:
 
 ```bash
