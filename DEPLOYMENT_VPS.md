@@ -26,6 +26,18 @@ cd /opt/primer-empleado-ia
 cp .env.example .env
 ```
 
+Si quieres reducir pasos manuales, puedes usar el instalador desde la raíz del repo. La primera ejecución crea `.env` si no existe y se detiene para que configures la contraseña real:
+
+```bash
+sudo ./deploy/install_vps.sh
+```
+
+Cuando `.env` ya esté completo, puedes relanzarlo con dominio para instalar servicios, activar backup y validar Caddy:
+
+```bash
+sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/install_vps.sh
+```
+
 Edita `.env`:
 
 ```bash

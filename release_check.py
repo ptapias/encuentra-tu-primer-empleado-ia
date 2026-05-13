@@ -12,6 +12,7 @@ PRIVACY_PAGE = ROOT / "PRIVACY_BETA.md"
 APP_SERVICE = ROOT / "deploy" / "primer-empleado-ia.service"
 BACKUP_SERVICE = ROOT / "deploy" / "primer-empleado-ia-backup.service"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
+INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 
 
 def run_step(name: str, command: list[str], *, timeout=120) -> dict:
@@ -73,6 +74,7 @@ def deploy_config_check() -> dict:
     app_service = APP_SERVICE.read_text(encoding="utf-8") if APP_SERVICE.exists() else ""
     backup_service = BACKUP_SERVICE.read_text(encoding="utf-8") if BACKUP_SERVICE.exists() else ""
     caddyfile = CADDYFILE.read_text(encoding="utf-8") if CADDYFILE.exists() else ""
+    install_script = INSTALL_SCRIPT.read_text(encoding="utf-8") if INSTALL_SCRIPT.exists() else ""
     required = {
         "app_service_NoNewPrivileges": "NoNewPrivileges=true" in app_service,
         "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
@@ -81,6 +83,9 @@ def deploy_config_check() -> dict:
         "caddy_hsts": "Strict-Transport-Security" in caddyfile,
         "caddy_body_limit": "max_size 2MB" in caddyfile,
         "caddy_reverse_proxy_local": "reverse_proxy 127.0.0.1:8787" in caddyfile,
+        "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
+        "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
+        "install_script_smoke": "test_beta_smoke.py" in install_script,
     }
     missing = [name for name, ok in required.items() if not ok]
     return {
