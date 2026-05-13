@@ -25,6 +25,19 @@ PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
 LAUNCH_GO_NO_GO = ROOT / "launch_go_no_go.py"
+GITIGNORE = ROOT / ".gitignore"
+SENSITIVE_PATHS = [
+    ".env",
+    ".env.generated",
+    "crm.sqlite3",
+    "crm.sqlite3-wal",
+    "crm.sqlite3-shm",
+    "crm_leads.jsonl",
+    "backups/example",
+    "privacy_config.json",
+    "VPS_INPUTS.local.md",
+    "MANUAL_PRODUCTION_TEST.local.md",
+]
 
 
 def load_env(path: Path) -> dict:
@@ -104,6 +117,54 @@ def privacy_check(require_final: bool) -> dict:
         "placeholders": found,
         "public_beta_markers": public_found,
         "message": "Privacidad final pendiente" if (found or public_found) else "Privacidad sin placeholders detectados",
+    }
+
+
+def sensitive_files_check() -> dict:
+    gitignore = GITIGNORE.read_text(encoding="utf-8") if GITIGNORE.exists() else ""
+    missing_patterns = []
+    required_patterns = [
+        ".env",
+        ".env.*",
+        "!.env.example",
+        "crm.sqlite3",
+        "crm.sqlite3-*",
+        "crm_leads.jsonl",
+        "backups/",
+        "privacy_config.json",
+        "VPS_INPUTS.local.md",
+        "MANUAL_PRODUCTION_TEST.local.md",
+    ]
+    for pattern in required_patterns:
+        if pattern not in gitignore.splitlines():
+            missing_patterns.append(pattern)
+
+    tracked_sensitive = []
+    ignored_failures = []
+    for relative_path in SENSITIVE_PATHS:
+        check = subprocess.run(
+            ["git", "check-ignore", "-q", relative_path],
+            cwd=str(ROOT),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if check.returncode != 0:
+            ignored_failures.append(relative_path)
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", relative_path],
+            cwd=str(ROOT),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if tracked.returncode == 0:
+            tracked_sensitive.append(relative_path)
+
+    return {
+        "name": "sensitive_files_ignored",
+        "ok": not missing_patterns and not ignored_failures and not tracked_sensitive,
+        "missing_patterns": missing_patterns,
+        "not_ignored": ignored_failures,
+        "tracked": tracked_sensitive,
     }
 
 
@@ -269,6 +330,7 @@ def main():
         run_step("beta_readiness_status", [sys.executable, "test_beta_readiness_status.py"]),
         run_step("generate_vps_inputs", [sys.executable, "test_generate_vps_inputs.py"]),
         static_page_check(),
+        sensitive_files_check(),
         privacy_check(require_privacy_final),
         deploy_config_check(),
     ]
