@@ -144,6 +144,23 @@ def test_preflight_webhook_checks():
     assert_true({"crm_webhook_https", "crm_webhook_secret", "crm_webhook_timeout"}.issubset(failed), "Preflight debería avisar de webhook inseguro")
 
 
+def test_preflight_warns_about_stale_commit_app_version():
+    original = preflight_vps.git_head_short
+    try:
+        preflight_vps.git_head_short = lambda: "abc1234"
+        dynamic = preflight_vps.app_version_checks({"APP_VERSION": ""})
+        assert_true(dynamic[0]["ok"] and dynamic[0]["name"] == "app_version_dynamic", "APP_VERSION vacío debería usar commit dinámico")
+
+        stale = preflight_vps.app_version_checks({"APP_VERSION": "deadbee"})
+        assert_true(not stale[0]["ok"], "Un APP_VERSION con forma de commit antiguo debería avisar")
+        assert_true("abc1234" in stale[0]["message"], "El aviso debería enseñar el commit actual")
+
+        manual = preflight_vps.app_version_checks({"APP_VERSION": "beta-2026-05-13"})
+        assert_true(manual[0]["ok"], "Una etiqueta manual no hexadecimal debería ser válida")
+    finally:
+        preflight_vps.git_head_short = original
+
+
 def test_codex_live_service_user_requires_root():
     if preflight_vps.os.geteuid() == 0:
         return
@@ -161,5 +178,6 @@ if __name__ == "__main__":
     test_client_ip_only_trusts_proxy_header_from_loopback()
     test_crm_webhook_payload_and_secret_header()
     test_preflight_webhook_checks()
+    test_preflight_warns_about_stale_commit_app_version()
     test_codex_live_service_user_requires_root()
     print("server_guards ok")

@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -108,6 +109,33 @@ def webhook_checks(env: dict) -> list[dict]:
     return checks
 
 
+def git_head_short() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=3,
+        )
+    except Exception:
+        return ""
+    if result.returncode != 0:
+        return ""
+    return (result.stdout or "").strip()
+
+
+def app_version_checks(env: dict) -> list[dict]:
+    version = (env.get("APP_VERSION") or "").strip()
+    head = git_head_short()
+    if not version:
+        return [check(True, "app_version_dynamic", f"APP_VERSION vacío: /healthz usará commit Git actual {head or 'desconocido'}", level="warning")]
+    if head and re.fullmatch(r"[0-9a-fA-F]{7,40}", version) and not head.startswith(version) and not version.startswith(head):
+        return [check(False, "app_version_matches_git", f"APP_VERSION={version} no coincide con el commit actual {head}; déjalo vacío o actualízalo si no es una etiqueta manual.", level="warning")]
+    return [check(True, "app_version", f"APP_VERSION={version}", level="warning")]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Preflight VPS para Encuentra Tu Primer Empleado IA")
     parser.add_argument("--env", default=".env", help="Ruta al archivo .env")
@@ -161,6 +189,7 @@ def main():
 
     checks.append(check(command_exists(ffmpeg_bin), "ffmpeg", f"ffmpeg disponible: {ffmpeg_bin or 'no encontrado'}", level="warning"))
     checks.append(check(command_exists(whisper_bin), "whisper", f"Whisper disponible: {whisper_bin or 'no encontrado'}", level="warning"))
+    checks.extend(app_version_checks(env))
     checks.extend(webhook_checks(env))
 
     errors = [item for item in checks if item["level"] == "error" and not item["ok"]]
