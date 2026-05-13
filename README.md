@@ -26,6 +26,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `MANUAL_PRODUCTION_TEST.md`: plantilla de aceptación manual para probar escritorio, móvil, micrófono HTTPS, informe, CRM, CSV y go/no-go antes de testers.
 - `validate_manual_production_test.py`: valida la copia local `MANUAL_PRODUCTION_TEST.local.md` antes de permitir una apertura pública.
 - `beta_readiness_status.py`: resume si el proyecto está bloqueado por inputs, listo para generar archivos, listo para prueba manual VPS o listo para ejecutar el go/no-go público.
+- `beta_readiness_status.py --plain`: muestra el mismo semáforo en formato legible, con bloqueos, campos pendientes y siguientes acciones.
 - `PRODUCTION_READINESS.md`: lista corta de datos, variables, legal, gate final y prueba manual antes de abrir la beta.
 - `deploy/install_vps.sh`: instalador con guardarraíles para crear `.env`, copiar servicios, activar backups y validar smoke test en el VPS.
 - `deploy/launch_from_inputs.sh`: lanzador VPS de un solo comando desde `VPS_INPUTS.local.md`: valida, genera `.env`, renderiza privacidad e instala servicios.

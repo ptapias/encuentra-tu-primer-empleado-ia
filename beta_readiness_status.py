@@ -127,6 +127,34 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
     }
 
 
+def plain_report(result: dict) -> str:
+    lines = []
+    if result.get("ok"):
+        lines.append("Estado: listo para go/no-go público.")
+    else:
+        lines.append(f"Estado: {result.get('status', 'desconocido')}.")
+    blockers = result.get("blockers") or []
+    if blockers:
+        lines.append("")
+        lines.append("Bloqueos:")
+        for blocker in blockers:
+            lines.append(f"- {blocker}")
+    answers = result.get("checks", {}).get("answers_json", {})
+    missing = answers.get("empty_required") or []
+    if missing:
+        lines.append("")
+        lines.append("Datos que faltan en VPS_ANSWERS.local.json:")
+        for item in missing:
+            lines.append(f"- {item}")
+    actions = result.get("next_actions") or []
+    if actions:
+        lines.append("")
+        lines.append("Siguiente acción:")
+        for index, action in enumerate(actions, start=1):
+            lines.append(f"{index}. {action}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Resume el estado real de preparación para beta pública")
     parser.add_argument("--inputs", default=str(ROOT / "VPS_INPUTS.local.md"))
@@ -134,9 +162,13 @@ def main() -> int:
     parser.add_argument("--env", default=str(ROOT / ".env.generated"))
     parser.add_argument("--privacy", default=str(ROOT / "privacy_config.json"))
     parser.add_argument("--answers-json", default=str(ROOT / "VPS_ANSWERS.local.json"))
+    parser.add_argument("--plain", action="store_true", help="Muestra una salida legible para revisar qué falta")
     args = parser.parse_args()
     result = readiness(Path(args.inputs), Path(args.manual_test), Path(args.env), Path(args.privacy), Path(args.answers_json))
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if args.plain:
+        print(plain_report(result), end="")
+    else:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 1
 
 
