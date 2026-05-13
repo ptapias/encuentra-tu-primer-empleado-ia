@@ -2,6 +2,8 @@
 
 Objetivo: conseguir 8-12 pruebas reales sin explicar demasiado el producto. Queremos medir si la promesa se entiende sola, si el agente hace una discovery útil y si el informe genera ganas de actuar.
 
+Promesa que debe percibirse: **¿Dónde se te escapa tiempo, dinero o clientes?** El diagnóstico debe sentirse como una conversación con un consultor que entiende procesos, no como un formulario.
+
 ## Enlace base
 
 Sustituir dominio y campaña:
@@ -18,6 +20,15 @@ https://diagnostico.tu-dominio.com/?utm_source=youtube&utm_medium=description&ut
 https://diagnostico.tu-dominio.com/?utm_source=linkedin&utm_medium=dm&utm_campaign=beta_01
 ```
 
+## Antes de enviar
+
+- Sustituye `[ENLACE]` por el dominio real con UTM.
+- Prueba el enlace en incógnito y confirma que no pide email al inicio.
+- Haz tú un diagnóstico completo y revisa que el lead aparece en CRM.
+- No expliques herramientas, APIs ni cómo está construido por dentro.
+- No prometas que el informe llega por email: la beta lo genera en pantalla y guarda el diagnóstico en CRM.
+- Pide que respondan con un caso real, idealmente usando el micro si están en un entorno cómodo.
+
 ## Mensaje corto por WhatsApp/DM
 
 Te quería pedir una prueba rápida.
@@ -26,7 +37,7 @@ Estoy probando un diagnóstico gratuito con IA para detectar dónde se te escapa
 
 Funciona como una mini sesión de discovery: le cuentas tu caso, te repregunta y al final te genera un informe con oportunidades, riesgos y un primer plan de acción.
 
-Lo ideal es que lo hagas con un caso real y respondas como si estuvieras hablando conmigo. Al final te pedirá feedback; eso es lo que más me ayuda ahora.
+Lo ideal es que lo hagas con un caso real y respondas como si estuvieras hablando conmigo. Si puedes, usa el micro durante la primera respuesta: ayuda a que el agente entienda mejor el contexto. Al final te pedirá feedback; eso es lo que más me ayuda ahora.
 
 Aquí tienes el enlace:
 
@@ -46,7 +57,7 @@ La idea es sencilla: en vez de empezar por herramientas, agentes o prompts, prim
 - riesgos y datos necesarios;
 - un plan de 7 días para empezar.
 
-Es una beta. No busco que sea perfecta: busco ver si realmente entiende negocios reales.
+Es una beta. No busco que sea perfecta: busco ver si realmente entiende negocios reales, hace buenas repreguntas y devuelve una recomendación que no suene genérica.
 
 Pruébalo aquí:
 

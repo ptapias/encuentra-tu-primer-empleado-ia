@@ -25,6 +25,7 @@ PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
 LAUNCH_GO_NO_GO = ROOT / "launch_go_no_go.py"
+FIRST_TESTERS_PACKET = ROOT / "FIRST_TESTERS_PACKET.md"
 GITIGNORE = ROOT / ".gitignore"
 SENSITIVE_PATHS = [
     ".env",
@@ -118,6 +119,36 @@ def privacy_check(require_final: bool) -> dict:
         "placeholders": found,
         "public_beta_markers": public_found,
         "message": "Privacidad final pendiente" if (found or public_found) else "Privacidad sin placeholders detectados",
+    }
+
+
+def testers_packet_check() -> dict:
+    text = FIRST_TESTERS_PACKET.read_text(encoding="utf-8") if FIRST_TESTERS_PACKET.exists() else ""
+    required = [
+        "Antes de enviar",
+        "¿Dónde se te escapa tiempo, dinero o clientes",
+        "No es un formulario típico",
+        "feedback sincero",
+        "usa el micro",
+        "no pide email al inicio",
+        "utm_source",
+        "[ENLACE]",
+    ]
+    forbidden = [
+        "Descargar JSON",
+        "informe potente",
+        "OpenAI API",
+        "clave API",
+        "te llega por email",
+        "recibirás por email",
+    ]
+    missing = [item for item in required if item.lower() not in text.lower()]
+    leaked = [item for item in forbidden if item.lower() in text.lower()]
+    return {
+        "name": "first_testers_packet",
+        "ok": bool(text) and not missing and not leaked,
+        "missing": missing,
+        "leaked": leaked,
     }
 
 
@@ -338,6 +369,7 @@ def main():
         static_page_check(),
         sensitive_files_check(),
         privacy_check(require_privacy_final),
+        testers_packet_check(),
         deploy_config_check(),
     ]
     if args.public_beta:
