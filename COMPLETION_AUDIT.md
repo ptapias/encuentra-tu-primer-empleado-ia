@@ -35,7 +35,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | CRM con métricas de beta | `/api/metrics`, `CRM_Dashboard.html` | `curl /api/metrics` devuelve leads, inicio, email, informe, feedback y turnos | Hecho |
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead y metrics | Prueba con `ADMIN_PASSWORD`: `/api/metrics` devuelve `401` sin auth y `200` con auth | Hecho para VPS |
 | Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; con `ADMIN_PASSWORD` devuelve `401` sin auth y `200` con auth | Hecho |
-| Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `test_beta_smoke.py` | Smoke test local OK; despliegue real no ejecutado | Parcial |
+| Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight y smoke test locales OK; despliegue real no ejecutado | Parcial |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin UI mediocre ni términos internos | Búsqueda pública eliminó JSON, fallback, CRM, "informe potente" | `test_beta_smoke.py` comprueba gancho y ausencia de textos internos básicos | Hecho base |
@@ -56,6 +56,7 @@ Resultado reciente:
 - `healthz`: `{"ok": true, "provider": "codex"}`
 - Smoke test local: OK.
 - Métricas locales: 43 leads, 41 conversaciones iniciadas, 35 emails, 30 informes, 1 feedback.
+- Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 
 ## Huecos no cerrados
 

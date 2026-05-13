@@ -24,6 +24,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `COMPLETION_AUDIT.md`: auditoría requisito por requisito del estado real frente al objetivo Ontora-lite.
 - `test_discovery_flow.py`: prueba de producto con casos de clínica dental, inmobiliaria y consultor B2B.
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
+- `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `.env.example`: configuración de proveedor IA, límites, puerto y contraseña del CRM.
 - `Prototipo_Conversacional.html`: prototipo principal de chat conversacional con repreguntas, memoria, informe preliminar y feedback.
 - `Prototipo_Diagnostico.html`: prototipo antiguo tipo formulario. Mantener solo como referencia secundaria.

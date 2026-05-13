@@ -41,6 +41,18 @@ FFMPEG_BIN=/usr/bin/ffmpeg
 
 Si no vas a usar micrófono en la primera beta, la app seguirá funcionando por texto. El endpoint `/api/capabilities` indicará si la transcripción está disponible y la UI desactivará el botón de micro si faltan binarios.
 
+Antes de arrancar el servicio, ejecuta el preflight:
+
+```bash
+python3 preflight_vps.py --env .env
+```
+
+Si quieres comprobar también que Codex CLI está logueado y responde:
+
+```bash
+python3 preflight_vps.py --env .env --check-codex-live
+```
+
 ## 3. Servicio
 
 ```bash
