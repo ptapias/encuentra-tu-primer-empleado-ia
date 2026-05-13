@@ -20,6 +20,13 @@ PLACEHOLDER_MARKERS = {
     "recomendación: `no; solo con consentimiento separado`.",
 }
 FORBIDDEN_TEXT = ["Completar", "Definir", "tu-dominio", "PASSWORD_REAL", "change-me"]
+YES_NO_LABELS = [
+    "¿El dominio ya apunta al VPS?",
+    "¿Codex CLI ya está logueado con ese usuario?",
+    "¿El micro entra en la primera beta?",
+    "¿Webhook externo desde el día 1?",
+    "¿Enviar conversación completa al webhook?",
+]
 REQUIRED_LABELS = [
     "Dominio/subdominio público",
     "IP del VPS",
@@ -76,9 +83,18 @@ def validate(path: Path) -> dict:
         if marker.lower() in lowered:
             errors.append(f"Queda marcador o placeholder: {marker}")
 
+    for label in YES_NO_LABELS:
+        answer = fields.get(label, "").strip().lower()
+        if answer and not answer.startswith(("s", "n")):
+            errors.append(f"{label} debe responderse con sí o no")
+
     domain = fields.get("Dominio/subdominio público", "")
     if domain and not re.search(r"^[a-z0-9.-]+\.[a-z]{2,}$", domain.lower()):
         errors.append("Dominio/subdominio público no parece un dominio válido")
+
+    dns_answer = fields.get("¿El dominio ya apunta al VPS?", "").lower()
+    if dns_answer.startswith("n"):
+        errors.append("El dominio debe apuntar al VPS antes de lanzar HTTPS con Caddy")
 
     port = fields.get("Puerto SSH", "")
     if port and not port.isdigit():
@@ -95,6 +111,9 @@ def validate(path: Path) -> dict:
     ai_provider = fields.get("Proveedor IA inicial", "").lower()
     if ai_provider and all(option not in ai_provider for option in ["codex", "openai"]):
         warnings.append("Proveedor IA inicial no menciona codex ni openai")
+    codex_logged_in = fields.get("¿Codex CLI ya está logueado con ese usuario?", "").lower()
+    if "codex" in ai_provider and codex_logged_in.startswith("n"):
+        errors.append("Codex CLI debe estar logueado con el usuario systemd antes de lanzar con AI_PROVIDER=codex")
 
     webhook_answer = fields.get("¿Webhook externo desde el día 1?", "").lower()
     webhook_url = fields.get("URL webhook", "").strip()

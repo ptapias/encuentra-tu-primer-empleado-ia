@@ -100,8 +100,46 @@ def test_webhook_requires_url():
     assert_true(any("URL webhook" in error for error in result["errors"]), result)
 
 
+def test_codex_requires_logged_in_service_user():
+    path = write_tmp(
+        VALID_INPUTS.replace(
+            "¿Codex CLI ya está logueado con ese usuario?: sí",
+            "¿Codex CLI ya está logueado con ese usuario?: no",
+        )
+    )
+    try:
+        result = validate_vps_inputs.validate(path)
+    finally:
+        path.unlink(missing_ok=True)
+    assert_true(not result["ok"], "Codex sin login del usuario systemd debería bloquear")
+    assert_true(any("Codex CLI" in error for error in result["errors"]), result)
+
+
+def test_domain_must_point_to_vps_for_https_launch():
+    path = write_tmp(VALID_INPUTS.replace("¿El dominio ya apunta al VPS?: sí", "¿El dominio ya apunta al VPS?: no"))
+    try:
+        result = validate_vps_inputs.validate(path)
+    finally:
+        path.unlink(missing_ok=True)
+    assert_true(not result["ok"], "DNS sin apuntar debería bloquear lanzamiento HTTPS")
+    assert_true(any("dominio debe apuntar" in error for error in result["errors"]), result)
+
+
+def test_yes_no_fields_reject_ambiguous_answers():
+    path = write_tmp(VALID_INPUTS.replace("¿El micro entra en la primera beta?: no", "¿El micro entra en la primera beta?: quizá"))
+    try:
+        result = validate_vps_inputs.validate(path)
+    finally:
+        path.unlink(missing_ok=True)
+    assert_true(not result["ok"], "Las decisiones sí/no no deberían aceptar respuestas ambiguas")
+    assert_true(any("sí o no" in error for error in result["errors"]), result)
+
+
 if __name__ == "__main__":
     test_empty_template_fails()
     test_valid_inputs_pass()
     test_webhook_requires_url()
+    test_codex_requires_logged_in_service_user()
+    test_domain_must_point_to_vps_for_https_launch()
+    test_yes_no_fields_reject_ambiguous_answers()
     print("vps_inputs_validator ok")

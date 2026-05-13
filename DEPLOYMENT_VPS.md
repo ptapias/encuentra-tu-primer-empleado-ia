@@ -17,6 +17,8 @@ sudo -H -u primeria codex login
 sudo -H -u primeria codex exec --skip-git-repo-check --ephemeral 'Responde solo: ok'
 ```
 
+El validador de lanzamiento bloqueará la instalación guiada si eliges `AI_PROVIDER=codex` y marcas que Codex todavía no está logueado con ese usuario.
+
 ## 2. Subir aplicación
 
 ```bash
@@ -32,6 +34,8 @@ python3 generate_vps_inputs.py
 python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
 python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 ```
+
+El validador también bloquea el lanzamiento HTTPS si el dominio todavía no apunta al VPS. Cambia DNS antes de ejecutar el lanzador con `DOMAIN=...`.
 
 Después usa el lanzador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`, renderiza privacidad, instala servicios, activa backup y valida Caddy:
 

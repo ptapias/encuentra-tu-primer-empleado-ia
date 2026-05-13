@@ -9,6 +9,7 @@ Este documento convierte el despliegue en una operación corta y verificable. La
 - Sistema operativo del VPS.
 - Usuario con permisos sudo.
 - Confirmación de que el dominio ya apunta al VPS o que podemos cambiar DNS.
+- Confirmación de que Codex CLI ya está logueado con el usuario systemd si se lanza con `AI_PROVIDER=codex`.
 - Contraseña real para el CRM interno.
 - URL de webhook si queremos sincronizar con Make, n8n, Zapier, Airtable, HubSpot u otro CRM externo desde el día 1.
 - Email de contacto de privacidad.
@@ -27,6 +28,8 @@ sudo env DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
 El generador crea la ficha local ignorada por Git. El lanzador vuelve a validar inputs, genera `.env.generated` y `privacy_config.json`, renderiza privacidad pública, instala servicios y ejecuta smoke test local. Si queda algún campo clave vacío, placeholder o contraseña débil, se detiene antes de tocar systemd.
+
+Para lanzar con HTTPS, el validador bloquea si el dominio todavía no apunta al VPS. Para lanzar con Codex, bloquea si Codex CLI no está logueado con el usuario systemd que ejecutará la app.
 
 ## 2. Decisión de proveedor IA para la beta
 
