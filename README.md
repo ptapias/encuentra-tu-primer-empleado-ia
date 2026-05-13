@@ -71,7 +71,9 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 
 ## Recomendación de lanzamiento
 
-Lanzar primero la versión gratuita como experiencia conversacional adaptativa: el usuario empieza sin registro, habla en lenguaje natural, el agente decide la siguiente pregunta según lo que falta por entender, detecta procesos y pide el email solo al final para entregar el informe. Objetivo normal: 7-10 minutos; puede alargarse a 12-15 preguntas si el caso lo necesita.
+Lanzar primero como **Discovery gratuito**: una mini sesión consultiva para responder a la pregunta **¿Dónde se te escapa tiempo, dinero o clientes?**. La experiencia debe invitar a **empezar con una escena real**, sin registro inicial, y dejar que el agente repregunte según lo que falta por entender hasta convertir el relato en procesos, señales y prioridades.
+
+El usuario empieza sin email, habla en lenguaje natural, el agente decide la siguiente pregunta según el caso, detecta procesos automatizables y pide el email solo al final para generar el informe. Objetivo normal: 7-10 minutos; puede alargarse a 12-15 preguntas si el caso lo necesita.
 
 La versión actual incluye grabación por micrófono con transcripción local vía Whisper cuando se sirve con `app_server.py`, indicador de fase, matriz de evaluación basada en el framework `AI Use Case Evaluation Framework v0.2` e informe con iniciativas priorizadas. El informe explica por qué una oportunidad va primero, muestra las señales concretas que sostienen la recomendación, enseña un flujo práctico de cómo trabajaría el empleado IA y permite guardar/imprimir PDF antes de pasar al plan de 7/30 días.
 

@@ -197,6 +197,33 @@ def beta_test_plan_check() -> dict:
     }
 
 
+def readme_positioning_check() -> dict:
+    path = ROOT / "README.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    required = [
+        "Discovery gratuito",
+        "mini sesión consultiva",
+        "¿Dónde se te escapa tiempo, dinero o clientes?",
+        "empezar con una escena real",
+        "sin email",
+        "pide el email solo al final",
+    ]
+    forbidden = [
+        "Descargar JSON",
+        "informe potente",
+        "te llega por email",
+        "recibirás por email",
+    ]
+    missing = [item for item in required if item.lower() not in text.lower()]
+    leaked = [item for item in forbidden if item.lower() in text.lower()]
+    return {
+        "name": "readme_positioning",
+        "ok": bool(text) and not missing and not leaked,
+        "missing": missing,
+        "leaked": leaked,
+    }
+
+
 def deployment_handoff_check() -> dict:
     path = ROOT / "NEXT_DEPLOYMENT_HANDOFF.md"
     text = path.read_text(encoding="utf-8") if path.exists() else ""
@@ -502,6 +529,7 @@ def main():
         privacy_check(require_privacy_final),
         testers_packet_check(),
         beta_test_plan_check(),
+        readme_positioning_check(),
         deployment_handoff_check(),
         local_validation_check(),
         deploy_config_check(),
