@@ -2,6 +2,21 @@
 
 Estado actual: la app local esta en verde para demo controlada. El agente real con Codex ha pasado discovery completa en clinica dental, inmobiliaria y consultor B2B, sin fallback, con informe e insights especificos. El bloqueo ya no es producto local: faltan datos reales para desplegar.
 
+## 0. Mira el semáforo antes de tocar nada
+
+```bash
+python3 beta_readiness_status.py --plain
+```
+
+Ahora mismo deberías ver algo parecido a:
+
+```text
+Estado: blocked_on_launch_inputs.
+Datos VPS completados: 16/24.
+```
+
+Ese comando es la fuente corta de verdad para saber qué falta. Si después de rellenar datos sigue bloqueado, lee primero la sección "Valores ya rellenados que también bloquean": suele ser Codex no logueado como usuario systemd, DNS todavía no apuntando al VPS, contraseña CRM débil o privacidad incompleta.
+
 ## 1. Rellena estos 8 datos
 
 Abre `VPS_ANSWERS.local.json` y completa solo lo que falta. Importante: no renombres las claves; deben quedar exactamente como aparecen en el JSON.

@@ -194,6 +194,29 @@ def beta_test_plan_check() -> dict:
     }
 
 
+def deployment_handoff_check() -> dict:
+    path = ROOT / "NEXT_DEPLOYMENT_HANDOFF.md"
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    required = [
+        "python3 beta_readiness_status.py --plain",
+        "Datos VPS completados",
+        "Valores ya rellenados que también bloquean",
+        "python3 generate_vps_inputs.py --fill-missing-answers VPS_ANSWERS.local.json",
+        "python3 validate_vps_inputs.py --path VPS_INPUTS.local.md",
+        "python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md",
+        "python3 render_privacy.py --config privacy_config.json",
+        "python3 print_vps_deploy_commands.py --inputs VPS_INPUTS.local.md",
+        "PUBLIC_BETA=true",
+        "MANUAL_PRODUCTION_TEST.local.md",
+    ]
+    missing = [item for item in required if item not in text]
+    return {
+        "name": "deployment_handoff",
+        "ok": bool(text) and not missing,
+        "missing": missing,
+    }
+
+
 def local_validation_check() -> dict:
     text = LOCAL_VALIDATION.read_text(encoding="utf-8") if LOCAL_VALIDATION.exists() else ""
     lines = text.splitlines()
@@ -473,6 +496,7 @@ def main():
         privacy_check(require_privacy_final),
         testers_packet_check(),
         beta_test_plan_check(),
+        deployment_handoff_check(),
         local_validation_check(),
         deploy_config_check(),
     ]
