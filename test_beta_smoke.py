@@ -316,6 +316,8 @@ def main():
     expect("webhook_errors" in metrics["metrics"], "las métricas no exponen errores de webhook")
     expect("recent_operational_events" in metrics["metrics"], "las métricas no exponen incidencias operativas recientes")
     expect("avg_chat_latency_seconds" in metrics["metrics"] and "avg_report_latency_seconds" in metrics["metrics"], "las métricas no exponen latencia de IA")
+    expect(metrics["metrics"].get("avg_feedback_rating", 0) >= 4, "las métricas no calculan utilidad media del feedback")
+    expect(any(item.get("name") == "Costes estimados" for item in metrics["metrics"].get("top_feedback_missing", [])), "las métricas no agregan faltantes de feedback")
     expect(any(item.get("name") == "cohort" for item in metrics["metrics"].get("top_cta_interest", [])), "las métricas no agregan CTA por segmento")
     checks.append({"check": "metrics", "auth_required": bool(auth), "status_without_auth": metrics_without_auth})
 

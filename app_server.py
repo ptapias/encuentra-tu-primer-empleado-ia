@@ -1622,6 +1622,9 @@ class Handler(SimpleHTTPRequestHandler):
         use_case_counts: dict[str, int] = {}
         source_counts: dict[str, int] = {}
         cta_counts: dict[str, int] = {}
+        feedback_missing_counts: dict[str, int] = {}
+        feedback_improve_counts: dict[str, int] = {}
+        feedback_ratings: list[float] = []
         recent_reports = []
         for row in lead_rows:
             facts = json.loads(row["facts_json"] or "{}")
@@ -1645,6 +1648,22 @@ class Handler(SimpleHTTPRequestHandler):
                 with_email += 1
             if row["feedback_json"]:
                 with_feedback += 1
+                try:
+                    feedback = json.loads(row["feedback_json"] or "{}")
+                except json.JSONDecodeError:
+                    feedback = {}
+                try:
+                    rating = float(feedback.get("rating"))
+                    if 1 <= rating <= 5:
+                        feedback_ratings.append(rating)
+                except (TypeError, ValueError):
+                    pass
+                missing = humanize(feedback.get("missing"))[:90]
+                improve = humanize(feedback.get("improve"))[:90]
+                if missing:
+                    feedback_missing_counts[missing] = feedback_missing_counts.get(missing, 0) + 1
+                if improve:
+                    feedback_improve_counts[improve] = feedback_improve_counts.get(improve, 0) + 1
             outcome = json.loads(row["outcome_json"]) if row["outcome_json"] else None
             if outcome:
                 with_report += 1
@@ -1728,6 +1747,7 @@ class Handler(SimpleHTTPRequestHandler):
             "consent_rate": pct(with_consent),
             "report_rate": pct(with_report),
             "feedback_rate": pct(with_feedback),
+            "avg_feedback_rating": round(sum(feedback_ratings) / len(feedback_ratings), 1) if feedback_ratings else 0,
             "cta_interest_rate": pct(with_cta_interest),
             "avg_user_turns": round(total_turns / total, 1) if total else 0,
             "ai_errors": ai_errors,
@@ -1741,6 +1761,8 @@ class Handler(SimpleHTTPRequestHandler):
             "top_use_cases": top_items(use_case_counts),
             "top_sources": top_items(source_counts),
             "top_cta_interest": top_items(cta_counts),
+            "top_feedback_missing": top_items(feedback_missing_counts),
+            "top_feedback_improve": top_items(feedback_improve_counts),
             "recent_reports": sorted(recent_reports, key=lambda item: item["updated_at"], reverse=True)[:5],
             "recent_operational_events": recent_operational_events,
         }

@@ -441,6 +441,7 @@
       const { metrics } = await api("/api/metrics");
       const topSource = (metrics.top_sources || [])[0];
       const topCta = (metrics.top_cta_interest || [])[0];
+      const topMissing = (metrics.top_feedback_missing || [])[0];
       const opsEvents = (metrics.recent_operational_events || []).slice(0, 5);
       const opsEventsHtml = opsEvents.length
         ? `<div class="ops-events"><span>Incidencias recientes</span><ul>${opsEvents.map(item => `<li>${escapeHtml(item.event)} ${item.stage ? `· ${escapeHtml(item.stage)}` : ""}${item.source_event ? `· ${escapeHtml(item.source_event)}` : ""}: ${escapeHtml(item.error || "sin detalle")}</li>`).join("")}</ul></div>`
@@ -453,6 +454,7 @@
         renderMetric("Informe", `${metrics.report_rate}%`, `${metrics.reports_generated} generados`),
         renderMetric("Interés CTA", `${metrics.cta_interest_rate || 0}%`, `${metrics.cta_interest || 0} señales`),
         renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
+        renderMetric("Utilidad", metrics.avg_feedback_rating ? `${metrics.avg_feedback_rating}/5` : "sin datos", topMissing ? `Falta: ${topMissing.name}` : "Aún sin patrones"),
         renderMetric("Turnos", metrics.avg_user_turns, "Media usuario"),
         renderMetric("Latencia IA", metrics.avg_chat_latency_seconds ? `${metrics.avg_chat_latency_seconds}s` : "sin datos", metrics.avg_report_latency_seconds ? `Informe ${metrics.avg_report_latency_seconds}s` : "Aún sin informes medidos"),
         renderMetric("Salud IA", metrics.operational_status || "ok", `${metrics.ai_errors || 0} errores · ${metrics.ai_busy || 0} ocupados`),
