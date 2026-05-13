@@ -78,6 +78,7 @@ def run_case(case):
     assert_true(isinstance(last.get("live_insights"), list), "live_insights no es lista")
     assert_true(isinstance(last.get("candidate_processes"), list), "candidate_processes no es lista")
     assert_true(last.get("confidence", 0) > 0.25, "confidence demasiado baja")
+    assert_true(last.get("ready_for_report"), "El agente no cerró la discovery tras 4 turnos con evidencia suficiente")
 
     post("/api/email", {"lead_id": lead_id, "email": case["email"]})
     report = post("/api/report", {"lead_id": lead_id})["report"]

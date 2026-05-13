@@ -28,6 +28,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | "Ontora-lite" para pymes españolas | `Agente_Real_CRM.html`, `app_server.py`, `Sistema_Completo.md` | Copy y prompts orientados a pymes, autónomos y personas no técnicas | Parcial: falta beta externa |
 | Agente de discovery adaptativo | `AGENT_INSTRUCTIONS` y `call_codex_cli()` en `app_server.py` | Prueba real con caso newsletter/email en `AI_PROVIDER=codex`: siguió el caso y cerró en 4 turnos | Hecho local |
 | Antibloqueo conversacional | `repair_repetitive_reply()` en `app_server.py` | Si la IA repite una petición de ejemplo o el usuario se frustra, el backend reconoce el atasco y avanza a impacto, herramientas, riesgo o cierre; `test_agent_quality_guard.py` lo valida | Hecho base |
+| Cierre eficiente de discovery | `enforce_readiness_window()` en `app_server.py` | Con 4 turnos, foco, candidatos y confianza alta, activa informe aunque queden detalles finos; `test_discovery_flow.py` exige `ready_for_report` en clínica, inmobiliaria y consultor | Hecho base |
 | Entrevista en lenguaje natural | UI chat en `Agente_Real_CRM.html` | Navegador local muestra inicio conversacional y typewriter | Hecho |
 | Entiende procesos reales | Campos `facts`, `signals`, `candidate_processes`, `current_focus` | Test de clínica, inmobiliaria, consultor B2B; prueba real de email | Hecho local |
 | Progreso e insights vivos | Sidebar "Lo que estoy entendiendo" en `Agente_Real_CRM.html` | DOM verificado en navegador; `updateDiscovery()` actualiza claridad, foco, señales y gaps | Hecho |
@@ -90,6 +91,7 @@ Resultado reciente:
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
+- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: detectó foco correcto e informes específicos; se corrigió exceso de prudencia para activar informe cuando ya hay confianza alta.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.

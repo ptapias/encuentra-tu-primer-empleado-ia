@@ -567,6 +567,28 @@ def repair_repetitive_reply(result: dict, lead: dict, user_text: str) -> dict:
     return result
 
 
+def enforce_readiness_window(result: dict, lead: dict) -> dict:
+    user_turns = len([item for item in lead.get("transcript", []) if item.get("role") == "user"])
+    confidence = float(result.get("confidence") or 0)
+    has_candidates = bool(result.get("candidate_processes"))
+    has_focus = bool(result.get("current_focus") or result.get("facts", {}).get("selected_process"))
+    enough_evidence = has_focus and has_candidates and confidence >= 0.74 and user_turns >= 4
+    long_enough = has_focus and confidence >= 0.62 and user_turns >= 8
+    if result.get("ready_for_report") or not (enough_evidence or long_enough):
+        return result
+
+    focus = result.get("current_focus") or result.get("facts", {}).get("selected_process") or "el proceso principal"
+    result["ready_for_report"] = True
+    result["stage"] = "recomendacion"
+    result["progress_label"] = "Listo para generar informe"
+    result["open_gaps"] = ensure_list(result.get("open_gaps"))[:3]
+    result["reply"] = (
+        f"Con esto ya tengo suficiente para preparar un diagnóstico útil sobre {focus}. "
+        "Puede que falten detalles finos, pero prefiero marcar esas partes con confianza media en el informe antes que alargar la entrevista sin necesidad."
+    )
+    return result
+
+
 def stagePctBackend():
     return {"contexto", "exploracion", "profundizacion", "evaluacion", "recomendacion", "informe"}
 
@@ -1176,6 +1198,7 @@ class Handler(SimpleHTTPRequestHandler):
             result["api_error"] = str(exc)
         result = normalize_agent_result(result, lead)
         result = repair_repetitive_reply(result, lead, user_text)
+        result = enforce_readiness_window(result, lead)
         transcript.append({"role": "assistant", "content": result.get("reply", ""), "at": now()})
         update_lead(
             lead_id,
