@@ -89,7 +89,7 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
             next_actions.append("Rellena `VPS_ANSWERS.local.json` y después ejecuta `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
         else:
             next_actions.append("Ejecuta `python3 generate_vps_inputs.py` para crear `VPS_INPUTS.local.md` de forma guiada y validable.")
-            next_actions.append("Si prefieres rellenarlo en un archivo, ejecuta `python3 generate_vps_inputs.py --print-answers-template > VPS_ANSWERS.local.json`, edítalo y luego `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
+            next_actions.append("Si prefieres rellenarlo en un archivo, ejecuta `cp VPS_ANSWERS.example.json VPS_ANSWERS.local.json`, edítalo y luego `python3 generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json`.")
         next_actions.append("Después ejecuta `python3 validate_vps_inputs.py --path VPS_INPUTS.local.md`.")
     elif inputs.get("ok") and not env_path.exists():
         next_actions.append("Ejecuta `python3 print_vps_deploy_commands.py --inputs VPS_INPUTS.local.md` para obtener los comandos SSH/SCP exactos.")

@@ -39,6 +39,28 @@ def test_default_repo_is_blocked_on_launch_inputs():
     )
 
 
+def test_missing_answers_json_recommends_versioned_template():
+    with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
+        base = Path(tmp)
+        result = beta_readiness_status.readiness(
+            base / "VPS_INPUTS.local.md",
+            base / "MANUAL_PRODUCTION_TEST.local.md",
+            base / ".env.generated",
+            base / "privacy_config.json",
+            base / "VPS_ANSWERS.local.json",
+        )
+    assert_true(not result["ok"], result)
+    assert_true(not result["checks"]["answers_json"]["exists"], "La ficha JSON local no debería existir en este escenario")
+    assert_true(
+        any("cp VPS_ANSWERS.example.json VPS_ANSWERS.local.json" in action for action in result["next_actions"]),
+        "Si no existe JSON local, debería recomendar copiar la plantilla versionada",
+    )
+    assert_true(
+        any("generate_vps_inputs.py --answers-json VPS_ANSWERS.local.json" in action for action in result["next_actions"]),
+        "Tras copiar la plantilla, debería explicar cómo generar los inputs de despliegue",
+    )
+
+
 def test_existing_answers_json_is_reported_and_prioritized():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-readiness-") as tmp:
         base = Path(tmp)
@@ -149,6 +171,7 @@ def test_complete_answers_json_state_is_ok():
 
 if __name__ == "__main__":
     test_default_repo_is_blocked_on_launch_inputs()
+    test_missing_answers_json_recommends_versioned_template()
     test_existing_answers_json_is_reported_and_prioritized()
     test_answers_json_reports_blocking_filled_values()
     test_complete_artifacts_are_ready_for_public_go_no_go()
