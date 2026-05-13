@@ -40,6 +40,14 @@ Cada turno puede tardar 9-20 segundos. El diagnóstico puede tardar 30-90 segund
 Con el servidor arrancado:
 
 ```bash
+python3 test_public_ui_flow.py --base http://localhost:8787
+```
+
+Esta prueba abre la página como escritorio y móvil, comprueba que el gancho inicial aparece pronto, que se puede empezar sin pedir email y que el estado de espera aparece mientras el agente prepara la respuesta.
+
+Después valida la calidad del agente real:
+
+```bash
 python3 test_discovery_flow.py
 ```
 
@@ -70,4 +78,5 @@ Antes de subirlo:
 - El CRM interno muestra conversación, diagnóstico y feedback.
 - No hay textos internos en la página pública.
 - Codex CLI funciona en la máquina destino o se decide usar API.
+- `python3 test_public_ui_flow.py --base http://localhost:8787` pasa.
 - `python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787` pasa en local.

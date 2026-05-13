@@ -197,6 +197,7 @@ def main():
                 "test_server_guards.py",
                 "test_backup_crm.py",
                 "test_privacy_renderer.py",
+                "test_public_ui_flow.py",
                 "render_privacy.py",
             ],
         ),

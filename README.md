@@ -32,6 +32,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `PRIVACY_BETA.html`: página pública de privacidad enlazada desde el diagnóstico.
 - `test_discovery_flow.py`: prueba de producto con casos de clínica dental, inmobiliaria y consultor B2B.
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
+- `test_public_ui_flow.py`: prueba de navegador para validar gancho inicial, móvil, arranque sin email y estado de espera del agente.
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.
 - `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
@@ -83,6 +84,7 @@ AI_PROVIDER=fallback python3 app_server.py
 Para validar el producto antes del VPS:
 
 ```bash
+python3 test_public_ui_flow.py --base http://localhost:8787
 python3 test_discovery_flow.py
 ```
 
