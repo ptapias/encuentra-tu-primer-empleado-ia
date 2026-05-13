@@ -1084,11 +1084,33 @@
       }
     }
 
+    function collectAttribution() {
+      const params = new URLSearchParams(window.location.search);
+      const value = (...keys) => {
+        for (const key of keys) {
+          const found = params.get(key);
+          if (found) return found.slice(0, 120);
+        }
+        return "";
+      };
+      return {
+        source: value("utm_source", "source"),
+        medium: value("utm_medium", "medium"),
+        campaign: value("utm_campaign", "campaign"),
+        content: value("utm_content", "content"),
+        term: value("utm_term", "term"),
+        video: value("video", "v"),
+        ref: value("ref"),
+        landing_path: window.location.pathname,
+        landing_query: window.location.search.slice(0, 240)
+      };
+    }
+
     async function startSession() {
       setCrm("Preparando el diagnóstico...", "");
       start.disabled = true;
       try {
-        const session = await api("/api/session", {});
+        const session = await api("/api/session", { attribution: collectAttribution() });
         resetSession.hidden = false;
         leadId = session.lead_id;
         transcript = [];

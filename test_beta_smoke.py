@@ -138,8 +138,16 @@ def main():
     expect(all(status == 404 for status in blocked_statuses.values()), f"archivos sensibles expuestos: {blocked_statuses}")
     checks.append({"check": "sensitive_static_files", "statuses": blocked_statuses})
 
-    status, session = request(args.base, "/api/session", payload={})
+    attribution = {
+        "source": "youtube",
+        "medium": "video",
+        "campaign": "whatsapp_ia",
+        "video": "agente-whatsapp",
+        "landing_path": "/Agente_Real_CRM.html",
+    }
+    status, session = request(args.base, "/api/session", payload={"attribution": attribution})
     expect(status == 200 and session.get("lead_id"), "no se puede crear sesión pública")
+    expect(session.get("facts", {}).get("attribution", {}).get("source") == "youtube", "no se guarda la atribución inicial")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
 
     status, delete_session = request(args.base, "/api/session", payload={})
@@ -181,6 +189,7 @@ def main():
     status, lead_detail = request(args.base, f"/api/lead?id={session['lead_id']}", auth=lead_auth)
     saved_feedback = lead_detail.get("lead", {}).get("feedback", {})
     expect(saved_feedback.get("rating") == 4 and saved_feedback.get("missing") == "Costes estimados", "el feedback estructurado no queda guardado en CRM")
+    expect(lead_detail.get("lead", {}).get("facts", {}).get("attribution", {}).get("campaign") == "whatsapp_ia", "la atribución no queda disponible en CRM")
     checks.append({"check": "structured_feedback", "ok": True})
 
     try:
@@ -234,6 +243,7 @@ def main():
         expect(status == 200 and "metrics" in metrics, "las métricas no responden con autenticación")
     else:
         expect(metrics_without_auth == 200 and "metrics" in metrics, "las métricas no responden en entorno sin auth")
+    expect(any(item.get("name") == "youtube" for item in metrics["metrics"].get("top_sources", [])), "las métricas no agregan origen de lead")
     checks.append({"check": "metrics", "auth_required": bool(auth), "status_without_auth": metrics_without_auth})
 
     try:
@@ -248,6 +258,7 @@ def main():
         expect(status == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde con autenticación")
     else:
         expect(export_without_auth == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde en entorno sin auth")
+    expect("source,medium,campaign,video,ref" in export_csv.splitlines()[0], "el export CSV no incluye atribución")
     checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
 
     print(json.dumps({"ok": True, "base": args.base, "checks": checks}, ensure_ascii=False, indent=2))

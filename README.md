@@ -84,6 +84,8 @@ Para pruebas puedes usar `AI_PROVIDER=fallback` o `ALLOW_AI_FALLBACK=true`. Para
 
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
 
+La app guarda atribución básica si el enlace incluye parámetros como `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `video` o `ref`. Ejemplo para YouTube: `/Agente_Real_CRM.html?utm_source=youtube&utm_campaign=whatsapp_ia&video=agente-whatsapp`. El origen aparece en CRM, métricas y CSV.
+
 Desde `CRM_Dashboard.html` puedes operar la beta sin tocar la base de datos: seleccionar un lead, cambiar su estado, ajustar la oferta recomendada, añadir notas internas, revisar qué gustó/faltó del diagnóstico y borrar un lead completo si alguien pide eliminar sus datos. Los cambios quedan registrados como evento interno cuando procede.
 
 Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo. En VPS, define `WHISPER_BIN` y `FFMPEG_BIN` si no están en el `PATH`; si faltan, la app desactiva el micro y mantiene el flujo por texto.

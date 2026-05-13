@@ -250,6 +250,7 @@
           <thead>
             <tr>
               <th>Email</th>
+              <th>Origen</th>
               <th>Caso</th>
               <th>Score</th>
               <th>Oferta</th>
@@ -334,6 +335,7 @@
       const { leads } = await api("/api/leads");
       rows.innerHTML = leads.map(lead => `<tr data-id="${escapeHtml(lead.id)}">
         <td><strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong><br>${escapeHtml(new Date(lead.updated_at * 1000).toLocaleString())}</td>
+        <td>${escapeHtml(lead.source || "directo")}<br><span class="badge">${escapeHtml(lead.campaign || "sin campaña")}</span></td>
         <td>${escapeHtml(lead.recommended_employee || lead.use_case || "sin informe")}<br><span class="badge">${escapeHtml(lead.turns)} turnos</span></td>
         <td>${escapeHtml(readable(lead.score || 0))}</td>
         <td>${escapeHtml(offerLabel(lead.offer))}</td>
@@ -349,13 +351,15 @@
 
     async function loadMetrics() {
       const { metrics } = await api("/api/metrics");
+      const topSource = (metrics.top_sources || [])[0];
       metricsEl.innerHTML = [
         renderMetric("Leads", metrics.total_leads, "Total capturado"),
         renderMetric("Conversan", `${metrics.chat_start_rate}%`, `${metrics.started_chat} con mensajes`),
         renderMetric("Email", `${metrics.email_capture_rate}%`, `${metrics.email_captured} contactos`),
         renderMetric("Informe", `${metrics.report_rate}%`, `${metrics.reports_generated} generados`),
         renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
-        renderMetric("Turnos", metrics.avg_user_turns, "Media usuario")
+        renderMetric("Turnos", metrics.avg_user_turns, "Media usuario"),
+        renderMetric("Origen top", topSource?.name || "sin datos", topSource ? `${topSource.count} leads` : "Añade UTM al enlace")
       ].join("");
     }
 
@@ -368,6 +372,7 @@
       selected.textContent = id.slice(0, 8);
       const report = lead.outcome || {};
       const crm = report.crm_summary || {};
+      const attribution = lead.facts?.attribution || {};
       const currentOffer = crm.offer || "";
       const currentStatus = lead.status || crm.status || "new";
       const currentNotes = crm.internal_notes || "";
@@ -394,6 +399,8 @@
         <div class="card"><span>Oferta</span>${escapeHtml(offerLabel(crm.offer))}</div>
         <div class="card"><span>Urgencia</span>${escapeHtml(crm.urgency || "no detectada")}</div>
         <div class="card"><span>Presupuesto</span>${escapeHtml(crm.budget || "no detectado")}</div>
+        <div class="card"><span>Origen</span>${escapeHtml(attribution.source || attribution.ref || "directo")}</div>
+        <div class="card"><span>Campaña</span>${escapeHtml(attribution.campaign || attribution.video || "sin campaña")}</div>
       </div>
       <form class="card ops-form" id="ops-form">
         <span>Operación interna</span>
@@ -494,7 +501,7 @@
 
     document.getElementById("refresh").addEventListener("click", refreshAll);
     refreshAll().catch(error => {
-      rows.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message)}</td></tr>`;
+      rows.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
     });
   </script>
 </body>

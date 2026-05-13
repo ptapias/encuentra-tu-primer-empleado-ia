@@ -217,6 +217,36 @@ def valid_email(email: str) -> bool:
     return bool(local and "." in domain and not any(char.isspace() for char in email))
 
 
+def clean_tracking_value(value, max_len=120) -> str:
+    text = humanize(value).strip()
+    if not text:
+        return ""
+    return "".join(char for char in text if char.isalnum() or char in " ._-:/?#&=%+").strip()[:max_len]
+
+
+def sanitize_attribution(payload: dict) -> dict:
+    raw = payload.get("attribution") if isinstance(payload, dict) else {}
+    if not isinstance(raw, dict):
+        raw = {}
+    allowed = [
+        "source",
+        "medium",
+        "campaign",
+        "content",
+        "term",
+        "video",
+        "ref",
+        "landing_path",
+        "landing_query",
+    ]
+    attribution = {}
+    for key in allowed:
+        value = clean_tracking_value(raw.get(key))
+        if value:
+            attribution[key] = value
+    return attribution
+
+
 def transcription_status() -> dict:
     whisper_path = shutil.which(WHISPER) if not Path(WHISPER).exists() else WHISPER
     ffmpeg_path = shutil.which(FFMPEG) if not Path(FFMPEG).exists() else FFMPEG
@@ -282,11 +312,11 @@ def insert_event(lead_id: str | None, event_name: str, payload: dict):
         )
 
 
-def create_lead(email: str = "") -> dict:
+def create_lead(email: str = "", attribution: dict | None = None) -> dict:
     lead_id = str(uuid.uuid4())
     ts = now()
     transcript = []
-    facts = {}
+    facts = {"attribution": attribution or {}} if attribution else {}
     signals = {}
     with db() as conn:
         conn.execute(
@@ -984,8 +1014,9 @@ class Handler(SimpleHTTPRequestHandler):
         if email and not valid_email(email):
             self._json({"error": "Introduce un email válido."}, 400)
             return
-        lead = create_lead(email)
-        insert_event(lead["lead_id"], "session_created", payload)
+        attribution = sanitize_attribution(payload)
+        lead = create_lead(email, attribution)
+        insert_event(lead["lead_id"], "session_created", {"email": email, "attribution": attribution})
         self._json(lead)
 
     def _handle_email(self):
@@ -1182,6 +1213,7 @@ class Handler(SimpleHTTPRequestHandler):
             signals = json.loads(row["signals_json"] or "{}")
             feedback = json.loads(row["feedback_json"]) if row["feedback_json"] else None
             transcript = json.loads(row["transcript_json"] or "[]")
+            attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
             leads.append(
                 {
                     "id": row["id"],
@@ -1194,6 +1226,8 @@ class Handler(SimpleHTTPRequestHandler):
                     "use_case": outcome.get("crm_summary", {}).get("use_case") if outcome else facts.get("selected_process", ""),
                     "score": score_0_to_100(outcome.get("crm_summary", {}).get("score"), 0) if outcome else 0,
                     "offer": outcome.get("crm_summary", {}).get("offer") if outcome else "",
+                    "source": attribution.get("source") or attribution.get("ref") or "",
+                    "campaign": attribution.get("campaign") or attribution.get("video") or "",
                     "signals": signals,
                     "has_feedback": bool(feedback),
                     "turns": len([m for m in transcript if m.get("role") == "user"]),
@@ -1220,7 +1254,7 @@ class Handler(SimpleHTTPRequestHandler):
         with db() as conn:
             lead_rows = conn.execute(
                 """
-                SELECT email, stage, status, outcome_json, feedback_json, transcript_json, updated_at
+                SELECT email, stage, status, facts_json, outcome_json, feedback_json, transcript_json, updated_at
                 FROM leads
                 """
             ).fetchall()
@@ -1240,8 +1274,13 @@ class Handler(SimpleHTTPRequestHandler):
         total_turns = 0
         offer_counts: dict[str, int] = {}
         use_case_counts: dict[str, int] = {}
+        source_counts: dict[str, int] = {}
         recent_reports = []
         for row in lead_rows:
+            facts = json.loads(row["facts_json"] or "{}")
+            attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
+            source = humanize(attribution.get("source") or attribution.get("ref")) or "directo"
+            source_counts[source] = source_counts.get(source, 0) + 1
             transcript = json.loads(row["transcript_json"] or "[]")
             turns = len([m for m in transcript if m.get("role") == "user"])
             total_turns += turns
@@ -1292,6 +1331,7 @@ class Handler(SimpleHTTPRequestHandler):
             "events": {row["event"]: row["count"] for row in event_rows},
             "top_offers": top_items(offer_counts),
             "top_use_cases": top_items(use_case_counts),
+            "top_sources": top_items(source_counts),
             "recent_reports": sorted(recent_reports, key=lambda item: item["updated_at"], reverse=True)[:5],
         }
         self._json({"metrics": metrics})
@@ -1315,6 +1355,11 @@ class Handler(SimpleHTTPRequestHandler):
             "updated_at",
             "stage",
             "status",
+            "source",
+            "medium",
+            "campaign",
+            "video",
+            "ref",
             "sector",
             "use_case",
             "score",
@@ -1337,6 +1382,7 @@ class Handler(SimpleHTTPRequestHandler):
             facts = json.loads(row["facts_json"] or "{}")
             feedback = json.loads(row["feedback_json"]) if row["feedback_json"] else None
             transcript = json.loads(row["transcript_json"] or "[]")
+            attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
             crm = outcome.get("crm_summary", {})
             writer.writerow(
                 {
@@ -1346,6 +1392,11 @@ class Handler(SimpleHTTPRequestHandler):
                     "updated_at": row["updated_at"],
                     "stage": row["stage"],
                     "status": row["status"],
+                    "source": humanize(attribution.get("source")),
+                    "medium": humanize(attribution.get("medium")),
+                    "campaign": humanize(attribution.get("campaign")),
+                    "video": humanize(attribution.get("video")),
+                    "ref": humanize(attribution.get("ref")),
                     "sector": humanize(crm.get("sector")),
                     "use_case": humanize(crm.get("use_case")) or humanize(facts.get("selected_process")),
                     "score": score_0_to_100(crm.get("score"), 0) if outcome else 0,
