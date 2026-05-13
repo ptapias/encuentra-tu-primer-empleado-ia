@@ -13,6 +13,38 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 
 
+def git_head_short() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+    except Exception:
+        return ""
+    if result.returncode != 0:
+        return ""
+    return (result.stdout or "").strip()
+
+
+def git_worktree_dirty() -> bool:
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=str(ROOT),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+    except Exception:
+        return False
+    return result.returncode == 0 and bool((result.stdout or "").strip())
+
+
 def run_step(name: str, command: list[str], *, timeout: int = 420) -> dict:
     completed = subprocess.run(
         command,
@@ -66,6 +98,7 @@ def write_temp_env(base: str) -> Path:
                 "MAX_AI_CONCURRENCY=1",
                 "AI_QUEUE_WAIT_SECONDS=8",
                 "BETA_NOINDEX=true",
+                f"APP_VERSION={git_head_short()}",
                 f"WHISPER_BIN={shutil.which('whisper') or ''}",
                 f"FFMPEG_BIN={shutil.which('ffmpeg') or ''}",
                 "",
@@ -88,10 +121,28 @@ def main() -> int:
     blockers = []
     warnings = []
     next_actions = []
+    expected_version = git_head_short()
+    worktree_dirty = git_worktree_dirty()
+    if worktree_dirty:
+        warnings.append(
+            "Hay cambios locales sin commit. El semáforo valida que el servidor coincide con el último commit, pero conviene cerrar o commitear antes de invitar testers."
+        )
 
     try:
         health = read_json(f"{args.base.rstrip('/')}/healthz")
-        checks.append({"name": "server_running", "ok": True, "health": health})
+        server_check = {
+            "name": "server_running",
+            "ok": True,
+            "health": health,
+            "expected_version": expected_version,
+            "worktree_dirty": worktree_dirty,
+        }
+        if expected_version and str(health.get("version")) != expected_version:
+            server_check["ok"] = False
+            blockers.append(
+                f"El servidor vivo expone /healthz.version={health.get('version')}, pero el código actual es {expected_version}. Reinicia la beta local."
+            )
+        checks.append(server_check)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
         checks.append({"name": "server_running", "ok": False, "error": str(exc)})
         blockers.append(f"No puedo conectar con {args.base}. Arranca `python3 app_server.py` y vuelve a ejecutar este chequeo.")
