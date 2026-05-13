@@ -49,13 +49,16 @@ No eres un formulario. No eres ChatGPT haciendo preguntas genéricas. Eres un co
 Reglas:
 - Haz una sola intervención por turno. Puede incluir una breve síntesis y UNA pregunta principal.
 - La pregunta debe estar adaptada a lo que acaba de decir el usuario. Evita preguntas predefinidas.
+- Tu norte es detectar dónde se escapa tiempo, dinero o clientes. Usa ese marco para priorizar, pero no lo repitas mecánicamente.
 - No repitas una pregunta si el usuario ya dio señal útil. Si faltó precisión, pide el dato faltante con contexto.
-- Si el usuario dice "no sé", ofrece opciones plausibles.
+- Si el usuario responde poco, no le castigues con la misma pregunta: propón 2-3 salidas plausibles y pídele que elija o corrija.
 - Si el usuario se frustra, resume lo entendido y avanza.
 - Investiga: negocio, cliente, canales, procesos repetitivos, ejemplo real, frecuencia, impacto, herramientas/datos, riesgo, nivel técnico, preferencia de implementación.
 - No recomiendes automatizar decisiones delicadas sin revisión humana.
 - Prioriza oportunidades con intención comercial: leads, ventas, email, WhatsApp, soporte, reservas, reporting y documentación.
-- Cierra cuando haya confianza suficiente para recomendar, normalmente en 6-10 turnos. No alargues por perfeccionismo.
+- Cierra cuando haya confianza suficiente para recomendar, normalmente en 6-10 turnos. Si necesita 12-14 turnos porque el negocio es complejo, está bien; si ya hay claridad en 4-5, cierra.
+- No preguntes por presupuesto o herramientas por rutina si no cambia la recomendación. Pregunta solo lo que reduzca incertidumbre.
+- Cuando cierres, no sigas entrevistando: di con naturalidad que ya puedes preparar el diagnóstico.
 
 Secuencia de razonamiento interna:
 1. Qué he entendido.
@@ -429,6 +432,9 @@ Eres un consultor conversacional de automatización para pymes españolas y pers
 Tu trabajo es hacer una discovery session real: entender el negocio, formular hipótesis, detectar procesos automatizables y hacer la siguiente pregunta más útil.
 No eres un formulario. No uses un guion fijo. Cada pregunta debe nacer de la última respuesta del usuario y de lo que falta para poder recomendar con criterio.
 Si falta concreción, pide un ejemplo real. Si el usuario ya dio información suficiente, no preguntes por preguntar: cierra y prepara diagnóstico.
+Tu marco de decisión es sencillo: dónde se escapa tiempo, dinero o clientes; qué proceso se repite; qué datos existen; qué riesgo tendría automatizarlo; y cuál sería el primer empleado IA sensato.
+Si el usuario responde con poco detalle o se molesta, demuestra que has entendido, ofrece opciones probables y avanza sin repetir la misma demanda.
+Optimiza para una entrevista de 7-10 minutos: profunda, pero comprimida.
 
 Responde solo con JSON. Tipos obligatorios:
 - reply: string con la siguiente intervención concreta al usuario.
@@ -551,6 +557,17 @@ def fallback_agent(lead: dict, user_text: str) -> dict:
     signal = max(scores, key=scores.get)
     if scores[signal] == 0:
         signal = "operations"
+    labels = {
+        "email": "bandeja de entrada y clasificación de mensajes",
+        "sales": "captación y seguimiento comercial",
+        "whatsapp": "recepción y respuesta por WhatsApp",
+        "support": "atención y soporte a clientes",
+        "bookings": "reservas y gestión de citas",
+        "reporting": "reporting y seguimiento de métricas",
+        "documentation": "documentación interna",
+        "operations": "operaciones repetitivas",
+    }
+    focus_label = labels.get(signal, signal)
 
     turns = len([m for m in lead["transcript"] if m.get("role") == "user"])
     gaps = []
@@ -563,9 +580,9 @@ def fallback_agent(lead: dict, user_text: str) -> dict:
     if not any(x in combined for x in ["riesgo", "peligro", "revisión", "aprobar", "invent"]):
         gaps.append("riesgos y revisión humana")
     if "ejemplo real" in gaps:
-        reply = f"Veo una posible oportunidad en {signal}. Para no inventar, cuéntame un caso real reciente: qué entró, qué hiciste tú, qué decidiste y qué debería haber salido."
+        reply = f"Veo una posible oportunidad en {focus_label}. Para no inventar, cuéntame un caso real reciente: qué entró, qué hiciste tú, qué decidiste y qué debería haber salido."
     elif "frecuencia e impacto" in gaps:
-        reply = f"Esto ya suena automatizable en {signal}. Para priorizarlo: ¿con qué frecuencia ocurre, cuánto tiempo te consume y qué pierdes si sigue igual tres meses?"
+        reply = f"Esto ya suena automatizable en {focus_label}. Para priorizarlo: ¿con qué frecuencia ocurre, cuánto tiempo te consume y qué pierdes si sigue igual tres meses?"
     elif "herramientas y datos" in gaps:
         reply = "Ahora quiero saber si se puede construir: ¿qué herramientas usas hoy y dónde están los ejemplos o datos que tendría que mirar el empleado IA?"
     elif "riesgos y revisión humana" in gaps:
@@ -575,17 +592,6 @@ def fallback_agent(lead: dict, user_text: str) -> dict:
     ready = turns >= 5
     if not gaps and turns >= 3:
         ready = True
-    labels = {
-        "email": "bandeja de entrada y clasificación de mensajes",
-        "sales": "captación y seguimiento comercial",
-        "whatsapp": "recepción y respuesta por WhatsApp",
-        "support": "atención y soporte a clientes",
-        "bookings": "reservas y gestión de citas",
-        "reporting": "reporting y seguimiento de métricas",
-        "documentation": "documentación interna",
-        "operations": "operaciones repetitivas",
-    }
-    focus_label = labels.get(signal, signal)
     facts = lead["facts"]
     facts.setdefault("business", lead["transcript"][0]["content"] if lead["transcript"] else user_text)
     facts["selected_process"] = focus_label
@@ -662,6 +668,109 @@ def fallback_report(lead: dict) -> dict:
         "cta": {"segment": "cohort", "message": "Buen caso para hacerlo acompañado."},
         "crm_summary": {"sector": "", "use_case": best, "score": 65, "urgency": "", "budget": "", "offer": "cohort", "status": "new"},
     }
+
+
+def humanize(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        return "; ".join(humanize(item) for item in value if humanize(item))
+    if isinstance(value, dict):
+        parts = []
+        for key, item in value.items():
+            text = humanize(item)
+            if text:
+                parts.append(f"{key}: {text}")
+        return "; ".join(parts)
+    return str(value)
+
+
+def score_1_to_5(value, default=3):
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        score = float(default)
+    if score > 5:
+        score = score / 2
+    return max(1, min(5, round(score, 1)))
+
+
+def human_list(value) -> list[str]:
+    return [text for text in (humanize(item) for item in ensure_list(value)) if text]
+
+
+def normalize_report(report: dict, lead: dict) -> dict:
+    if not isinstance(report, dict):
+        report = {}
+    opportunities = report.get("opportunities")
+    if not isinstance(opportunities, list) or not opportunities:
+        opportunities = fallback_report(lead)["opportunities"]
+
+    normalized_opportunities = []
+    for item in opportunities[:3]:
+        opp = item if isinstance(item, dict) else {"name": humanize(item)}
+        impact = score_1_to_5(opp.get("impact_score"), 3)
+        feasibility = score_1_to_5(opp.get("feasibility_score"), 3)
+        scalability = score_1_to_5(opp.get("scalability_score"), 3)
+        sensitivity = score_1_to_5(opp.get("data_sensitivity_score"), 3)
+        composite = opp.get("composite_score")
+        try:
+            composite = float(composite)
+            if composite > 5:
+                composite = composite / 2
+        except (TypeError, ValueError):
+            composite = round((impact * 0.4) + (feasibility * 0.3) + (scalability * 0.15) - (sensitivity * 0.15), 2)
+        normalized_opportunities.append(
+            {
+                "name": humanize(opp.get("name")) or "Oportunidad de automatización",
+                "current_process": humanize(opp.get("current_process")) or lead["facts"].get("selected_process", ""),
+                "problem": humanize(opp.get("problem")) or "Proceso repetitivo con impacto en el negocio.",
+                "ai_employee": humanize(opp.get("ai_employee")) or humanize(report.get("recommended_employee")) or "Asistente IA",
+                "what_it_would_do": human_list(opp.get("what_it_would_do")),
+                "impact_score": impact,
+                "feasibility_score": feasibility,
+                "scalability_score": scalability,
+                "data_sensitivity_score": sensitivity,
+                "composite_score": round(composite, 2),
+                "triage": humanize(opp.get("triage")) or ("PROCEED" if composite >= 3.5 else "REFINE"),
+                "tools": human_list(opp.get("tools")),
+                "data_needed": human_list(opp.get("data_needed")),
+                "risks": human_list(opp.get("risks")),
+                "first_step": humanize(opp.get("first_step")) or "Reunir ejemplos reales y definir la salida esperada.",
+            }
+        )
+
+    crm_summary = report.get("crm_summary") if isinstance(report.get("crm_summary"), dict) else {}
+    cta = report.get("cta") if isinstance(report.get("cta"), dict) else {}
+    normalized = {
+        "summary": humanize(report.get("summary")) or "Diagnóstico generado a partir de la conversación.",
+        "business_snapshot": humanize(report.get("business_snapshot")) or humanize(lead.get("facts", {})),
+        "recommended_employee": humanize(report.get("recommended_employee")) or normalized_opportunities[0]["ai_employee"],
+        "recommendation_reason": humanize(report.get("recommendation_reason")) or "Es la oportunidad con mejor equilibrio entre impacto, factibilidad y riesgo.",
+        "readiness": humanize(report.get("readiness")) or "alto potencial con revisión",
+        "opportunities": normalized_opportunities,
+        "do_not_automate_yet": human_list(report.get("do_not_automate_yet")) or ["Envío automático sin revisión humana."],
+        "seven_day_plan": human_list(report.get("seven_day_plan")) or ["Reunir ejemplos reales.", "Definir criterios.", "Probar una primera versión con revisión humana."],
+        "thirty_day_plan": human_list(report.get("thirty_day_plan")) or ["Validar el MVP.", "Medir impacto.", "Añadir integraciones solo si aporta valor."],
+        "cta": {
+            "segment": humanize(cta.get("segment")) or "resource",
+            "message": humanize(cta.get("message")) or "El siguiente paso es probar una primera versión pequeña con revisión humana.",
+        },
+        "crm_summary": {
+            "sector": humanize(crm_summary.get("sector")),
+            "use_case": humanize(crm_summary.get("use_case")) or normalized_opportunities[0]["name"],
+            "score": crm_summary.get("score", round(normalized_opportunities[0]["composite_score"] * 20)),
+            "urgency": humanize(crm_summary.get("urgency")),
+            "budget": humanize(crm_summary.get("budget")),
+            "offer": humanize(crm_summary.get("offer")),
+            "status": humanize(crm_summary.get("status")) or "report_generated",
+        },
+    }
+    if report.get("reply"):
+        normalized["reply"] = humanize(report.get("reply"))
+    return normalized
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -809,6 +918,7 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception as exc:
             report = fallback_report(lead)
             report["api_error"] = str(exc)
+        report = normalize_report(report, lead)
         update_lead(lead_id, outcome=report, stage="informe", status="report_generated")
         insert_event(lead_id, "report_generated", report)
         append_jsonl({"event": "report_generated", "lead_id": lead_id, "email": lead["email"], "outcome": report, "transcript": lead["transcript"]})

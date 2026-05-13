@@ -691,12 +691,12 @@
     <aside>
       <div class="eyebrow">Diagnóstico gratuito</div>
       <h1>Encuentra tu primer empleado IA</h1>
-      <p class="lead">Descubre qué tarea repetitiva te está robando más tiempo, ventas o foco, y qué empleado IA deberías crear primero.</p>
+      <p class="lead">Una conversación corta para localizar dónde se te escapa tiempo, dinero o clientes, y qué automatización merece ir primero.</p>
       <div class="panel">
-        <h2>Empieza sin registro</h2>
+        <h2>Empieza hablando</h2>
         <button id="start">Empezar diagnóstico gratis</button>
-        <div class="crm-status" id="crmStatus">Empiezas hablando. Sin formularios largos.</div>
-        <p class="privacy-note">La conversación nos ayuda a entender tu caso antes de recomendar nada.</p>
+        <div class="crm-status" id="crmStatus">Sin formularios largos. Primero entendemos tu caso.</div>
+        <p class="privacy-note">El agente irá tirando del hilo hasta encontrar un proceso automatizable real.</p>
       </div>
       <div class="panel discovery-panel" id="discoveryPanel">
         <h2>Lo que estoy entendiendo</h2>
@@ -741,12 +741,12 @@
       <div class="chat" id="chat">
         <section class="starter" id="starter">
           <div class="starter-hero">
-            <div class="starter-kicker">Diagnóstico IA gratuito · Sin registro inicial</div>
+            <div class="starter-kicker">Diagnóstico IA gratuito · 7-10 minutos</div>
             <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
-            <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: te hace preguntas, detecta patrones y termina con una recomendación concreta.</p>
+            <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: entiende tus procesos, te hace repreguntas y detecta qué tendría sentido automatizar primero.</p>
             <div class="starter-prompt">
-              <strong>Empieza contando esto</strong>
-              <p>A qué te dedicas, cómo llegan tus clientes y qué tarea te da pereza repetir cada semana. Si no sabes por dónde empezar, habla por el micro durante un minuto.</p>
+              <strong>Empieza como si fuera una llamada de diagnóstico</strong>
+              <p>Cuéntame a qué te dedicas, cómo entran clientes o trabajo, y qué parte te gustaría que funcionara con menos intervención tuya. Si no sabes ordenarlo, usa el micro y habla un minuto.</p>
             </div>
             <div class="starter-row">
               <span class="starter-pill">
@@ -757,13 +757,13 @@
                 </svg>
                 Mejor con micro
               </span>
-              <span class="starter-pill">7-10 minutos</span>
+              <span class="starter-pill">Preguntas adaptadas</span>
               <span class="starter-pill">Sin formulario previo</span>
             </div>
             <div class="process-strip">
               <div class="process-card">
                 <span>Detecta</span>
-                <strong>Procesos repetitivos</strong>
+                <strong>Procesos reales</strong>
                 <p>Email, leads, soporte, reservas, reporting o tareas internas.</p>
               </div>
               <div class="process-card">
@@ -773,13 +773,13 @@
               </div>
               <div class="process-card">
                 <span>Entrega</span>
-                <strong>Tu primer empleado IA</strong>
-                <p>Qué haría, con qué datos, riesgos y primer paso.</p>
+                <strong>Una recomendación concreta</strong>
+                <p>Qué empleado IA crear, con qué datos, riesgos y primer paso.</p>
               </div>
             </div>
             <div class="starter-start">
               <button class="start-primary" type="button" onclick="startSession()">Analizar mi negocio</button>
-              <p class="privacy-note">Primero conversamos. Luego te enseño qué automatizaría y por qué.</p>
+              <p class="privacy-note">Primero conversamos. Luego verás qué automatizaría y por qué.</p>
             </div>
           </div>
         </section>
@@ -970,7 +970,7 @@
         });
         chat.innerHTML = "";
         input.placeholder = "Cuéntame a qué te dedicas, cómo llegan los clientes y qué proceso te gustaría automatizar.";
-        await addTypingMessage("agent", "Perfecto. Para empezar, cuéntame con tus palabras: ¿a qué se dedica tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué parte te gustaría que funcionara con menos intervención tuya?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
+        await addTypingMessage("agent", "Vamos a hacerlo como una mini sesión de diagnóstico.\n\nCuéntame con tus palabras: ¿a qué se dedica tu negocio, cómo llegan clientes o trabajo, y dónde notas que se te escapa más tiempo, dinero o clientes?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
         input.focus();
       } catch (error) {
         setCrm(error.message, "error");
@@ -1049,7 +1049,7 @@
       </div>`;
       addHtml("agent", html, "Entrega del informe");
       statusEl.textContent = "Solo falta el email para preparar el informe.";
-      setCrm("Email pendiente para entregar el informe.", "");
+      setCrm("Último paso para preparar el informe.", "");
       document.getElementById("finalEmail")?.focus();
     }
 
@@ -1066,7 +1066,7 @@
         if (error) error.textContent = "";
         await api("/api/email", { lead_id: leadId, email: value });
         capturedEmail = value;
-        setCrm("Email guardado. Generando informe...", "ok");
+        setCrm("Perfecto. Preparando informe...", "ok");
         if (pendingReport) {
           pendingReport = false;
           await runReport();
@@ -1139,7 +1139,7 @@
     async function saveFeedback() {
       const feedback = { text: document.getElementById("feedbackText")?.value || "" };
       await api("/api/feedback", { lead_id: leadId, feedback });
-      setCrm("Feedback guardado en CRM.", "ok");
+      setCrm("Feedback recibido. Gracias.", "ok");
     }
 
     function micIcon() {
@@ -1184,7 +1184,7 @@
       micBtn.innerHTML = micIcon();
       try {
         const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
-        setMic("Transcribiendo con Whisper local...", "loading");
+        setMic("Transcribiendo audio...", "loading");
         const response = await fetch("/transcribe", { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "No se pudo transcribir");
