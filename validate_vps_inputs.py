@@ -53,6 +53,19 @@ REQUIRED_LABELS = [
     "Plazo de conservación",
     "¿El diagnóstico suscribe automáticamente a newsletter?",
 ]
+ENV_VALUE_LABELS = [
+    "Ruta de instalación",
+    "Ruta de Codex CLI en VPS",
+    "Usuario systemd que tendrá sesión Codex",
+    "Usuario admin CRM",
+    "Contraseña real CRM",
+    "URL webhook",
+    "Secreto webhook",
+]
+
+
+def unsafe_env_value(value: str) -> bool:
+    return any(char.isspace() or char in {'"', "'", "\\", "#"} for char in value)
 
 
 def extract_fields(text: str) -> dict[str, str]:
@@ -88,6 +101,11 @@ def validate(path: Path) -> dict:
         if answer and not answer.startswith(("s", "n")):
             errors.append(f"{label} debe responderse con sí o no")
 
+    for label in ENV_VALUE_LABELS:
+        field_value = fields.get(label, "").strip()
+        if field_value and unsafe_env_value(field_value):
+            errors.append(f"{label} contiene espacios, comillas, # o barras invertidas; usa un valor compatible con .env/systemd")
+
     domain = fields.get("Dominio/subdominio público", "")
     if domain and not re.search(r"^[a-z0-9.-]+\.[a-z]{2,}$", domain.lower()):
         errors.append("Dominio/subdominio público no parece un dominio válido")
@@ -99,6 +117,14 @@ def validate(path: Path) -> dict:
     port = fields.get("Puerto SSH", "")
     if port and not port.isdigit():
         errors.append("Puerto SSH debe ser numérico")
+
+    install_path = fields.get("Ruta de instalación", "")
+    if install_path and not install_path.startswith("/"):
+        errors.append("Ruta de instalación debe ser una ruta absoluta")
+
+    codex_path = fields.get("Ruta de Codex CLI en VPS", "")
+    if codex_path and not codex_path.startswith("/"):
+        errors.append("Ruta de Codex CLI en VPS debe ser una ruta absoluta")
 
     email = fields.get("Email de contacto privacidad", "")
     if email and not re.search(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):

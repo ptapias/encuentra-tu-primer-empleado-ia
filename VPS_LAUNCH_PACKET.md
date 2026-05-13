@@ -31,6 +31,8 @@ El generador crea la ficha local ignorada por Git. El lanzador vuelve a validar 
 
 Para lanzar con HTTPS, el validador bloquea si el dominio todavía no apunta al VPS. Para lanzar con Codex, bloquea si Codex CLI no está logueado con el usuario systemd que ejecutará la app.
 
+Los valores que acaban en `.env` se validan para systemd. Usa contraseñas largas sin espacios, comillas, `#` ni barras invertidas.
+
 ## 2. Decisión de proveedor IA para la beta
 
 Recomendación inicial: `AI_PROVIDER=codex` solo para beta privada o semi-privada con poco tráfico.

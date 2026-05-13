@@ -135,6 +135,26 @@ def test_yes_no_fields_reject_ambiguous_answers():
     assert_true(any("sí o no" in error for error in result["errors"]), result)
 
 
+def test_env_values_reject_characters_that_break_systemd_env_files():
+    path = write_tmp(VALID_INPUTS.replace("Contraseña real CRM: clave-super-larga-2026", "Contraseña real CRM: clave con espacios 2026"))
+    try:
+        result = validate_vps_inputs.validate(path)
+    finally:
+        path.unlink(missing_ok=True)
+    assert_true(not result["ok"], "La contraseña con espacios debería bloquearse antes de generar .env")
+    assert_true(any("compatible con .env/systemd" in error for error in result["errors"]), result)
+
+
+def test_env_paths_must_be_absolute():
+    path = write_tmp(VALID_INPUTS.replace("Ruta de Codex CLI en VPS: /usr/local/bin/codex", "Ruta de Codex CLI en VPS: codex"))
+    try:
+        result = validate_vps_inputs.validate(path)
+    finally:
+        path.unlink(missing_ok=True)
+    assert_true(not result["ok"], "La ruta de Codex debería ser absoluta para systemd")
+    assert_true(any("Ruta de Codex CLI" in error for error in result["errors"]), result)
+
+
 if __name__ == "__main__":
     test_empty_template_fails()
     test_valid_inputs_pass()
@@ -142,4 +162,6 @@ if __name__ == "__main__":
     test_codex_requires_logged_in_service_user()
     test_domain_must_point_to_vps_for_https_launch()
     test_yes_no_fields_reject_ambiguous_answers()
+    test_env_values_reject_characters_that_break_systemd_env_files()
+    test_env_paths_must_be_absolute()
     print("vps_inputs_validator ok")

@@ -37,6 +37,8 @@ python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 
 El validador también bloquea el lanzamiento HTTPS si el dominio todavía no apunta al VPS. Cambia DNS antes de ejecutar el lanzador con `DOMAIN=...`.
 
+La contraseña del CRM y los secretos que acaban en `.env` deben ser largos pero compatibles con systemd: sin espacios, comillas, `#` ni barras invertidas.
+
 Después usa el lanzador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`, renderiza privacidad, instala servicios, activa backup y valida Caddy:
 
 ```bash
