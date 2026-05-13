@@ -469,12 +469,26 @@
       return `<ul>${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
     }
 
+    function candidateList(candidates) {
+      const safeCandidates = Array.isArray(candidates) ? candidates.slice(0, 5) : [];
+      if (!safeCandidates.length) return "<p>Sin procesos candidatos todavía.</p>";
+      return `<div class="mini-list">${safeCandidates.map(candidate => {
+        const name = readable(candidate.name || candidate.process || candidate.title) || "Proceso candidato";
+        const why = readable(candidate.why_it_matters || candidate.why || candidate.reason);
+        const evidence = readable(candidate.evidence || candidate.signal || candidate.source);
+        const confidenceRaw = Number(candidate.confidence || 0);
+        const confidence = confidenceRaw > 1 ? Math.round((confidenceRaw / 5) * 100) : Math.round(confidenceRaw * 100);
+        return `<p><strong>${escapeHtml(name)}</strong>${confidence ? ` · ${escapeHtml(confidence)}%` : ""}<br>${escapeHtml(why || "Oportunidad detectada durante la conversación.")}${evidence ? `<br><small>Evidencia: ${escapeHtml(evidence)}</small>` : ""}</p>`;
+      }).join("")}</div>`;
+    }
+
     async function loadLead(id) {
       const { lead } = await api(`/api/lead?id=${encodeURIComponent(id)}`);
       selected.textContent = id.slice(0, 8);
       const report = lead.outcome || {};
       const crm = report.crm_summary || {};
       const attribution = lead.facts?.attribution || {};
+      const discovery = lead.facts?._discovery || {};
       const consent = lead.facts?.consent || {};
       const ctaInterest = lead.facts?.cta_interest || {};
       const salesIntel = report.sales_intelligence || {};
@@ -547,6 +561,13 @@
       </form>
       <div class="card"><span>Empleado IA recomendado</span><h3>${escapeHtml(report.recommended_employee || "sin informe todavía")}</h3><p>${escapeHtml(report.recommendation_reason || "")}</p></div>
       <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
+      <div class="card"><span>Discovery viva</span>
+        <p><strong>Foco:</strong> ${escapeHtml(discovery.current_focus || lead.facts?.selected_process || "sin foco claro todavía")}</p>
+        <p><strong>Claridad:</strong> ${escapeHtml(Math.round(Number(discovery.confidence || 0) * 100))}%</p>
+        <p><strong>Señales:</strong></p>${list(discovery.live_insights)}
+        <p><strong>Falta por aclarar:</strong></p>${list(discovery.open_gaps)}
+      </div>
+      <div class="card"><span>Procesos candidatos</span>${candidateList(discovery.candidate_processes)}</div>
       <div class="card"><span>Señales de decisión</span>${list(report.evidence_summary)}</div>
       <div class="card"><span>Frases útiles</span>${list(salesIntel.useful_quotes)}</div>
       <div class="card"><span>Objeciones detectadas</span>${list(salesIntel.objections)}</div>

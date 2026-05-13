@@ -149,6 +149,7 @@ def main():
     expect(status == 200 and "offerFilter" in dashboard_html and "sourceFilter" in dashboard_html, "el CRM no incluye filtros operativos")
     expect("Consentimiento" in dashboard_html, "el CRM no muestra consentimiento del lead")
     expect("Interés CTA" in dashboard_html, "el CRM no muestra intención de CTA")
+    expect("Discovery viva" in dashboard_html and "Procesos candidatos" in dashboard_html, "el CRM no muestra discovery viva ni procesos candidatos")
     checks.append({"check": "dashboard_filters", "ok": True})
 
     status, privacy_headers, privacy_html = request_raw(args.base, "/PRIVACY_BETA.html")
@@ -382,6 +383,7 @@ def main():
     export_header = export_csv.splitlines()[0]
     expect("source,medium,campaign,video,ref" in export_header, "el export CSV no incluye atribución")
     expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
+    expect("discovery_focus,discovery_confidence,candidate_processes,open_gaps,live_insights" in export_header, "el export CSV no incluye discovery viva")
     expect("cta_interest,cta_clicked_at" in export_header, "el export CSV no incluye intención de CTA")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
     expect("evidence_summary" in export_header, "el export CSV no incluye señales de evidencia")

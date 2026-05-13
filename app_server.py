@@ -1917,6 +1917,11 @@ class Handler(SimpleHTTPRequestHandler):
             "privacy_version",
             "cta_interest",
             "cta_clicked_at",
+            "discovery_focus",
+            "discovery_confidence",
+            "candidate_processes",
+            "open_gaps",
+            "live_insights",
             "sector",
             "use_case",
             "score",
@@ -1945,6 +1950,7 @@ class Handler(SimpleHTTPRequestHandler):
             attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
             consent = facts.get("consent") if isinstance(facts.get("consent"), dict) else {}
             cta_interest = facts.get("cta_interest") if isinstance(facts.get("cta_interest"), dict) else {}
+            discovery = facts.get("_discovery") if isinstance(facts.get("_discovery"), dict) else {}
             crm = outcome.get("crm_summary", {})
             sales_intelligence = outcome.get("sales_intelligence") if isinstance(outcome.get("sales_intelligence"), dict) else {}
             writer.writerow(
@@ -1965,6 +1971,11 @@ class Handler(SimpleHTTPRequestHandler):
                     "privacy_version": humanize(consent.get("privacy_version")),
                     "cta_interest": humanize(cta_interest.get("segment")),
                     "cta_clicked_at": cta_interest.get("clicked_at") or "",
+                    "discovery_focus": humanize(discovery.get("current_focus")) or humanize(facts.get("selected_process")),
+                    "discovery_confidence": humanize(discovery.get("confidence")),
+                    "candidate_processes": humanize(discovery.get("candidate_processes")),
+                    "open_gaps": humanize(discovery.get("open_gaps")),
+                    "live_insights": humanize(discovery.get("live_insights")),
                     "sector": humanize(crm.get("sector")),
                     "use_case": humanize(crm.get("use_case")) or humanize(facts.get("selected_process")),
                     "score": score_0_to_100(crm.get("score"), 0) if outcome else 0,
