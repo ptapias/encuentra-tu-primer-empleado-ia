@@ -51,6 +51,7 @@ Comprueba:
 
 ```bash
 curl http://127.0.0.1:8787/healthz
+python3 test_beta_smoke.py --base http://127.0.0.1:8787 --admin-user admin --admin-password una-password-larga
 ```
 
 ## 4. HTTPS con Caddy
@@ -67,9 +68,16 @@ sudo systemctl reload caddy
 - Público: `https://diagnostico.tu-dominio.com/Agente_Real_CRM.html`
 - CRM: `https://diagnostico.tu-dominio.com/CRM_Dashboard.html`
 
+Smoke test público tras activar el dominio:
+
+```bash
+python3 test_beta_smoke.py --base https://diagnostico.tu-dominio.com --admin-user admin --admin-password una-password-larga
+```
+
 ## 6. Operación de beta
 
 - Revisa el CRM una vez al día.
+- Mira las métricas superiores del CRM: inicio de conversación, captura de email, informes generados, feedback y media de turnos.
 - Exporta manualmente `crm.sqlite3` como backup.
 - Mira logs con `journalctl -u primer-empleado-ia -f`.
 - Si Codex CLI falla o tarda demasiado, cambia a `AI_PROVIDER=openai` temporalmente.

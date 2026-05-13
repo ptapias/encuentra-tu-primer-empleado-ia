@@ -17,6 +17,7 @@ Objetivo auditado: construir una versión "Ontora-lite" para pymes españolas de
 | CRM interno | Hecho | `CRM_Dashboard.html`, SQLite `crm.sqlite3`, endpoints `/api/leads`, `/api/lead` y `/api/metrics` |
 | Métricas de beta | Hecho | Dashboard con leads, inicio de conversación, captura de email, informes, feedback y media de turnos |
 | Validación automatizada | Hecho | `test_discovery_flow.py` prueba clínica dental, inmobiliaria y consultor B2B |
+| Smoke test beta/VPS | Hecho | `test_beta_smoke.py` valida health, página pública, sesión y protección de métricas |
 | VPS | Preparado, no desplegado | `DEPLOYMENT_VPS.md`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example` |
 | GitHub | Hecho | Repositorio `ptapias/encuentra-tu-primer-empleado-ia` ya existe y tiene historial de commits |
 
@@ -28,6 +29,7 @@ Objetivo auditado: construir una versión "Ontora-lite" para pymes españolas de
 - Revisión en navegador interno: la pantalla inicial muestra el gancho correcto y no enseña términos internos como JSON, CRM, fallback o "informe potente".
 - Endpoint `/api/metrics`: devuelve métricas de embudo y está protegido junto al CRM cuando `ADMIN_PASSWORD` está configurado.
 - Prueba de protección CRM: `/api/metrics` devuelve `401` sin auth y `200` con auth básica cuando `ADMIN_PASSWORD` está activo.
+- Smoke test local: `test_beta_smoke.py` comprueba health, página pública, creación de sesión y métricas.
 
 ## Lo que ya no debe volver
 
