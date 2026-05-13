@@ -1502,6 +1502,9 @@ class Handler(SimpleHTTPRequestHandler):
             "campaign",
             "video",
             "ref",
+            "consent_accepted",
+            "consent_accepted_at",
+            "privacy_version",
             "sector",
             "use_case",
             "score",
@@ -1527,6 +1530,7 @@ class Handler(SimpleHTTPRequestHandler):
             feedback = json.loads(row["feedback_json"]) if row["feedback_json"] else None
             transcript = json.loads(row["transcript_json"] or "[]")
             attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
+            consent = facts.get("consent") if isinstance(facts.get("consent"), dict) else {}
             crm = outcome.get("crm_summary", {})
             sales_intelligence = outcome.get("sales_intelligence") if isinstance(outcome.get("sales_intelligence"), dict) else {}
             writer.writerow(
@@ -1542,6 +1546,9 @@ class Handler(SimpleHTTPRequestHandler):
                     "campaign": humanize(attribution.get("campaign")),
                     "video": humanize(attribution.get("video")),
                     "ref": humanize(attribution.get("ref")),
+                    "consent_accepted": "yes" if consent.get("accepted") else "no",
+                    "consent_accepted_at": consent.get("accepted_at") or "",
+                    "privacy_version": humanize(consent.get("privacy_version")),
                     "sector": humanize(crm.get("sector")),
                     "use_case": humanize(crm.get("use_case")) or humanize(facts.get("selected_process")),
                     "score": score_0_to_100(crm.get("score"), 0) if outcome else 0,

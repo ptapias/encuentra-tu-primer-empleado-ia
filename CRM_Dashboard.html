@@ -438,6 +438,7 @@
       const report = lead.outcome || {};
       const crm = report.crm_summary || {};
       const attribution = lead.facts?.attribution || {};
+      const consent = lead.facts?.consent || {};
       const salesIntel = report.sales_intelligence || {};
       const currentOffer = crm.offer || "";
       const currentStatus = lead.status || crm.status || "new";
@@ -467,6 +468,7 @@
         <div class="card"><span>Presupuesto</span>${escapeHtml(crm.budget || "no detectado")}</div>
         <div class="card"><span>Origen</span>${escapeHtml(attribution.source || attribution.ref || "directo")}</div>
         <div class="card"><span>Campaña</span>${escapeHtml(attribution.campaign || attribution.video || "sin campaña")}</div>
+        <div class="card"><span>Consentimiento</span>${consent.accepted ? "Aceptado" : "Pendiente"}<br><small>${escapeHtml(consent.privacy_version || "")}</small></div>
       </div>
       <form class="card ops-form" id="ops-form">
         <span>Operación interna</span>

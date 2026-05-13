@@ -120,6 +120,7 @@ def main():
 
     status, dashboard_headers, dashboard_html = request_raw(args.base, "/CRM_Dashboard.html", auth=auth)
     expect(status == 200 and "offerFilter" in dashboard_html and "sourceFilter" in dashboard_html, "el CRM no incluye filtros operativos")
+    expect("Consentimiento" in dashboard_html, "el CRM no muestra consentimiento del lead")
     checks.append({"check": "dashboard_filters", "ok": True})
 
     status, privacy_headers, privacy_html = request_raw(args.base, "/PRIVACY_BETA.html")
@@ -289,6 +290,7 @@ def main():
         expect(export_without_auth == 200 and "email" in export_csv.splitlines()[0], "el export CSV no responde en entorno sin auth")
     export_header = export_csv.splitlines()[0]
     expect("source,medium,campaign,video,ref" in export_header, "el export CSV no incluye atribución")
+    expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
     checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
 
