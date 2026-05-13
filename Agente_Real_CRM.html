@@ -562,6 +562,54 @@
       color: var(--muted);
     }
     .lead-item strong { color: var(--ink); display: block; }
+    .discovery-panel {
+      display: none;
+      gap: 10px;
+    }
+    .discovery-panel.active {
+      display: grid;
+    }
+    .discovery-card {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      display: grid;
+      gap: 5px;
+    }
+    .discovery-card span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .discovery-card strong {
+      font-size: 15px;
+    }
+    .discovery-list {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .discovery-list li {
+      color: #3e423c;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .confidence-meter {
+      height: 8px;
+      background: #e6dfd2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .confidence-meter span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width .25s ease;
+    }
     .sr-only {
       position: absolute;
       width: 1px;
@@ -611,8 +659,31 @@
       <div class="panel">
         <h2>Empieza sin registro</h2>
         <button id="start">Empezar diagnóstico gratis</button>
-        <div class="crm-status" id="crmStatus">No necesitas dejar tu email hasta ver el resultado.</div>
-        <p class="privacy-note">Al final te pediremos el email solo si quieres recibir el informe.</p>
+        <div class="crm-status" id="crmStatus">Empiezas hablando. Sin formularios largos.</div>
+        <p class="privacy-note">La conversación nos ayuda a entender tu caso antes de recomendar nada.</p>
+      </div>
+      <div class="panel discovery-panel" id="discoveryPanel">
+        <h2>Lo que estoy entendiendo</h2>
+        <div class="discovery-card">
+          <span>Foco actual</span>
+          <strong id="focusText">Buscando el primer proceso claro</strong>
+        </div>
+        <div class="discovery-card">
+          <span>Claridad</span>
+          <div class="confidence-meter"><span id="confidenceFill"></span></div>
+        </div>
+        <div class="discovery-card">
+          <span>Señales detectadas</span>
+          <ul class="discovery-list" id="insightList">
+            <li>Aún estoy esperando contexto.</li>
+          </ul>
+        </div>
+        <div class="discovery-card">
+          <span>Falta por aclarar</span>
+          <ul class="discovery-list" id="gapList">
+            <li>Negocio, cliente y proceso repetitivo.</li>
+          </ul>
+        </div>
       </div>
       <div class="panel">
         <h2>Qué recibirás</h2>
@@ -651,7 +722,7 @@
                 Mejor con micro
               </span>
               <span class="starter-pill">7-10 minutos</span>
-              <span class="starter-pill">Email solo al final</span>
+              <span class="starter-pill">Sin formulario previo</span>
             </div>
             <div class="process-strip">
               <div class="process-card">
@@ -672,7 +743,7 @@
             </div>
             <div class="starter-start">
               <button class="start-primary" type="button" onclick="startSession()">Analizar mi negocio</button>
-              <p class="privacy-note">Empieza sin cuenta. El informe se desbloquea al final con tu email.</p>
+              <p class="privacy-note">Primero conversamos. Luego te enseño qué automatizaría y por qué.</p>
             </div>
           </div>
         </section>
@@ -691,8 +762,7 @@
           <button id="send" disabled>Enviar</button>
         </div>
         <div class="composer-actions">
-          <button class="secondary" id="report" disabled>Generar informe potente</button>
-          <button class="secondary" id="download" disabled>Descargar JSON</button>
+          <button class="secondary" id="report" disabled hidden>Ver mi diagnóstico</button>
         </div>
         <div class="mic-status" id="micStatus"></div>
       </div>
@@ -706,13 +776,17 @@
     const start = document.getElementById("start");
     const starter = document.getElementById("starter");
     const reportBtn = document.getElementById("report");
-    const downloadBtn = document.getElementById("download");
     const micBtn = document.getElementById("mic");
     const crmStatus = document.getElementById("crmStatus");
     const micStatus = document.getElementById("micStatus");
     const statusEl = document.getElementById("status");
     const stageEl = document.getElementById("stage");
     const progress = document.getElementById("progress");
+    const discoveryPanel = document.getElementById("discoveryPanel");
+    const focusText = document.getElementById("focusText");
+    const confidenceFill = document.getElementById("confidenceFill");
+    const insightList = document.getElementById("insightList");
+    const gapList = document.getElementById("gapList");
     let leadId = null;
     let transcript = [];
     let latestReport = null;
@@ -762,6 +836,22 @@
     function setMic(message, type = "") {
       micStatus.textContent = message;
       micStatus.className = `mic-status ${type}`.trim();
+    }
+
+    function listHtml(items, fallback) {
+      const safeItems = Array.isArray(items) && items.length ? items : [fallback];
+      return safeItems.slice(0, 4).map(item => `<li>${escapeHtml(readable(item))}</li>`).join("");
+    }
+
+    function updateDiscovery(result = {}) {
+      discoveryPanel.classList.add("active");
+      const confidence = Math.max(0, Math.min(1, Number(result.confidence || 0)));
+      const focus = result.current_focus || result.facts?.selected_process || "Proceso por descubrir";
+      focusText.textContent = readable(focus);
+      confidenceFill.style.width = `${Math.round(confidence * 100)}%`;
+      insightList.innerHTML = listHtml(result.live_insights, "Estoy buscando patrones en tus respuestas.");
+      gapList.innerHTML = listHtml(result.open_gaps, result.ready_for_report ? "Ya tengo suficiente para preparar el diagnóstico." : "Necesito un ejemplo real para afinar.");
+      if (result.progress_label) statusEl.textContent = result.progress_label;
     }
 
     function addMessage(role, text, meta = "") {
@@ -830,11 +920,18 @@
         input.disabled = false;
         send.disabled = false;
         micBtn.disabled = false;
-        reportBtn.disabled = false;
-        downloadBtn.disabled = false;
-        setCrm("Diagnóstico iniciado. El email lo pediremos al final.", "ok");
+        reportBtn.disabled = true;
+        reportBtn.hidden = true;
+        setCrm("Diagnóstico iniciado. Estoy buscando el primer proceso claro.", "ok");
         statusEl.textContent = "Diagnóstico iniciado. Puedes escribir o usar el micro.";
         setStage("contexto");
+        updateDiscovery({
+          confidence: 0.08,
+          current_focus: "Entender tu negocio",
+          live_insights: ["Todavía no hay proceso candidato: necesito contexto inicial."],
+          open_gaps: ["Qué vendes", "Quién es tu cliente", "Dónde se repite trabajo manual"],
+          progress_label: "Entendiendo el negocio"
+        });
         chat.innerHTML = "";
         input.placeholder = "Cuéntame a qué te dedicas, cómo llegan los clientes y qué proceso te gustaría automatizar.";
         await addTypingMessage("agent", "Perfecto. Para empezar, cuéntame con tus palabras: ¿a qué se dedica tu negocio, quién es tu cliente principal, cómo llegan los clientes y qué parte te gustaría que funcionara con menos intervención tuya?\n\nSi te resulta más cómodo, pulsa el micro y háblalo como si me lo explicaras en una llamada.", "Agente diagnóstico");
@@ -857,12 +954,22 @@
         const result = await api("/api/chat", { lead_id: leadId, email: capturedEmail, message: text });
         await addTypingMessage("agent", result.reply, result.fallback ? "Agente fallback" : "Agente diagnóstico");
         setStage(result.stage);
-        statusEl.textContent = result.ready_for_report ? "Ya puedo preparar tu informe." : `Avanzando: ${Math.round((result.confidence || 0) * 100)}% de confianza`;
-        if (result.ready_for_report) reportBtn.classList.remove("secondary");
+        updateDiscovery(result);
+        if (result.ready_for_report) {
+          statusEl.textContent = "Ya puedo preparar tu diagnóstico.";
+          reportBtn.hidden = false;
+          reportBtn.disabled = false;
+          reportBtn.classList.remove("secondary");
+          send.disabled = true;
+          input.disabled = true;
+          micBtn.disabled = true;
+          await addTypingMessage("agent", "Ya tengo suficiente para prepararte un diagnóstico útil. Puedo pasar de la conversación al informe.", "Cierre de discovery");
+        }
       } catch (error) {
         addMessage("agent", `Error del agente: ${error.message}`, "Sistema");
         statusEl.textContent = "Error";
       } finally {
+        if (!reportBtn.hidden) return;
         send.disabled = false;
       }
     }
@@ -879,7 +986,7 @@
 
     async function runReport() {
       reportBtn.disabled = true;
-      statusEl.innerHTML = '<span class="thinking">Generando informe potente…</span>';
+      statusEl.innerHTML = '<span class="thinking">Generando diagnóstico…</span>';
       try {
         const result = await api("/api/report", { lead_id: leadId });
         latestReport = result.report;
@@ -995,16 +1102,6 @@
       setCrm("Feedback guardado en CRM.", "ok");
     }
 
-    function downloadJson() {
-      const blob = new Blob([JSON.stringify({ lead_id: leadId, transcript, report: latestReport }, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `diagnostico-ia-${leadId || Date.now()}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-
     function micIcon() {
       return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg><span class="sr-only">Micrófono</span>`;
     }
@@ -1065,7 +1162,6 @@
     start.addEventListener("click", startSession);
     send.addEventListener("click", sendMessage);
     reportBtn.addEventListener("click", generateReport);
-    downloadBtn.addEventListener("click", downloadJson);
     micBtn.addEventListener("click", async () => {
       if (listening) await stopRecording();
       else await startRecording();

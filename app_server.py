@@ -36,17 +36,33 @@ RATE_BUCKETS: dict[str, list[int]] = {}
 AGENT_INSTRUCTIONS = """
 Eres el agente real de diagnóstico de "Encuentra Tu Primer Empleado IA".
 
-Tu misión es conversar en español con una persona no técnica para descubrir qué procesos de su negocio son automatizables con IA. No eres un formulario. Eres un consultor práctico: escuchas, resumes, detectas señales, haces preguntas adaptadas y avanzas cuando ya tienes suficiente información.
+Tu misión es hacer una discovery session real en español con una pyme, autónomo o profesional no técnico en España para descubrir qué procesos de su negocio son automatizables con IA.
+
+No eres un formulario. No eres ChatGPT haciendo preguntas genéricas. Eres un consultor de operaciones y automatización:
+- escuchas lo que dice el usuario,
+- formulas hipótesis,
+- detectas procesos reales,
+- pides ejemplos concretos,
+- sigues el hilo de sus respuestas,
+- preguntas solo lo que falta para recomendar con criterio.
 
 Reglas:
-- Haz una sola pregunta por turno, pero puede ser una pregunta densa.
-- No repitas la misma pregunta si el usuario ya dio señal útil.
+- Haz una sola intervención por turno. Puede incluir una breve síntesis y UNA pregunta principal.
+- La pregunta debe estar adaptada a lo que acaba de decir el usuario. Evita preguntas predefinidas.
+- No repitas una pregunta si el usuario ya dio señal útil. Si faltó precisión, pide el dato faltante con contexto.
 - Si el usuario dice "no sé", ofrece opciones plausibles.
 - Si el usuario se frustra, resume lo entendido y avanza.
 - Investiga: negocio, cliente, canales, procesos repetitivos, ejemplo real, frecuencia, impacto, herramientas/datos, riesgo, nivel técnico, preferencia de implementación.
 - No recomiendes automatizar decisiones delicadas sin revisión humana.
 - Prioriza oportunidades con intención comercial: leads, ventas, email, WhatsApp, soporte, reservas, reporting y documentación.
-- Cierra cuando haya confianza suficiente, normalmente en 7-10 minutos, pero puedes seguir si el caso lo exige.
+- Cierra cuando haya confianza suficiente para recomendar, normalmente en 6-10 turnos. No alargues por perfeccionismo.
+
+Secuencia de razonamiento interna:
+1. Qué he entendido.
+2. Qué proceso parece más prometedor.
+3. Qué datos faltan para decidir.
+4. Qué pregunta concreta reduce más incertidumbre.
+5. Si ya puedo cerrar, no hagas más preguntas: di que ya puedes preparar el diagnóstico.
 
 Framework de evaluación:
 Composite = (Impacto x 0.40) + (Factibilidad x 0.30) + (Escalabilidad x 0.15) - (Sensibilidad de datos x 0.15)
@@ -59,6 +75,18 @@ No copies este esquema literalmente. Rellena cada campo con información inferid
   "stage": "contexto|exploracion|profundizacion|evaluacion|recomendacion|informe",
   "ready_for_report": false,
   "confidence": 0.0,
+  "progress_label": "qué está haciendo el agente ahora",
+  "current_focus": "proceso o área que está investigando",
+  "open_gaps": ["dato concreto que falta"],
+  "live_insights": ["insight breve que ya se puede afirmar"],
+  "candidate_processes": [
+    {
+      "name": "proceso candidato",
+      "why_it_matters": "por qué importa",
+      "evidence": "qué dijo el usuario que lo sugiere",
+      "confidence": 0.0
+    }
+  ],
   "facts": {
     "business": "",
     "customer": "",
@@ -90,7 +118,7 @@ No copies este esquema literalmente. Rellena cada campo con información inferid
 
 
 REPORT_INSTRUCTIONS = """
-Genera un informe potente y accionable en español para "Encuentra Tu Primer Empleado IA".
+Genera un diagnóstico accionable en español para "Encuentra Tu Primer Empleado IA".
 
 Usa la conversación y facts disponibles. Si falta algo, explícitalo como "confianza media/baja", no inventes.
 
@@ -352,21 +380,66 @@ def parse_json_text(text: str) -> dict:
         return json.loads(extract_balanced_json(text))
 
 
+def ensure_list(value):
+    if value is None or value == "":
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def normalize_agent_result(result: dict, lead: dict) -> dict:
+    facts = result.get("facts") if isinstance(result.get("facts"), dict) else lead.get("facts", {})
+    signals = result.get("signals") if isinstance(result.get("signals"), dict) else lead.get("signals", {})
+    confidence = result.get("confidence", 0)
+    try:
+        confidence = float(confidence)
+    except (TypeError, ValueError):
+        confidence = 0
+    confidence = max(0, min(1, confidence))
+    stage = result.get("stage") if result.get("stage") in stagePctBackend() else lead.get("stage", "contexto")
+    reply = result.get("reply") or "Te sigo. Para recomendar bien, necesito un ejemplo concreto de cómo ocurre ahora ese proceso."
+    normalized = {
+        **result,
+        "reply": reply,
+        "stage": stage,
+        "ready_for_report": bool(result.get("ready_for_report", False)),
+        "confidence": confidence,
+        "progress_label": result.get("progress_label") or "Entendiendo el negocio",
+        "current_focus": result.get("current_focus") or facts.get("selected_process", ""),
+        "open_gaps": ensure_list(result.get("open_gaps")),
+        "live_insights": ensure_list(result.get("live_insights")),
+        "candidate_processes": ensure_list(result.get("candidate_processes")),
+        "facts": facts,
+        "signals": signals,
+    }
+    return normalized
+
+
+def stagePctBackend():
+    return {"contexto", "exploracion", "profundizacion", "evaluacion", "recomendacion", "informe"}
+
+
 def call_codex_cli(instructions: str, input_text: str) -> dict:
     if not CODEX_BIN or not Path(CODEX_BIN).exists():
         raise RuntimeError("Codex CLI no está disponible")
     if instructions == AGENT_INSTRUCTIONS:
         codex_instructions = """
-Eres un consultor conversacional de automatización para personas no técnicas.
-Tu trabajo: entender el negocio, detectar procesos automatizables y hacer la siguiente pregunta más útil.
-No eres un formulario. No repitas preguntas ya respondidas. Si falta concreción, pide un ejemplo real.
-Normalmente debes avanzar en 7-10 minutos y cerrar cuando haya suficiente confianza.
+Eres un consultor conversacional de automatización para pymes españolas y personas no técnicas.
+Tu trabajo es hacer una discovery session real: entender el negocio, formular hipótesis, detectar procesos automatizables y hacer la siguiente pregunta más útil.
+No eres un formulario. No uses un guion fijo. Cada pregunta debe nacer de la última respuesta del usuario y de lo que falta para poder recomendar con criterio.
+Si falta concreción, pide un ejemplo real. Si el usuario ya dio información suficiente, no preguntes por preguntar: cierra y prepara diagnóstico.
 
 Responde solo con JSON. Tipos obligatorios:
 - reply: string con la siguiente intervención concreta al usuario.
 - stage: uno de contexto, exploracion, profundizacion, evaluacion, recomendacion, informe.
 - ready_for_report: boolean.
 - confidence: número entre 0 y 1.
+- progress_label: string breve sobre qué estás analizando.
+- current_focus: string con el proceso/área que estás investigando.
+- open_gaps: array de datos concretos que faltan.
+- live_insights: array de insights breves ya detectados.
+- candidate_processes: array de objetos con name, why_it_matters, evidence, confidence.
 - facts: objeto con claves opcionales business, customer, channels, main_processes, selected_process, example, frequency, impact, tools, data, risk, preference, budget, urgency.
 - signals: objeto con puntuaciones numéricas para email, sales, whatsapp, support, bookings, reporting, documentation, operations.
 """
@@ -458,35 +531,69 @@ def call_openai(instructions: str, input_text: str) -> dict:
 def fallback_agent(lead: dict, user_text: str) -> dict:
     text = " ".join([m.get("content", "") for m in lead["transcript"] if m.get("role") == "user"]).lower()
     combined = f"{text} {user_text}".lower()
-    signal = "operations"
-    if any(x in combined for x in ["email", "correo", "outlook", "gmail"]):
-        signal = "email"
-    if any(x in combined for x in ["lead", "venta", "crm", "propuesta"]):
-        signal = "sales"
-    if any(x in combined for x in ["whatsapp", "wasap"]):
-        signal = "whatsapp"
-    if any(x in combined for x in ["soporte", "incidencia", "cliente"]):
-        signal = "support"
+    scores = {
+        "email": sum(x in combined for x in ["email", "correo", "outlook", "gmail", "bandeja"]),
+        "sales": sum(x in combined for x in ["lead", "venta", "crm", "propuesta", "cliente potencial", "comercial"]),
+        "whatsapp": sum(x in combined for x in ["whatsapp", "wasap", "mensaje"]),
+        "support": sum(x in combined for x in ["soporte", "incidencia", "cliente", "duda", "ticket"]),
+        "bookings": sum(x in combined for x in ["reserva", "cita", "agenda", "calendario"]),
+        "reporting": sum(x in combined for x in ["reporte", "informe", "metricas", "dashboard"]),
+        "documentation": sum(x in combined for x in ["documentar", "documentacion", "procedimiento", "manual"]),
+        "operations": sum(x in combined for x in ["operacion", "proceso", "tarea", "repetitivo", "manual"]),
+    }
+    signal = max(scores, key=scores.get)
+    if scores[signal] == 0:
+        signal = "operations"
 
     turns = len([m for m in lead["transcript"] if m.get("role") == "user"])
-    questions = [
-        "Cuéntame el flujo actual con un ejemplo real: qué entra, qué haces tú, qué decides y qué debería salir.",
-        "¿Con qué frecuencia ocurre, cuánto tiempo consume y qué pierdes si sigue igual 3 meses?",
-        "¿Qué herramientas usas y dónde viven los datos o ejemplos reales?",
-        "¿Qué sería peligroso que una IA hiciera mal y qué debería quedar siempre en revisión humana?",
-        "¿Prefieres aprender a montarlo, hacerlo acompañado o que alguien lo implemente? ¿Hay urgencia o presupuesto aproximado?",
-    ]
+    gaps = []
+    if not any(x in combined for x in ["cada día", "diario", "semana", "mes", "10", "15", "horas", "veces"]):
+        gaps.append("frecuencia e impacto")
+    if not any(x in combined for x in ["ejemplo", "caso", "ayer", "cliente", "entra", "recibo"]):
+        gaps.append("ejemplo real")
+    if not any(x in combined for x in ["uso", "herramienta", "gmail", "outlook", "hubspot", "notion", "excel", "sheets", "whatsapp"]):
+        gaps.append("herramientas y datos")
+    if not any(x in combined for x in ["riesgo", "peligro", "revisión", "aprobar", "invent"]):
+        gaps.append("riesgos y revisión humana")
+    if "ejemplo real" in gaps:
+        reply = f"Veo una posible oportunidad en {signal}. Para no inventar, cuéntame un caso real reciente: qué entró, qué hiciste tú, qué decidiste y qué debería haber salido."
+    elif "frecuencia e impacto" in gaps:
+        reply = f"Esto ya suena automatizable en {signal}. Para priorizarlo: ¿con qué frecuencia ocurre, cuánto tiempo te consume y qué pierdes si sigue igual tres meses?"
+    elif "herramientas y datos" in gaps:
+        reply = "Ahora quiero saber si se puede construir: ¿qué herramientas usas hoy y dónde están los ejemplos o datos que tendría que mirar el empleado IA?"
+    elif "riesgos y revisión humana" in gaps:
+        reply = "Antes de recomendarlo, pongamos límites: ¿qué sería peligroso que la IA hiciera mal y qué tendría que quedar siempre en revisión humana?"
+    else:
+        reply = "Ya tengo suficiente para preparar un diagnóstico preliminar con oportunidades y riesgos claros."
     ready = turns >= 5
+    if not gaps and turns >= 3:
+        ready = True
     facts = lead["facts"]
     facts.setdefault("business", lead["transcript"][0]["content"] if lead["transcript"] else user_text)
     facts["selected_process"] = signal
     signals = lead["signals"]
-    signals[signal] = signals.get(signal, 0) + 1
+    for key, score in scores.items():
+        signals[key] = max(signals.get(key, 0), score)
     return {
-        "reply": "Tengo suficiente para generar un diagnóstico preliminar." if ready else questions[min(turns, len(questions) - 1)],
+        "reply": reply,
         "stage": "recomendacion" if ready else "profundizacion",
         "ready_for_report": ready,
-        "confidence": 0.55 if ready else 0.3,
+        "confidence": 0.72 if ready else min(0.65, 0.25 + turns * 0.12),
+        "progress_label": "Priorizando oportunidades" if ready else f"Investigando {signal}",
+        "current_focus": signal,
+        "open_gaps": gaps,
+        "live_insights": [
+            f"Hay señales de trabajo repetitivo en {signal}.",
+            "Conviene mantener revisión humana en la primera versión.",
+        ],
+        "candidate_processes": [
+            {
+                "name": signal,
+                "why_it_matters": "Aparece como área con fricción o pérdida de valor en la conversación.",
+                "evidence": user_text[:180],
+                "confidence": 0.62 if not ready else 0.78,
+            }
+        ],
         "facts": facts,
         "signals": signals,
         "fallback": True,
@@ -655,6 +762,7 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception as exc:
             result = fallback_agent(lead, user_text)
             result["api_error"] = str(exc)
+        result = normalize_agent_result(result, lead)
         transcript.append({"role": "assistant", "content": result.get("reply", ""), "at": now()})
         update_lead(
             lead_id,

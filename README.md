@@ -15,7 +15,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Prompt_Investigacion_Procesos.md`: prompt de fondo para el agente investigador de procesos automatizables.
 - `Prompt_Agente_Diagnostico.md`: prompt listo para usar en un agente conversacional.
 - `Scoring_y_CRM.csv`: criterios de scoring y campos internos recomendados.
-- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, informe potente y feedback.
+- `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable y feedback.
 - `CRM_Dashboard.html`: dashboard interno para revisar leads, conversación, outcome, oferta recomendada y feedback.
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
