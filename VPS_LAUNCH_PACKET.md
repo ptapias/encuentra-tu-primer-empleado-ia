@@ -146,6 +146,8 @@ En cada prueba:
 - Abrir CRM y comprobar conversación, outcome, consentimiento, CTA, feedback y atribución.
 - Exportar CSV y comprobar `email`, `consent_accepted`, `cta_interest`, `feedback_rating`, `evidence_summary`.
 
+Usa `MANUAL_PRODUCTION_TEST.md` como plantilla de aceptación. Rellena una copia por prueba o pega ahí las evidencias antes de abrir a testers.
+
 ## 6. Primer grupo de testers
 
 Enviar a 5-10 personas, no más, durante la primera semana.

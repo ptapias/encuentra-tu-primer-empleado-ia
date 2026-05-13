@@ -94,6 +94,8 @@ Después del despliegue:
 - Revisar que todo aparece en CRM.
 - Exportar CSV y comprobar email, consentimiento, CTA, feedback y origen.
 
+Usa `MANUAL_PRODUCTION_TEST.md` para registrar resultado, evidencia y decisión de apertura.
+
 ## Decisión de salida
 
 Abrir beta controlada si:

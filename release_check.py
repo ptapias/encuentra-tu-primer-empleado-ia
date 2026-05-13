@@ -18,6 +18,7 @@ INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
+MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
 
 
 def load_env(path: Path) -> dict:
@@ -130,6 +131,7 @@ def deploy_config_check() -> dict:
         "verify_script_preflight_service_user": "--service-user" in verify_script and "APP_USER" in verify_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
+        "manual_production_test_exists": MANUAL_PRODUCTION_TEST.exists(),
     }
     missing = [name for name, ok in required.items() if not ok]
     return {
