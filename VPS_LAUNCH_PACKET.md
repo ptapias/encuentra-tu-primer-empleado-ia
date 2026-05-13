@@ -20,12 +20,13 @@ Este documento convierte el despliegue en una operación corta y verificable. La
 Con esos datos, en el VPS:
 
 ```bash
+python3 validate_vps_inputs.py --path VPS_INPUTS.md
 cp privacy_config.example.json privacy_config.json
 nano privacy_config.json
 python3 render_privacy.py --config privacy_config.json
 ```
 
-El generador actualiza `PRIVACY_BETA.md` y `PRIVACY_BETA.html`. Si queda algún `Completar`, se detiene.
+El validador falla si quedan campos clave vacíos o placeholders. El generador actualiza `PRIVACY_BETA.md` y `PRIVACY_BETA.html`. Si queda algún `Completar`, se detiene.
 
 ## 2. Decisión de proveedor IA para la beta
 
