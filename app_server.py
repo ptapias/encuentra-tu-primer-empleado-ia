@@ -53,6 +53,12 @@ class AiBusyError(RuntimeError):
     pass
 
 
+class RequestBodyError(ValueError):
+    def __init__(self, message: str, status: int = 400):
+        super().__init__(message)
+        self.status = status
+
+
 AGENT_INSTRUCTIONS = """
 Eres el agente real de diagnóstico de "Encuentra Tu Primer Empleado IA".
 
@@ -333,13 +339,29 @@ def init_db():
         )
 
 
+def request_content_length(headers) -> int:
+    raw = headers.get("Content-Length", "0")
+    try:
+        length = int(raw)
+    except (TypeError, ValueError):
+        raise RequestBodyError("Cabecera Content-Length inválida", 400)
+    if length < 0:
+        raise RequestBodyError("Cabecera Content-Length inválida", 400)
+    return length
+
+
 def read_json(handler) -> dict:
-    length = int(handler.headers.get("Content-Length", "0"))
+    length = request_content_length(handler.headers)
     if length > MAX_BODY_BYTES:
-        raise ValueError("Payload demasiado grande")
+        raise RequestBodyError("Payload demasiado grande", 413)
     if length <= 0:
         return {}
-    return json.loads(handler.rfile.read(length).decode("utf-8"))
+    try:
+        return json.loads(handler.rfile.read(length).decode("utf-8"))
+    except UnicodeDecodeError:
+        raise RequestBodyError("El cuerpo de la petición no está en UTF-8 válido", 400)
+    except json.JSONDecodeError:
+        raise RequestBodyError("JSON inválido", 400)
 
 
 def insert_event(lead_id: str | None, event_name: str, payload: dict):
@@ -1268,7 +1290,12 @@ class Handler(SimpleHTTPRequestHandler):
         if rate_limited(f"post:{client_ip(self)}", MAX_PUBLIC_EVENTS_PER_HOUR):
             self._json({"error": "Demasiadas peticiones. Inténtalo más tarde."}, 429)
             return
-        if int(self.headers.get("Content-Length", "0")) > MAX_BODY_BYTES:
+        try:
+            content_length = request_content_length(self.headers)
+        except RequestBodyError as exc:
+            self._json({"error": str(exc)}, exc.status)
+            return
+        if content_length > MAX_BODY_BYTES:
             self._json({"error": "Payload demasiado grande"}, 413)
             return
         admin_routes = {"/api/lead/update", "/api/lead/delete", "/crm"}
@@ -1290,7 +1317,10 @@ class Handler(SimpleHTTPRequestHandler):
         if not handler:
             self.send_error(404, "Not found")
             return
-        handler()
+        try:
+            handler()
+        except RequestBodyError as exc:
+            self._json({"error": str(exc)}, exc.status)
 
     def _require_admin(self) -> bool:
         if not ADMIN_PASSWORD:

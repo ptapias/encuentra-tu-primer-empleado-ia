@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import app_server
+import io
 import json
 import preflight_vps
 
@@ -15,6 +16,12 @@ class FakeHandler:
         self.headers = {"X-Forwarded-For": forwarded} if forwarded else {}
 
 
+class FakeBodyHandler:
+    def __init__(self, body: bytes, content_length: str | None = None):
+        self.rfile = io.BytesIO(body)
+        self.headers = {"Content-Length": str(len(body)) if content_length is None else content_length}
+
+
 def test_rate_limit_blocks_after_limit():
     app_server.RATE_BUCKETS.clear()
     key = "test:rate-limit"
@@ -27,6 +34,27 @@ def test_valid_email_rejects_bad_values():
     assert_true(app_server.valid_email("persona@empresa.com"), "Email normal debería ser válido")
     assert_true(not app_server.valid_email("persona"), "Email sin dominio debería fallar")
     assert_true(not app_server.valid_email("persona@empresa"), "Email sin TLD debería fallar")
+
+
+def test_read_json_rejects_bad_public_bodies():
+    assert_true(app_server.read_json(FakeBodyHandler(b'{"ok": true}')) == {"ok": True}, "JSON válido debería parsearse")
+    try:
+        app_server.read_json(FakeBodyHandler(b"{mal json"))
+        raise AssertionError("JSON inválido debería fallar")
+    except app_server.RequestBodyError as exc:
+        assert_true(exc.status == 400 and "JSON" in str(exc), "JSON inválido debería devolver 400 claro")
+
+    try:
+        app_server.read_json(FakeBodyHandler(b"{}", content_length="nope"))
+        raise AssertionError("Content-Length inválido debería fallar")
+    except app_server.RequestBodyError as exc:
+        assert_true(exc.status == 400, "Content-Length inválido debería devolver 400")
+
+    try:
+        app_server.read_json(FakeBodyHandler(b"{}", content_length=str(app_server.MAX_BODY_BYTES + 1)))
+        raise AssertionError("Payload grande debería fallar")
+    except app_server.RequestBodyError as exc:
+        assert_true(exc.status == 413, "Payload grande debería devolver 413")
 
 
 def test_admin_example_password_is_misconfigured():
@@ -127,6 +155,7 @@ def test_codex_live_service_user_requires_root():
 if __name__ == "__main__":
     test_rate_limit_blocks_after_limit()
     test_valid_email_rejects_bad_values()
+    test_read_json_rejects_bad_public_bodies()
     test_admin_example_password_is_misconfigured()
     test_admin_without_password_only_allowed_on_local_host()
     test_client_ip_only_trusts_proxy_header_from_loopback()

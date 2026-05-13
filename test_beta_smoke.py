@@ -56,6 +56,20 @@ def request_raw(base, path, *, auth=None, timeout=30):
         return response.status, dict(response.headers), response.read().decode("utf-8", errors="replace")
 
 
+def request_bad_json_status(base, path, *, timeout=30):
+    req = urllib.request.Request(
+        base.rstrip("/") + path,
+        data=b"{mal json",
+        headers={"X-Forwarded-For": SMOKE_IP, "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return response.status
+    except urllib.error.HTTPError as exc:
+        return exc.code
+
+
 def expect(condition, message):
     if not condition:
         raise AssertionError(message)
@@ -180,6 +194,10 @@ def main():
     expect(status == 200 and session.get("lead_id"), "no se puede crear sesión pública")
     expect(session.get("facts", {}).get("attribution", {}).get("source") == "youtube", "no se guarda la atribución inicial")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
+
+    bad_json_status = request_bad_json_status(args.base, "/api/session")
+    expect(bad_json_status == 400, f"JSON inválido debería devolver 400, no {bad_json_status}")
+    checks.append({"check": "bad_json_handling", "status": bad_json_status})
 
     missing_lead_statuses = {}
     for endpoint, payload in {
