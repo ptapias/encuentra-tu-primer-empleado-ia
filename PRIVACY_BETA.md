@@ -30,8 +30,18 @@ Antes de abrir tráfico público, completar:
 - Si se usarán datos para newsletter aparte del diagnóstico, separarlo claramente del envío del informe.
 - Si habrá decisiones comerciales automatizadas, explicarlo; la recomendación actual es mantener revisión humana.
 
+## Operación de solicitudes de eliminación
+
+Durante la beta, si una persona pide borrar sus datos:
+
+1. Abrir `CRM_Dashboard.html`.
+2. Localizar el lead por email o conversación.
+3. Usar `Borrar lead` y confirmar escribiendo `DELETE`.
+4. Ejecutar un backup después si el borrado forma parte de una limpieza operativa.
+
+El borrado elimina el lead y sus eventos asociados de SQLite. Los backups históricos deben gestionarse según el plazo de conservación que se defina antes del lanzamiento público amplio.
+
 ## Referencias usadas
 
 - AEPD: deber de información e información por capas.
 - AEPD: guía/modelo de cláusula informativa.
-

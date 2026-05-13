@@ -112,6 +112,7 @@ python3 release_check.py --env .env --base https://diagnostico.tu-dominio.com --
 - Revisa el CRM una vez al día.
 - Mira las métricas superiores del CRM: inicio de conversación, captura de email, informes generados, feedback y media de turnos.
 - Mantén `MAX_AI_CONCURRENCY=1` en beta con Codex CLI para evitar que varios diagnósticos simultáneos saturen el VPS. Si el agente está ocupado, el usuario verá un mensaje para reintentar en unos segundos.
+- Si alguien pide eliminar sus datos, abre el CRM, selecciona el lead y usa `Borrar lead`; esto elimina el lead y sus eventos asociados.
 - Haz backup de CRM antes de cambios o una vez al día durante beta:
 
 ```bash

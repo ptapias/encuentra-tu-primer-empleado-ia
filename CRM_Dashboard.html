@@ -48,6 +48,12 @@
       align-items: center;
     }
     button:hover, a.button:hover { background: var(--accent-dark); }
+    button.danger {
+      background: #8b2f21;
+    }
+    button.danger:hover {
+      background: #6f2016;
+    }
     label {
       display: grid;
       gap: 6px;
@@ -404,6 +410,7 @@
         </label>
         <div class="ops-actions">
           <button type="submit">Guardar cambios</button>
+          <button class="danger" id="delete-lead" type="button">Borrar lead</button>
           <span class="save-note" id="save-note">Solo visible en el CRM interno.</span>
         </div>
       </form>
@@ -414,6 +421,7 @@
       <div class="card"><span>Feedback</span><p>${escapeHtml(lead.feedback?.text || "Sin feedback todavía.")}</p></div>
       <div class="card"><span>Conversación</span>${transcript || "<p>Sin conversación.</p>"}</div>`;
       document.getElementById("ops-form").addEventListener("submit", event => saveLeadOps(event, id));
+      document.getElementById("delete-lead").addEventListener("click", () => deleteLead(id));
     }
 
     async function saveLeadOps(event, id) {
@@ -438,6 +446,28 @@
         await loadLead(id);
       } catch (error) {
         note.textContent = error.message;
+      }
+    }
+
+    async function deleteLead(id) {
+      const note = document.getElementById("save-note");
+      const typed = window.prompt("Para borrar este lead y sus eventos, escribe DELETE");
+      if (typed !== "DELETE") {
+        if (note) note.textContent = "Borrado cancelado.";
+        return;
+      }
+      if (note) note.textContent = "Borrando lead...";
+      try {
+        await api("/api/lead/delete", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ lead_id: id, confirm: "delete" })
+        });
+        selected.textContent = "sin seleccionar";
+        detail.innerHTML = `<div class="empty">Lead borrado. Selecciona otro lead para continuar.</div>`;
+        await Promise.all([loadMetrics(), loadLeads()]);
+      } catch (error) {
+        if (note) note.textContent = error.message;
       }
     }
 

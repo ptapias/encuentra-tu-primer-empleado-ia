@@ -35,6 +35,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Guarda leads en CRM | SQLite `crm.sqlite3`, endpoints `/api/session`, `/api/email`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` | `test_discovery_flow.py` crea leads y reportes; dashboard lee datos | Hecho |
 | CRM con métricas de beta | `/api/metrics`, `CRM_Dashboard.html` | `curl /api/metrics` devuelve leads, inicio, email, informe, feedback y turnos | Hecho |
 | CRM operable manualmente | `/api/lead/update`, controles de "Operación interna" en `CRM_Dashboard.html` | Permite cambiar estado, oferta y notas internas desde el detalle del lead; `test_beta_smoke.py` valida edición con y sin auth | Hecho base |
+| Borrado de datos de lead | `/api/lead/delete`, botón `Borrar lead` en `CRM_Dashboard.html`, nota en `PRIVACY_BETA.md` | Elimina lead y eventos asociados; `test_beta_smoke.py` valida borrado y 404 posterior | Hecho base |
 | Protección CRM | `_require_admin()` protege dashboard, leads, lead, metrics, export, edición de lead y `/crm` legacy | Prueba con `ADMIN_PASSWORD`: endpoints internos devuelven `401` sin auth y `200` con auth | Hecho para VPS |
 | Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; `test_beta_smoke.py` comprueba protección y respuesta | Hecho |
 | Backups de beta | `backup_crm.py`, `backups/` ignorado por Git | Script genera copia SQLite consistente y JSONL si existe | Hecho |

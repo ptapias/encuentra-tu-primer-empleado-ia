@@ -878,7 +878,7 @@ class Handler(SimpleHTTPRequestHandler):
         if int(self.headers.get("Content-Length", "0")) > MAX_BODY_BYTES:
             self._json({"error": "Payload demasiado grande"}, 413)
             return
-        admin_routes = {"/api/lead/update", "/crm"}
+        admin_routes = {"/api/lead/update", "/api/lead/delete", "/crm"}
         if self.path in admin_routes and not self._require_admin():
             return
         routes = {
@@ -888,6 +888,7 @@ class Handler(SimpleHTTPRequestHandler):
             "/api/report": self._handle_report,
             "/api/feedback": self._handle_feedback,
             "/api/lead/update": self._handle_update_lead_admin,
+            "/api/lead/delete": self._handle_delete_lead_admin,
             "/crm": self._handle_crm,
             "/transcribe": self._handle_transcribe,
         }
@@ -1080,6 +1081,33 @@ class Handler(SimpleHTTPRequestHandler):
             {"status": status or lead["status"], "offer": offer or crm_summary.get("offer", ""), "notes": notes},
         )
         self._json({"ok": True, "lead": get_lead(lead_id)})
+
+    def _handle_delete_lead_admin(self):
+        payload = read_json(self)
+        lead_id = payload.get("lead_id")
+        confirm = humanize(payload.get("confirm")).strip().lower()
+        if not lead_id:
+            self._json({"error": "lead_id is required"}, 400)
+            return
+        if confirm != "delete":
+            self._json({"error": "Confirmación requerida"}, 400)
+            return
+        try:
+            lead = get_lead(lead_id)
+        except KeyError:
+            self._json({"error": "Lead not found"}, 404)
+            return
+        snapshot = {
+            "email": lead["email"],
+            "stage": lead["stage"],
+            "status": lead["status"],
+            "turns": len([m for m in lead["transcript"] if m.get("role") == "user"]),
+        }
+        with db() as conn:
+            conn.execute("DELETE FROM events WHERE lead_id = ?", (lead_id,))
+            conn.execute("DELETE FROM leads WHERE id = ?", (lead_id,))
+        insert_event(None, "lead_deleted", {"lead_id": lead_id, **snapshot})
+        self._json({"ok": True, "deleted": lead_id})
 
     def _handle_list_leads(self):
         with db() as conn:

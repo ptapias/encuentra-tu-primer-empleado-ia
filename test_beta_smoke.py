@@ -61,6 +61,9 @@ def main():
     expect(status == 200 and session.get("lead_id"), "no se puede crear sesión pública")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
 
+    status, delete_session = request(args.base, "/api/session", payload={})
+    expect(status == 200 and delete_session.get("lead_id"), "no se puede crear sesión de borrado")
+
     update_payload = {
         "lead_id": session["lead_id"],
         "status": "send_resource",
@@ -94,6 +97,31 @@ def main():
     else:
         expect(legacy_crm_without_auth == 200 and legacy_crm.get("ok"), "el endpoint legacy /crm no responde en entorno sin auth")
     checks.append({"check": "legacy_crm", "auth_required": bool(auth), "status_without_auth": legacy_crm_without_auth})
+
+    delete_payload = {"lead_id": delete_session["lead_id"], "confirm": "delete"}
+    try:
+        status, deleted = request(args.base, "/api/lead/delete", payload=delete_payload)
+        delete_without_auth = status
+    except urllib.error.HTTPError as exc:
+        delete_without_auth = exc.code
+        deleted = {}
+    if auth:
+        expect(delete_without_auth == 401, "el borrado de lead debería estar protegido sin autenticación")
+        status, deleted = request(args.base, "/api/lead/delete", auth=auth, payload=delete_payload)
+        expect(status == 200 and deleted.get("deleted") == delete_session["lead_id"], "el borrado de lead no responde con autenticación")
+        try:
+            request(args.base, f"/api/lead?id={delete_session['lead_id']}", auth=auth)
+            raise AssertionError("el lead borrado sigue disponible")
+        except urllib.error.HTTPError as exc:
+            expect(exc.code == 404, "el lead borrado debería devolver 404")
+    else:
+        expect(delete_without_auth == 200 and deleted.get("deleted") == delete_session["lead_id"], "el borrado de lead no responde en entorno sin auth")
+        try:
+            request(args.base, f"/api/lead?id={delete_session['lead_id']}")
+            raise AssertionError("el lead borrado sigue disponible")
+        except urllib.error.HTTPError as exc:
+            expect(exc.code == 404, "el lead borrado debería devolver 404")
+    checks.append({"check": "lead_delete", "auth_required": bool(auth), "status_without_auth": delete_without_auth})
 
     try:
         status, metrics = request(args.base, "/api/metrics")

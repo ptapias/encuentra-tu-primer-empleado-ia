@@ -79,7 +79,7 @@ Para pruebas puedes usar `AI_PROVIDER=fallback` o `ALLOW_AI_FALLBACK=true`. Para
 
 Los leads se guardan en `crm.sqlite3` y el evento de informe también se duplica en `crm_leads.jsonl` como respaldo local. Ambos archivos están fuera de Git.
 
-Desde `CRM_Dashboard.html` puedes operar la beta sin tocar la base de datos: seleccionar un lead, cambiar su estado, ajustar la oferta recomendada y añadir notas internas. Los cambios quedan registrados como evento interno.
+Desde `CRM_Dashboard.html` puedes operar la beta sin tocar la base de datos: seleccionar un lead, cambiar su estado, ajustar la oferta recomendada, añadir notas internas y borrar un lead completo si alguien pide eliminar sus datos. Los cambios quedan registrados como evento interno cuando procede.
 
 Pulsa el icono de micrófono para grabar, vuelve a pulsarlo para transcribir con Whisper local y añadir el texto al campo. En VPS, define `WHISPER_BIN` y `FFMPEG_BIN` si no están en el `PATH`; si faltan, la app desactiva el micro y mantiene el flujo por texto.
 
