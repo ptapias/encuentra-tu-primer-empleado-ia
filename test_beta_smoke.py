@@ -154,6 +154,7 @@ def main():
     expect("Email final" in dashboard_html and "de emails" in dashboard_html, "el CRM no muestra conversión del email-gate final")
     expect("Resumen de acción" in dashboard_html and "Fuga principal" in dashboard_html, "el CRM no muestra resumen accionable del diagnóstico")
     expect("Discovery viva" in dashboard_html and "Procesos candidatos" in dashboard_html, "el CRM no muestra discovery viva ni procesos candidatos")
+    expect("Informe privado" in dashboard_html and "Abrir informe privado" in dashboard_html, "el CRM no muestra acceso al enlace privado del informe")
     checks.append({"check": "dashboard_filters", "ok": True})
 
     status, privacy_headers, privacy_html = request_raw(args.base, "/PRIVACY_BETA.html")

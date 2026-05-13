@@ -495,6 +495,10 @@
       const consent = lead.facts?.consent || {};
       const ctaInterest = lead.facts?.cta_interest || {};
       const salesIntel = report.sales_intelligence || {};
+      const publicReportUrl = report.public_report_url || "";
+      const publicReportHtml = publicReportUrl
+        ? `<a class="button" href="${escapeHtml(publicReportUrl)}" target="_blank" rel="noopener">Abrir informe privado</a><p><small>${escapeHtml(publicReportUrl)}</small></p>`
+        : "<p>Disponible cuando se genera el informe.</p>";
       const currentOffer = crm.offer || "";
       const currentStatus = lead.status || crm.status || "new";
       const currentNotes = crm.internal_notes || "";
@@ -567,6 +571,7 @@
         <p><strong>Empleado IA:</strong> ${escapeHtml(mainOpportunity.ai_employee || report.recommended_employee || "sin recomendación")}</p>
         <p><strong>Primer paso:</strong> ${escapeHtml(mainOpportunity.first_step || "Genera el informe para ver el siguiente paso.")}</p>
       </div>
+      <div class="card"><span>Informe privado</span>${publicReportHtml}</div>
       <div class="card"><span>Empleado IA recomendado</span><h3>${escapeHtml(report.recommended_employee || "sin informe todavía")}</h3><p>${escapeHtml(report.recommendation_reason || "")}</p></div>
       <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
       <div class="card"><span>Discovery viva</span>
