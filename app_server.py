@@ -1457,6 +1457,7 @@ class Handler(SimpleHTTPRequestHandler):
 
         total = len(lead_rows)
         with_email = 0
+        with_consent = 0
         with_report = 0
         with_feedback = 0
         with_cta_interest = 0
@@ -1470,6 +1471,9 @@ class Handler(SimpleHTTPRequestHandler):
         for row in lead_rows:
             facts = json.loads(row["facts_json"] or "{}")
             attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
+            consent = facts.get("consent") if isinstance(facts.get("consent"), dict) else {}
+            if consent.get("accepted"):
+                with_consent += 1
             source = humanize(attribution.get("source") or attribution.get("ref")) or "directo"
             source_counts[source] = source_counts.get(source, 0) + 1
             cta_interest = facts.get("cta_interest") if isinstance(facts.get("cta_interest"), dict) else {}
@@ -1517,11 +1521,13 @@ class Handler(SimpleHTTPRequestHandler):
             "total_leads": total,
             "started_chat": started_chat,
             "email_captured": with_email,
+            "consent_captured": with_consent,
             "reports_generated": with_report,
             "feedback_received": with_feedback,
             "cta_interest": with_cta_interest,
             "chat_start_rate": pct(started_chat),
             "email_capture_rate": pct(with_email),
+            "consent_rate": pct(with_consent),
             "report_rate": pct(with_report),
             "feedback_rate": pct(with_feedback),
             "cta_interest_rate": pct(with_cta_interest),
