@@ -31,10 +31,7 @@ Si quieres reducir pasos manuales, puedes usar el instalador desde la raíz del 
 ```bash
 cp VPS_INPUTS.md VPS_INPUTS.local.md
 nano VPS_INPUTS.local.md
-python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
-python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
-python3 render_privacy.py --config privacy_config.json
-sudo ./deploy/install_vps.sh
+sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
 Cuando `.env` ya esté completo, puedes relanzarlo con dominio para instalar servicios, activar backup y validar Caddy:

@@ -22,13 +22,10 @@ Con esos datos, en el VPS:
 ```bash
 cp VPS_INPUTS.md VPS_INPUTS.local.md
 nano VPS_INPUTS.local.md
-python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
-python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
-python3 render_privacy.py --config privacy_config.json
-python3 beta_readiness_status.py
+sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
-El validador falla si quedan campos clave vacíos o placeholders. `prepare_vps_launch_files.py` genera `.env.generated` y `privacy_config.json` desde la ficha local. El instalador usa `.env.generated` para crear `.env` si aún no existe. El generador de privacidad actualiza `PRIVACY_BETA.md` y `PRIVACY_BETA.html`. Si queda algún `Completar`, se detiene.
+El lanzador valida inputs, genera `.env.generated` y `privacy_config.json`, renderiza privacidad pública, instala servicios y ejecuta smoke test local. Si queda algún campo clave vacío, placeholder o contraseña débil, se detiene antes de tocar systemd.
 
 ## 2. Decisión de proveedor IA para la beta
 
@@ -57,16 +54,12 @@ sudo mkdir -p /opt/primer-empleado-ia
 sudo chown -R "$USER":"$USER" /opt/primer-empleado-ia
 git clone https://github.com/ptapias/encuentra-tu-primer-empleado-ia.git /opt/primer-empleado-ia
 cd /opt/primer-empleado-ia
-sudo ./deploy/install_vps.sh
+cp VPS_INPUTS.md VPS_INPUTS.local.md
+nano VPS_INPUTS.local.md
+sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
-El primer pase crea `.env` y se detiene. Editar:
-
-```bash
-sudo nano /opt/primer-empleado-ia/.env
-```
-
-Valores mínimos:
+Si prefieres hacerlo manualmente, los valores mínimos de `.env` son:
 
 ```bash
 HOST=127.0.0.1

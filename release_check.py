@@ -18,6 +18,7 @@ CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
 UPDATE_SCRIPT = ROOT / "deploy" / "update_vps.sh"
+LAUNCH_FROM_INPUTS_SCRIPT = ROOT / "deploy" / "launch_from_inputs.sh"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
@@ -113,6 +114,7 @@ def deploy_config_check() -> dict:
     install_script = INSTALL_SCRIPT.read_text(encoding="utf-8") if INSTALL_SCRIPT.exists() else ""
     verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8") if VERIFY_SCRIPT.exists() else ""
     update_script = UPDATE_SCRIPT.read_text(encoding="utf-8") if UPDATE_SCRIPT.exists() else ""
+    launch_from_inputs_script = LAUNCH_FROM_INPUTS_SCRIPT.read_text(encoding="utf-8") if LAUNCH_FROM_INPUTS_SCRIPT.exists() else ""
     required = {
         "app_service_NoNewPrivileges": "NoNewPrivileges=true" in app_service,
         "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
@@ -146,6 +148,9 @@ def deploy_config_check() -> dict:
         "update_script_rollback": "reset --hard" in update_script and "ROLLBACK_ENABLED" in update_script,
         "update_script_renders_systemd_units": "render_systemd_units" in update_script and "systemctl daemon-reload" in update_script,
         "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script,
+        "launch_from_inputs_script_executable": LAUNCH_FROM_INPUTS_SCRIPT.exists() and bool(LAUNCH_FROM_INPUTS_SCRIPT.stat().st_mode & 0o111),
+        "launch_from_inputs_validates_inputs": "validate_vps_inputs.py" in launch_from_inputs_script and "prepare_vps_launch_files.py" in launch_from_inputs_script,
+        "launch_from_inputs_installs": "install_vps.sh" in launch_from_inputs_script and "render_privacy.py" in launch_from_inputs_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
         "manual_production_test_exists": MANUAL_PRODUCTION_TEST.exists(),

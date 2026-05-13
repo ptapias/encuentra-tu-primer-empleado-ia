@@ -27,6 +27,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `beta_readiness_status.py`: resume si el proyecto está bloqueado por inputs, listo para generar archivos, listo para prueba manual VPS o listo para ejecutar el go/no-go público.
 - `PRODUCTION_READINESS.md`: lista corta de datos, variables, legal, gate final y prueba manual antes de abrir la beta.
 - `deploy/install_vps.sh`: instalador con guardarraíles para crear `.env`, copiar servicios, activar backups y validar smoke test en el VPS.
+- `deploy/launch_from_inputs.sh`: lanzador VPS de un solo comando desde `VPS_INPUTS.local.md`: valida, genera `.env`, renderiza privacidad e instala servicios.
 - `deploy/verify_vps.sh`: verificador de VPS con smoke local/HTTPS, release gate y checks opcionales de navegador/transcripción.
 - `deploy/update_vps.sh`: actualizador seguro para VPS: backup, pull fast-forward, preflight, restart y smoke test.
 - `deploy/primer-empleado-ia-backup.service` y `deploy/primer-empleado-ia-backup.timer`: unidades systemd para backup diario del CRM en VPS.
