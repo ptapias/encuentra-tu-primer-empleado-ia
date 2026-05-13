@@ -140,1096 +140,204 @@
         transition-duration: 0.01ms !important;
       }
     }
+    /* === SHELL === */
+    .shell {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .shell-body {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) 1fr;
+      min-height: 0;
+    }
+
+    @media (max-width: 800px) {
+      .shell-body { grid-template-columns: 1fr; }
+    }
+
+    /* === TOP FRAME === */
+    .topframe {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: var(--gap-3);
+      padding: var(--gap-2) var(--pad-x);
+      border-bottom: 1px solid var(--rule);
+      background: var(--bg-deep);
+    }
+    .topframe .brand,
+    .topframe .save-status {
+      font-family: var(--font-mono);
+      font-size: var(--t-eyebrow);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .topframe .save-status { justify-self: end; opacity: 0.6; transition: opacity var(--duration-2) var(--ease); }
+    .topframe .save-status[data-state="syncing"] { color: var(--cyan); opacity: 1; }
+    .topframe .save-status[data-state="reconnect"] { color: var(--cyan-2); opacity: 1; }
+
+    /* === PROGRESS-LINE 4 FASES === */
+    .phase-line {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      align-items: center;
+      gap: var(--gap-1);
+      min-width: 240px;
+    }
+    .phase-line .node {
+      display: flex; align-items: center; gap: var(--gap-1);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .phase-line .node[data-state="done"] { color: var(--ink-muted); }
+    .phase-line .node[data-state="active"] { color: var(--cyan-2); }
+    .phase-line .node::before {
+      content: "";
+      width: 6px; height: 6px;
+      border: 1px solid currentColor;
+      background: transparent;
+    }
+    .phase-line .node[data-state="active"]::before { background: var(--cyan-2); }
+    .phase-line .node[data-state="done"]::before { background: var(--ink-muted); }
+    .phase-line .conn {
+      height: 1px; background: var(--rule-strong); width: 100%;
+    }
+    .phase-line .conn[data-state="done"] { background: var(--cyan); }
+
+    @media (max-width: 800px) {
+      .phase-line .node span { display: none; }
+    }
+
+    /* === FOOTER === */
+    .footframe {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--gap-2) var(--pad-x);
+      border-top: 1px solid var(--rule);
+      background: var(--bg-deep);
+    }
+    .footframe .counter,
+    .footframe .mark {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .footframe .counter::before {
+      content: "";
+      display: inline-block; width: 24px; height: 1px;
+      background: var(--rule-strong);
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+    .footframe .mark .slash { color: var(--cyan-2); margin-left: 6px; }
+
+    /* === ASIDE / MAIN === */
+    aside.sidebar {
+      padding: var(--pad-y) var(--pad-x);
+      border-right: 1px solid var(--rule);
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      gap: var(--gap-3);
+      min-width: 0;
+    }
+    main {
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      min-width: 0;
+      padding: var(--pad-y) var(--pad-x);
+    }
+
+    @media (max-width: 800px) {
+      aside.sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: var(--gap-3);
+      }
+    }
+
   </style>
 </head>
 <body>
   <div class="shell">
-    <aside>
-      <div class="eyebrow">Discovery gratuito</div>
-      <h1>Encuentra tu primer empleado IA</h1>
-      <p class="lead">Una mini sesión consultiva para detectar dónde se escapa tiempo, dinero, clientes o trabajo que depende demasiado de ti.</p>
-      <div class="panel">
-        <h2>Empieza con una escena real</h2>
-        <button id="start">Empezar diagnóstico</button>
-        <button class="secondary" id="resetSession" type="button" hidden>Nuevo diagnóstico</button>
-        <div class="crm-status" id="crmStatus">Sin formulario previo. Primero entendemos qué pasa de verdad.</div>
-        <p class="privacy-note">El agente irá tirando del hilo hasta convertir tu relato en procesos, señales y prioridades. <a href="/PRIVACY_BETA.html" target="_blank" rel="noreferrer">Privacidad beta</a></p>
-      </div>
-      <div class="panel discovery-panel" id="discoveryPanel">
-        <h2>Lo que estoy entendiendo</h2>
-        <div class="discovery-card">
-          <span>Foco actual</span>
-          <strong id="focusText">Buscando el primer proceso claro</strong>
-        </div>
-        <div class="discovery-card">
-          <span>Claridad</span>
-          <div class="confidence-meter"><span id="confidenceFill"></span></div>
-        </div>
-        <div class="discovery-card">
-          <span>Señales detectadas</span>
-          <ul class="discovery-list" id="insightList">
-            <li>Aún estoy esperando contexto.</li>
-          </ul>
-        </div>
-        <div class="discovery-card">
-          <span>Procesos candidatos</span>
-          <div class="candidate-list" id="candidateList">
-            <div class="candidate-empty">Aparecerán cuando el agente detecte oportunidades reales.</div>
-          </div>
-        </div>
-        <div class="discovery-card">
-          <span>Falta por aclarar</span>
-          <ul class="discovery-list" id="gapList">
-            <li>Negocio, cliente y proceso repetitivo.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>Qué recibirás</h2>
-        <div class="lead-list">
-          <div class="lead-item"><strong>Fugas detectadas</strong>Dónde se pierde tiempo, dinero, clientes o foco.</div>
-          <div class="lead-item"><strong>Primer empleado IA recomendado</strong>Qué debería hacer, con qué datos, límites y riesgos.</div>
-          <div class="lead-item"><strong>Plan de 7 días</strong>Primeros pasos realistas sin lenguaje técnico.</div>
-        </div>
-      </div>
-    </aside>
-    <main>
-      <div class="topbar">
-        <div class="toprow">
-          <div class="status" id="status">Empieza cuando quieras: el agente irá tirando del hilo.</div>
-          <div class="stage" id="stage">Contexto</div>
-        </div>
-        <div class="progress"><span id="progress"></span></div>
-      </div>
-      <div class="chat" id="chat">
-        <section class="starter" id="starter">
-          <div class="starter-hero">
-            <div class="starter-kicker">Discovery gratuito · 7-10 min</div>
-            <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
-            <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: escucha, repregunta, detecta patrones y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
-            <div class="starter-start">
-              <button class="start-primary" type="button" onclick="startSession()">Empezar diagnóstico</button>
-              <p class="privacy-note" id="microAdvice">Consejo: usa el micro y cuenta una escena real. No hace falta que lo traigas ordenado.</p>
-            </div>
-            <div class="diagnostic-preview" aria-label="Vista previa del tipo de análisis que hará el agente">
-              <div class="diagnostic-preview-head">
-                <strong>Discovery en vivo</strong>
-                <span>No formulario · preguntas según tu caso</span>
-              </div>
-              <div class="diagnostic-preview-body">
-                <div class="preview-dialogue">
-                  <div class="preview-turn agent">
-                    <span>Agente</span>
-                    <p>Cuéntame una escena reciente donde algo se quedó parado: un email, un lead, una reserva, una tarea interna.</p>
-                  </div>
-                  <div class="preview-turn">
-                    <span>Tú</span>
-                    <p>Recibo muchos mensajes buenos, pero no sé cuáles responder ni cómo sacarles partido.</p>
-                  </div>
-                  <div class="preview-turn agent">
-                    <span>Agente</span>
-                    <p>Ahí puede haber una fuga de oportunidades. Voy a mirar volumen, criterio de respuesta, riesgo y primer paso viable.</p>
-                  </div>
-                </div>
-                <div class="preview-map">
-                  <div class="preview-map-row">
-                    <span>Fuga</span>
-                    <div><strong>Oportunidades sin seguimiento</strong><p>Mensajes que llegan, pero no se convierten en acción.</p></div>
-                  </div>
-                  <div class="preview-map-row">
-                    <span>Proceso</span>
-                    <div><strong>Clasificar, resumir y proponer respuesta</strong><p>La IA prepara; la persona aprueba.</p></div>
-                  </div>
-                  <div class="preview-map-row">
-                    <span>Informe</span>
-                    <div><strong>Primer empleado IA recomendado</strong><p>Con datos necesarios, riesgos y plan de 7 días.</p></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="starter-proof">
-              <div class="starter-prompt">
-                <strong>Empieza con una escena, no con una estrategia</strong>
-                <p>No hace falta que lo tengas ordenado. Cuenta qué vendes, a quién ayudas y una situación reciente donde algo se acumuló, se retrasó o se quedó sin responder. El agente irá convirtiendo ese relato en un mapa de procesos, señales y prioridades.</p>
-              </div>
-              <div class="live-map" aria-label="Ejemplo de mapa que construye el agente">
-                <div class="live-map-head">
-                  <span>Mapa vivo del diagnóstico</span>
-                  <span class="live-dot" aria-hidden="true"></span>
-                </div>
-                <div class="map-row">
-                  <span>Entrada</span>
-                  <div><strong>Mensajes, leads o tareas repetidas</strong><p>Qué llega cada semana y dónde se acumula.</p></div>
-                </div>
-                <div class="map-row">
-                  <span>Decisión</span>
-                  <div><strong>Qué miras antes de responder</strong><p>Reglas, contexto, datos y criterio humano.</p></div>
-                </div>
-                <div class="map-row">
-                  <span>IA viable</span>
-                  <div><strong>Borrador, clasificación o siguiente paso</strong><p>Con revisión humana cuando haya riesgo.</p></div>
-                </div>
-              </div>
-            </div>
-            <div class="starter-signal" aria-label="Qué va a analizar el agente">
-              <div class="signal-line">
-                <span>1</span>
-                <div><strong>Mapa rápido del negocio</strong><p>Qué entra, qué decides, qué respondes y qué queda pendiente.</p></div>
-              </div>
-              <div class="signal-line">
-                <span>2</span>
-                <div><strong>Oportunidades con evidencia</strong><p>No recomienda “un chatbot” por defecto: busca frecuencia, impacto, datos y riesgo.</p></div>
-              </div>
-              <div class="signal-line">
-                <span>3</span>
-                <div><strong>Primer empleado IA recomendado</strong><p>Una propuesta concreta, con límites humanos y un primer paso realista.</p></div>
-              </div>
-            </div>
-            <div class="starter-row">
-              <span class="starter-pill" id="microPill">
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                  <path d="M12 19v3"></path>
-                </svg>
-                Mejor con micro
-              </span>
-              <span class="starter-pill">Preguntas adaptadas</span>
-              <span class="starter-pill">Sin formulario previo</span>
-            </div>
-            <div class="process-strip">
-              <div class="process-card">
-                <span>Detecta</span>
-                <strong>Procesos reales</strong>
-                <p>Email, leads, soporte, reservas, reporting o tareas internas.</p>
-              </div>
-              <div class="process-card">
-                <span>Prioriza</span>
-                <strong>Impacto vs facilidad</strong>
-                <p>No todo merece automatizarse: elegimos lo que tiene sentido.</p>
-              </div>
-              <div class="process-card">
-                <span>Entrega</span>
-                <strong>Una recomendación concreta</strong>
-                <p>Qué empleado IA crear, con qué datos, riesgos y primer paso.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-      <div class="composer" id="composer" hidden>
-        <div class="composer-grid">
-          <textarea id="input" placeholder="Cuando empieces, cuéntame tu negocio o dicta con el micro." disabled></textarea>
-          <button class="secondary icon" id="mic" type="button" aria-label="Micrófono" title="Micrófono" disabled>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-              <path d="M12 19v3"></path>
-            </svg>
-            <span class="sr-only">Micrófono</span>
-          </button>
-          <button id="send" disabled>Enviar</button>
-        </div>
-        <div class="composer-actions">
-          <button class="secondary" id="report" disabled hidden>Generar informe</button>
-        </div>
-        <div class="mic-status" id="micStatus"></div>
-      </div>
-    </main>
+    <header class="topframe">
+      <div class="brand" id="brand">IA AL DÍA · DISCOVERY · <span id="sessionAnchor"></span></div>
+      <nav class="phase-line" id="phaseLine" aria-label="Fases de la sesión">
+        <div class="node" data-state="active" data-phase="1"><span>Contexto</span></div>
+        <div class="conn"></div>
+        <div class="node" data-phase="2"><span>Proceso</span></div>
+        <div class="conn"></div>
+        <div class="node" data-phase="3"><span>Decisión</span></div>
+        <div class="conn"></div>
+        <div class="node" data-phase="4"><span>Cierre</span></div>
+      </nav>
+      <div class="save-status mono" id="saveStatus" aria-live="polite"></div>
+    </header>
+
+    <div class="shell-body">
+      <aside class="sidebar" id="sidebar">
+        <!-- Contenido contextual: starter / chat / email-gate / informe -->
+      </aside>
+      <main id="mainStage">
+        <!-- Contenido contextual del flujo -->
+      </main>
+    </div>
+
+    <footer class="footframe">
+      <div class="counter" id="phaseCounter">01</div>
+      <div class="mark">IA AL DÍA<span class="slash">/</span></div>
+    </footer>
   </div>
 
   <script>
-    const chat = document.getElementById("chat");
-    const composer = document.getElementById("composer");
-    const input = document.getElementById("input");
-    const send = document.getElementById("send");
-    const start = document.getElementById("start");
-    const resetSession = document.getElementById("resetSession");
-    const starter = document.getElementById("starter");
-    const reportBtn = document.getElementById("report");
-    const micBtn = document.getElementById("mic");
-    const crmStatus = document.getElementById("crmStatus");
-    const micStatus = document.getElementById("micStatus");
-    const microAdvice = document.getElementById("microAdvice");
-    const microPill = document.getElementById("microPill");
-    const statusEl = document.getElementById("status");
-    const stageEl = document.getElementById("stage");
-    const progress = document.getElementById("progress");
-    const discoveryPanel = document.getElementById("discoveryPanel");
-    const focusText = document.getElementById("focusText");
-    const confidenceFill = document.getElementById("confidenceFill");
-    const insightList = document.getElementById("insightList");
-    const gapList = document.getElementById("gapList");
-    const candidateList = document.getElementById("candidateList");
-    let leadId = null;
-    let transcript = [];
-    let latestReport = null;
-    let latestReportUrl = "";
-    let mediaRecorder = null;
-    let activeStream = null;
-    let audioChunks = [];
-    let listening = false;
-    let capturedEmail = "";
-    let pendingReport = false;
-    let transcriptionAvailable = true;
-    let restoringSession = false;
-    let waitTimer = null;
-    const storageKey = "primerEmpleadoIaSession";
+    /* === SESSION ANCHOR === */
+    (() => {
+      const months = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+      const d = new Date();
+      const anchor = `${String(d.getDate()).padStart(2,"0")} ${months[d.getMonth()]} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      const el = document.getElementById("sessionAnchor");
+      if (el) el.textContent = anchor;
+    })();
 
-    const stagePct = {
-      contexto: 12,
-      exploracion: 28,
-      profundizacion: 48,
-      evaluacion: 68,
-      recomendacion: 82,
-      informe: 100
-    };
-    const stageLabels = {
-      contexto: "Contexto",
-      exploracion: "Explorando",
-      profundizacion: "Profundizando",
-      evaluacion: "Evaluando",
-      recomendacion: "Recomendación",
-      informe: "Informe"
-    };
-
-    function escapeHtml(text) {
-      return String(text || "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-      }[char]));
+    /* === PHASE TRANSITION HELPER === */
+    function setPhase(n) {
+      const nodes = document.querySelectorAll("#phaseLine .node");
+      const conns = document.querySelectorAll("#phaseLine .conn");
+      nodes.forEach((node, i) => {
+        const idx = i + 1;
+        if (idx < n) node.dataset.state = "done";
+        else if (idx === n) node.dataset.state = "active";
+        else node.removeAttribute("data-state");
+      });
+      conns.forEach((conn, i) => {
+        if (i + 1 < n) conn.dataset.state = "done";
+        else conn.removeAttribute("data-state");
+      });
+      document.getElementById("phaseCounter").textContent = String(n).padStart(2, "0");
     }
+    setPhase(1);
 
-    function readable(value) {
-      if (value === null || value === undefined) return "";
-      if (Array.isArray(value)) return value.join(", ");
-      if (typeof value === "object") return Object.values(value).filter(Boolean).join(" ");
-      return value;
-    }
-
-    function setStage(stage) {
-      const safeStage = stagePct[stage] ? stage : "profundizacion";
-      stageEl.textContent = stageLabels[safeStage] || "Profundizando";
-      progress.style.width = `${stagePct[safeStage] || 48}%`;
-    }
-
-    function setCrm(message, type = "") {
-      crmStatus.textContent = message;
-      crmStatus.className = `crm-status ${type}`.trim();
-    }
-
-    function setMic(message, type = "") {
-      micStatus.textContent = message;
-      micStatus.className = `mic-status ${type}`.trim();
-    }
-
-    function saveSessionState(extra = {}) {
-      if (!leadId || restoringSession) return;
-      localStorage.setItem(storageKey, JSON.stringify({
-        leadId,
-        capturedEmail,
-        latestReportUrl,
-        stage: stageEl.textContent,
-        status: statusEl.textContent,
-        transcript,
-        ...extra
-      }));
-    }
-
-    function clearSessionState() {
-      localStorage.removeItem(storageKey);
-    }
-
-    function resetCurrentSession() {
-      clearSessionState();
-      window.location.reload();
-    }
-
-    function listHtml(items, fallback) {
-      const safeItems = Array.isArray(items) && items.length ? items : [fallback];
-      return safeItems.slice(0, 4).map(item => `<li>${escapeHtml(readable(item))}</li>`).join("");
-    }
-
-    function normalizeConfidence(value) {
-      const number = Number(value || 0);
-      if (!Number.isFinite(number) || number <= 0) return 0;
-      return Math.max(0, Math.min(1, number > 1 ? number / 5 : number));
-    }
-
-    function renderCandidates(candidates = []) {
-      const safeCandidates = Array.isArray(candidates) ? candidates.filter(Boolean).slice(0, 3) : [];
-      if (!safeCandidates.length) {
-        candidateList.innerHTML = `<div class="candidate-empty">Aparecerán cuando el agente detecte oportunidades reales.</div>`;
-        return;
-      }
-      candidateList.innerHTML = safeCandidates.map((candidate, index) => {
-        const name = readable(candidate.name || candidate.process || candidate.title) || `Proceso candidato ${index + 1}`;
-        const why = readable(candidate.why_it_matters || candidate.why || candidate.reason) || "Podría ahorrar tiempo, capturar valor o reducir trabajo manual.";
-        const evidence = readable(candidate.evidence || candidate.signal || candidate.source);
-        const confidence = Math.round(normalizeConfidence(candidate.confidence) * 100);
-        return `<div class="candidate-item">
-          <div class="candidate-head">
-            <strong>${escapeHtml(name)}</strong>
-            <span class="candidate-score">${confidence || 45}%</span>
-          </div>
-          <p>${escapeHtml(why)}</p>
-          ${evidence ? `<div class="candidate-evidence">Evidencia: ${escapeHtml(evidence)}</div>` : ""}
-        </div>`;
-      }).join("");
-    }
-
-    function updateDiscovery(result = {}) {
-      discoveryPanel.classList.add("active");
-      const confidence = normalizeConfidence(result.confidence);
-      const focus = result.current_focus || result.facts?.selected_process || "Proceso por descubrir";
-      focusText.textContent = readable(focus);
-      confidenceFill.style.width = `${Math.round(confidence * 100)}%`;
-      insightList.innerHTML = listHtml(result.live_insights, "Estoy buscando patrones en tus respuestas.");
-      renderCandidates(result.candidate_processes);
-      gapList.innerHTML = listHtml(result.open_gaps, result.ready_for_report ? "Ya tengo suficiente para preparar el diagnóstico." : "Necesito un ejemplo real para afinar.");
-      if (result.progress_label) statusEl.textContent = result.progress_label;
-    }
-
-    function addMessage(role, text, meta = "") {
-      transcript.push({ role, content: text, at: Date.now() });
-      const node = document.createElement("div");
-      node.className = `message ${role}`;
-      node.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
-      chat.appendChild(node);
-      chat.scrollTop = chat.scrollHeight;
-      saveSessionState();
-    }
-
-    function delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async function addTypingMessage(role, text, meta = "") {
-      transcript.push({ role, content: text, at: Date.now() });
-      const node = document.createElement("div");
-      node.className = `message ${role} typing`;
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      const metaNode = document.createElement("div");
-      metaNode.className = "meta";
-      metaNode.textContent = meta;
-      node.appendChild(bubble);
-      if (meta) node.appendChild(metaNode);
-      chat.appendChild(node);
-      const safeText = String(text || "");
-      for (let i = 0; i < safeText.length; i += 3) {
-        bubble.textContent = safeText.slice(0, i + 3);
-        chat.scrollTop = chat.scrollHeight;
-        await delay(12);
-      }
-      bubble.textContent = safeText;
-      node.classList.remove("typing");
-      chat.scrollTop = chat.scrollHeight;
-      saveSessionState();
-    }
-
-    function addHtml(role, html, meta = "") {
-      const node = document.createElement("div");
-      node.className = `message ${role}`;
-      node.innerHTML = `<div class="bubble">${html}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
-      chat.appendChild(node);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    async function api(path, payload = null, method = "POST") {
-      const options = { method, headers: { "Content-Type": "application/json" } };
-      if (payload) options.body = JSON.stringify(payload);
-      const response = await fetch(path, options);
-      const json = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const error = new Error(json.error || "Error de servidor");
-        error.status = response.status;
-        error.payload = json;
-        throw error;
-      }
-      return json;
-    }
-
-    function startWaitStatus(messages) {
-      clearWaitStatus();
-      const started = Date.now();
-      const steps = messages || ["El agente está pensando"];
-      const render = () => {
-        const elapsed = Math.max(0, Math.floor((Date.now() - started) / 1000));
-        const index = elapsed >= 28 ? Math.min(steps.length - 1, 3)
-          : elapsed >= 16 ? Math.min(steps.length - 1, 2)
-          : elapsed >= 7 ? Math.min(steps.length - 1, 1)
-          : 0;
-        statusEl.innerHTML = `<span class="thinking">${escapeHtml(steps[index])} · ${elapsed}s</span>`;
-      };
-      render();
-      waitTimer = window.setInterval(render, 1000);
-    }
-
-    function clearWaitStatus() {
-      if (waitTimer) {
-        window.clearInterval(waitTimer);
-        waitTimer = null;
+    /* === SAVE STATUS HELPER === */
+    let _saveStatusTimer;
+    function setSaveStatus(state, message) {
+      const el = document.getElementById("saveStatus");
+      if (!el) return;
+      clearTimeout(_saveStatusTimer);
+      if (!state) { el.textContent = ""; el.removeAttribute("data-state"); return; }
+      el.dataset.state = state;
+      el.textContent = message;
+      if (state === "syncing") {
+        _saveStatusTimer = setTimeout(() => setSaveStatus(null), 2200);
       }
     }
-
-    function recoverMissingDiagnostic(error) {
-      if (error.status !== 404) return false;
-      clearSessionState();
-      leadId = null;
-      capturedEmail = "";
-      pendingReport = false;
-      input.disabled = true;
-      send.disabled = true;
-      micBtn.disabled = true;
-      reportBtn.hidden = true;
-      reportBtn.disabled = true;
-      statusEl.textContent = "Este diagnóstico ya no está disponible.";
-      setCrm("La sesión anterior caducó o fue borrada. Empieza una nueva.", "error");
-      setStage("contexto");
-      addHtml("agent", `<div class="email-gate">
-        <h3>Este diagnóstico ya no está disponible.</h3>
-        <p>Puede pasar si se borró el lead del CRM, se reinició la base o el navegador recuperó una sesión antigua.</p>
-        <button onclick="resetCurrentSession()">Empezar diagnóstico nuevo</button>
-      </div>`, "Sesión caducada");
-      return true;
-    }
-
-    async function refreshCapabilities() {
-      try {
-        const result = await api("/api/capabilities", null, "GET");
-        transcriptionAvailable = Boolean(result.transcription?.available);
-      } catch (error) {
-        transcriptionAvailable = false;
-      }
-      micBtn.disabled = !leadId || !transcriptionAvailable;
-      if (!transcriptionAvailable) {
-        setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
-        if (microAdvice) microAdvice.textContent = "También puedes hacerlo por texto: responde como si lo estuvieras contando en una llamada.";
-        if (microPill) microPill.hidden = true;
-      } else {
-        if (microAdvice) microAdvice.textContent = "Consejo: usa el micro y cuenta una escena real. No hace falta que lo traigas ordenado.";
-        if (microPill) microPill.hidden = false;
-      }
-    }
-
-    function collectAttribution() {
-      const params = new URLSearchParams(window.location.search);
-      const value = (...keys) => {
-        for (const key of keys) {
-          const found = params.get(key);
-          if (found) return found.slice(0, 120);
-        }
-        return "";
-      };
-      return {
-        source: value("utm_source", "source"),
-        medium: value("utm_medium", "medium"),
-        campaign: value("utm_campaign", "campaign"),
-        content: value("utm_content", "content"),
-        term: value("utm_term", "term"),
-        video: value("video", "v"),
-        ref: value("ref"),
-        landing_path: window.location.pathname,
-        landing_query: window.location.search.slice(0, 240)
-      };
-    }
-
-    async function startSession() {
-      setCrm("Preparando el diagnóstico...", "");
-      start.disabled = true;
-      let sessionStarted = false;
-      try {
-        const session = await api("/api/session", { attribution: collectAttribution() });
-        sessionStarted = true;
-        start.hidden = true;
-        resetSession.hidden = false;
-        leadId = session.lead_id;
-        transcript = [];
-        clearSessionState();
-        latestReport = null;
-        capturedEmail = "";
-        pendingReport = false;
-        composer.hidden = false;
-        input.disabled = false;
-        send.disabled = false;
-        micBtn.disabled = true;
-        reportBtn.disabled = true;
-        reportBtn.hidden = true;
-        setCrm("Diagnóstico iniciado. Estoy buscando el primer proceso claro.", "ok");
-        statusEl.textContent = "Diagnóstico iniciado. Puedes escribir o usar el micro.";
-        setStage("contexto");
-        updateDiscovery({
-          confidence: 0.08,
-          current_focus: "Entender tu negocio",
-          live_insights: ["Todavía no hay proceso candidato: necesito contexto inicial."],
-          candidate_processes: [],
-          open_gaps: ["Qué vendes", "Quién es tu cliente", "Dónde se repite trabajo manual"],
-          progress_label: "Entendiendo el negocio"
-        });
-        chat.innerHTML = "";
-        input.placeholder = "Háblame en bruto: negocio, cliente y una escena reciente donde se escapó tiempo, dinero o clientes.";
-        await addTypingMessage("agent", "Voy a hacerte de consultor durante unos minutos para encontrar el primer proceso que merezca automatizarse.\n\nNo necesito que lo expliques perfecto. Para empezar, háblame en bruto: qué vendes, a quién ayudas, cómo te llegan clientes o solicitudes y cuál fue la última escena donde sentiste que se escapaba tiempo, dinero, clientes o foco.\n\nPuede ser un email sin responder, un WhatsApp, una reserva, un lead, una tarea interna o algo que depende demasiado de ti. Si puedes, dicta 45-60 segundos con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
-        await refreshCapabilities();
-        saveSessionState();
-        input.focus();
-      } catch (error) {
-        setCrm(error.message, "error");
-      } finally {
-        start.disabled = sessionStarted;
-      }
-    }
-
-    async function sendMessage() {
-      const text = input.value.trim();
-      if (!leadId || !text) return;
-      addMessage("user", text, "Tú");
-      input.value = "";
-      send.disabled = true;
-      startWaitStatus([
-        "El agente está leyendo tu respuesta y extrayendo señales",
-        "Buscando dónde se escapa tiempo, dinero o clientes",
-        "Comparando procesos candidatos",
-        "Sigue trabajando; Codex puede tardar un poco"
-      ]);
-      try {
-        const result = await api("/api/chat", { lead_id: leadId, email: capturedEmail, message: text });
-        clearWaitStatus();
-        await addTypingMessage("agent", result.reply, "Agente diagnóstico");
-        setStage(result.stage);
-        updateDiscovery(result);
-        saveSessionState({ lastDiscovery: result });
-        if (result.ready_for_report) {
-          statusEl.textContent = "Ya puedo preparar tu diagnóstico.";
-          reportBtn.textContent = "Generar informe";
-          reportBtn.hidden = false;
-          reportBtn.disabled = false;
-          reportBtn.classList.remove("secondary");
-          send.disabled = true;
-          input.disabled = true;
-          micBtn.disabled = true;
-          await addTypingMessage("agent", "Ya tengo suficiente para prepararte un diagnóstico útil. Puedo pasar de la conversación al informe.", "Cierre de discovery");
-          saveSessionState({ readyForReport: true });
-        }
-      } catch (error) {
-        clearWaitStatus();
-        if (recoverMissingDiagnostic(error)) return;
-        await addTypingMessage("agent", `Ahora mismo no puedo continuar con garantías.\n\n${error.message}\n\nTu respuesta no se ha perdido: puedes intentarlo de nuevo en unos segundos.`, "Agente diagnóstico");
-        statusEl.textContent = "El agente necesita reintentar.";
-        setCrm("Respuesta no generada. Puedes reintentar.", "error");
-      } finally {
-        if (!leadId) return;
-        if (!reportBtn.hidden) return;
-        send.disabled = false;
-      }
-    }
-
-    async function generateReport() {
-      if (!leadId) return;
-      if (!capturedEmail) {
-        pendingReport = true;
-        showEmailGate();
-        return;
-      }
-      await runReport();
-    }
-
-    async function runReport() {
-      reportBtn.disabled = true;
-      startWaitStatus([
-        "Generando diagnóstico",
-        "Priorizando impacto frente a factibilidad",
-        "Preparando matriz e informe",
-        "Sigue trabajando; el informe tarda más que una respuesta"
-      ]);
-      try {
-        const result = await api("/api/report", { lead_id: leadId });
-        clearWaitStatus();
-        latestReport = result.report;
-        latestReportUrl = result.report_url || latestReport.public_report_url || "";
-        addHtml("agent", reportHtml(latestReport), "Informe");
-        setStage("informe");
-        statusEl.textContent = "Diagnóstico generado.";
-        setCrm("Diagnóstico listo.", "ok");
-        saveSessionState({ reportGenerated: true });
-      } catch (error) {
-        clearWaitStatus();
-        if (recoverMissingDiagnostic(error)) return;
-        if (error.status === 409) {
-          const missing = Array.isArray(error.payload?.missing) ? error.payload.missing : [];
-          const missingText = missing.length ? `\n\nPara afinarlo necesito: ${missing.join(", ")}.` : "";
-          await addTypingMessage("agent", `Todavía no quiero darte un informe flojo.${missingText}\n\nSigamos un poco más: cuéntame un ejemplo real reciente del proceso, qué ocurrió, qué decidiste y qué resultado te habría gustado obtener.`, "Agente diagnóstico");
-          statusEl.textContent = "Necesito un poco más de evidencia.";
-          setCrm("Falta algo de discovery antes del informe.", "");
-          setStage("profundizacion");
-          reportBtn.hidden = true;
-          reportBtn.disabled = true;
-          input.disabled = false;
-          send.disabled = false;
-          micBtn.disabled = !transcriptionAvailable;
-          saveSessionState({ readyForReport: false });
-          input.focus();
-          return;
-        }
-        await addTypingMessage("agent", `No he podido generar el informe con garantías.\n\n${error.message}\n\nPuedes volver a intentarlo en unos segundos.`, "Agente diagnóstico");
-        statusEl.textContent = "Informe pendiente de reintento.";
-        setCrm("Informe no generado. Reintenta en unos segundos.", "error");
-      } finally {
-        if (!leadId) return;
-        reportBtn.disabled = false;
-      }
-    }
-
-    function showEmailGate() {
-      const html = `<div class="email-gate">
-        <h3>Ya tengo suficiente para preparar tu informe.</h3>
-        <p>Déjanos tu email y generamos el diagnóstico completo: oportunidades, primer empleado IA recomendado, riesgos y plan de 7 días.</p>
-        <p>Usaremos tu email y esta conversación para guardar el diagnóstico, hacer seguimiento si encaja y mejorar la beta. No vendemos tus datos.</p>
-        <div class="email-gate-row">
-          <input id="finalEmail" type="email" placeholder="persona@empresa.com" autocomplete="email">
-          <button onclick="captureEmailAndReport()">Generar informe</button>
-        </div>
-        <label class="consent-row">
-          <input id="finalConsent" type="checkbox">
-          <span>Acepto que se use mi email y esta conversación para generar el informe, guardar el diagnóstico y mejorar la beta. <a href="/PRIVACY_BETA.html" target="_blank" rel="noopener">Ver privacidad</a>.</span>
-        </label>
-        <div class="email-error" id="emailError"></div>
-      </div>`;
-      addHtml("agent", html, "Entrega del informe");
-      statusEl.textContent = "Solo falta el email para preparar el informe.";
-      setCrm("Último paso para preparar el informe.", "");
-      document.getElementById("finalEmail")?.focus();
-    }
-
-    async function captureEmailAndReport() {
-      const field = document.getElementById("finalEmail");
-      const consent = document.getElementById("finalConsent");
-      const error = document.getElementById("emailError");
-      const value = field?.value.trim() || "";
-      if (!field?.checkValidity() || !value) {
-        if (error) error.textContent = "Introduce un email válido.";
-        field?.focus();
-        return;
-      }
-      if (!consent?.checked) {
-        if (error) error.textContent = "Acepta el uso de datos para generar y guardar el diagnóstico.";
-        consent?.focus();
-        return;
-      }
-      try {
-        if (error) error.textContent = "";
-        await api("/api/email", { lead_id: leadId, email: value, consent: true, privacy_version: "beta-2026-05" });
-        capturedEmail = value;
-        saveSessionState();
-        setCrm("Perfecto. Preparando informe...", "ok");
-        if (pendingReport) {
-          pendingReport = false;
-          await runReport();
-        }
-      } catch (err) {
-        if (recoverMissingDiagnostic(err)) return;
-        if (error) error.textContent = err.message;
-      }
-    }
-
-    function reportHtml(report) {
-      const mainOpportunity = (report.opportunities || [])[0] || {};
-      const score = value => Number.isFinite(Number(value)) ? Number(value) : 0;
-      const composite = score(mainOpportunity.composite_score);
-      const scoreText = composite ? `${composite.toFixed(1)}/5` : "En revisión";
-      const triageText = mainOpportunity.triage || "Prioridad por validar";
-      const ctaSegment = report.cta?.segment || "resource";
-      const ctaLabel = {
-        cohort: "Me interesa hacerlo acompañado",
-        implementation_call: "Quiero hablar de implementarlo",
-        premium_service: "Quiero que me ayudéis a montarlo",
-        newsletter: "Quiero más recursos como este",
-        resource: "Quiero el recurso recomendado",
-        not_ready: "Quiero ordenar el proceso primero"
-      }[ctaSegment] || "Me interesa este siguiente paso";
-      const ctaSegmentLiteral = JSON.stringify(ctaSegment);
-      const safeScore = value => Math.max(1, Math.min(5, Number(value || 1)));
-      const mapDots = (report.opportunities || []).slice(0, 3).map((opp, index) => {
-        const impact = safeScore(opp.impact_score);
-        const feasibility = safeScore(opp.feasibility_score);
-        const x = ((feasibility - 1) / 4) * 88 + 6;
-        const y = ((impact - 1) / 4) * 82 + 8;
-        const low = score(opp.data_sensitivity_score) >= 4 || score(opp.composite_score) < 2.5;
-        return `<div class="priority-dot ${low ? "low" : ""}" style="left:${x}%; bottom:${y}%">${index + 1}</div>
-          <div class="priority-label" style="left:${x}%; bottom:${y}%">#${index + 1} ${escapeHtml(opp.name || opp.ai_employee || "Oportunidad")}</div>`;
-      }).join("");
-      const workflowSteps = [
-        ["Entrada", "Recibe emails, mensajes, leads o tareas repetitivas."],
-        ["Clasifica", "Ordena por intención, urgencia, tipo de caso y siguiente acción."],
-        ["Prepara", "Redacta borradores, resúmenes, tareas o propuestas de respuesta."],
-        ["Revisión", "Deja lo sensible preparado para que una persona apruebe."]
-      ];
-      const opportunities = (report.opportunities || []).map(opp => {
-        const pct = value => Math.max(0, Math.min(100, Number(value || 0) * 20));
-        const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-        return `<div class="opportunity">
-          <span class="badge">${escapeHtml(opp.triage)}</span>
-          <h3>${escapeHtml(opp.name)}</h3>
-          <p>${escapeHtml(opp.problem)}</p>
-          <p><strong>Empleado IA:</strong> ${escapeHtml(opp.ai_employee)}</p>
-          <p><strong>Qué haría:</strong></p>
-          ${list(opp.what_it_would_do)}
-          <div class="bars">
-            <div class="bar-row"><span>Impacto</span><div class="rail"><div class="fill" style="width:${pct(opp.impact_score)}%"></div></div><strong>${opp.impact_score}/5</strong></div>
-            <div class="bar-row"><span>Factibilidad</span><div class="rail"><div class="fill" style="width:${pct(opp.feasibility_score)}%"></div></div><strong>${opp.feasibility_score}/5</strong></div>
-            <div class="bar-row"><span>Escalabilidad</span><div class="rail"><div class="fill" style="width:${pct(opp.scalability_score)}%"></div></div><strong>${opp.scalability_score}/5</strong></div>
-            <div class="bar-row"><span>Sensibilidad</span><div class="rail"><div class="fill penalty" style="width:${pct(opp.data_sensitivity_score)}%"></div></div><strong>${opp.data_sensitivity_score}/5</strong></div>
-          </div>
-          <div class="mini-grid">
-            <div class="mini-card"><span>Proceso actual</span>${escapeHtml(opp.current_process)}</div>
-            <div class="mini-card"><span>Datos necesarios</span>${escapeHtml((opp.data_needed || []).join(", "))}</div>
-            <div class="mini-card"><span>Herramientas</span>${escapeHtml((opp.tools || []).join(", ") || "Por definir")}</div>
-            <div class="mini-card"><span>Riesgos</span>${escapeHtml((opp.risks || []).join(", "))}</div>
-          </div>
-          <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
-        </div>`;
-      }).join("");
-      const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-      return `<div class="report">
-        <div class="report-hero">
-          <span class="report-label">Diagnóstico generado</span>
-          <h2>Tu primer empleado IA debería ser: ${escapeHtml(report.recommended_employee)}</h2>
-          <p>${escapeHtml(report.summary)}</p>
-          <div class="report-actions">
-            <button class="secondary" type="button" onclick="printLatestReport()">Guardar PDF</button>
-            ${report.public_report_url ? `<button class="secondary" type="button" onclick="copyReportLink()">Copiar enlace privado</button>` : ""}
-          </div>
-        </div>
-        <div class="report-action-strip" aria-label="Resumen de acción del diagnóstico">
-          <div class="report-action-item">
-            <span>Fuga principal</span>
-            <strong>${escapeHtml(mainOpportunity.name || "Proceso prioritario")}</strong>
-            <p>${escapeHtml(mainOpportunity.problem || report.recommendation_reason || "Área con potencial de automatización.")}</p>
-          </div>
-          <div class="report-action-item">
-            <span>Empleado IA recomendado</span>
-            <strong>${escapeHtml(mainOpportunity.ai_employee || report.recommended_employee)}</strong>
-            <p>${escapeHtml((mainOpportunity.what_it_would_do || []).slice(0, 2).join(", ") || "Preparar trabajo repetitivo con revisión humana.")}</p>
-          </div>
-          <div class="report-action-item">
-            <span>Primer paso</span>
-            <strong>Empezar pequeño</strong>
-            <p>${escapeHtml(mainOpportunity.first_step || (report.seven_day_plan || [])[0] || "Reunir ejemplos reales y validar una primera versión supervisada.")}</p>
-          </div>
-        </div>
-        <div class="mini-grid">
-          <div class="diagnosis-card"><span>Lo que he entendido</span>${escapeHtml(report.business_snapshot)}</div>
-          <div class="diagnosis-card"><span>Por qué empezar aquí</span>${escapeHtml(report.recommendation_reason)}</div>
-        </div>
-        ${report.evidence_summary?.length ? `<h3>Señales detectadas</h3>${list(report.evidence_summary)}` : ""}
-        <div class="score-grid">
-          <div class="score-card"><strong>${escapeHtml(readable(report.readiness) || "En revisión")}</strong><span>Preparación</span></div>
-          <div class="score-card"><strong>${escapeHtml((report.opportunities || []).length || "1")}</strong><span>Oportunidades</span></div>
-          <div class="score-card"><strong>${escapeHtml(scoreText)}</strong><span>Prioridad inicial</span></div>
-        </div>
-        <div class="decision-grid">
-          <div class="decision-card">
-            <span>Por qué esta va primero</span>
-            <div class="priority-lane">
-              <div class="priority-rank">#1</div>
-              <p class="decision-why">${escapeHtml(report.recommendation_reason || mainOpportunity.problem || "Es la opción con mejor equilibrio entre impacto, claridad del proceso y riesgo controlable.")}</p>
-            </div>
-            <span class="badge">${escapeHtml(triageText)}</span>
-          </div>
-          <div class="decision-card">
-            <span>Cómo funcionaría en la práctica</span>
-            <div class="workflow-preview">
-              ${workflowSteps.map(([label, text]) => `<div class="workflow-step"><span>${escapeHtml(label)}</span>${escapeHtml(text)}</div>`).join("")}
-            </div>
-          </div>
-        </div>
-        <div class="priority-map">
-          <div class="priority-map-head">
-            <div>
-              <span>Matriz de priorización</span>
-              <strong>Impacto frente a factibilidad</strong>
-            </div>
-            <span>Arriba derecha = empezar antes</span>
-          </div>
-          <div class="priority-map-canvas" aria-label="Matriz de priorización impacto factibilidad">
-            <div class="priority-zone"></div>
-            <div class="axis-y">Más impacto</div>
-            ${mapDots}
-          </div>
-          <div class="axis-label"><span>Menos factible</span><span>Más factible</span></div>
-        </div>
-        <h3>Oportunidades prioritarias</h3>
-        <div class="opportunity-grid">${opportunities}</div>
-        <h3>No automatizar todavía</h3>
-        ${list(report.do_not_automate_yet)}
-        <h3>Plan de 7 días</h3>
-        ${list(report.seven_day_plan)}
-        <h3>Plan de 30 días</h3>
-        ${list(report.thirty_day_plan)}
-        <div class="next-step-card">
-          <h3>Siguiente paso</h3>
-          <p>${escapeHtml(report.cta?.message || "")}</p>
-          <div class="next-step-actions">
-            <button type="button" onclick='saveCtaInterest(${escapeHtml(ctaSegmentLiteral)})'>${escapeHtml(ctaLabel)}</button>
-            <span class="intent-saved" id="intentSaved"></span>
-          </div>
-        </div>
-        <div class="feedback-box">
-          <h3>Ayúdanos a mejorar este diagnóstico</h3>
-          <p>Esto nos ayuda a saber si el agente está entendiendo negocios reales o si se queda corto.</p>
-          <div class="field">
-            <label>Utilidad del diagnóstico</label>
-            <div class="rating-row" role="radiogroup" aria-label="Utilidad del diagnóstico">
-              ${[1,2,3,4,5].map(value => `<label><input type="radio" name="feedbackRating" value="${value}"> ${value}</label>`).join("")}
-            </div>
-          </div>
-          <div class="feedback-grid">
-            <div class="field">
-              <label>Qué te dio más claridad</label>
-              <textarea id="feedbackLiked" placeholder="Ej: entender por dónde empezar, ver riesgos, ordenar prioridades..."></textarea>
-            </div>
-            <div class="field">
-              <label>Qué echaste en falta</label>
-              <textarea id="feedbackMissing" placeholder="Ej: más detalle técnico, ejemplos de herramientas, costes, pasos..."></textarea>
-            </div>
-            <div class="field">
-              <label>Qué cambiarías para que fuese más útil</label>
-              <textarea id="feedbackImprove" placeholder="Cuéntanos una mejora concreta del proceso, preguntas o informe."></textarea>
-            </div>
-          </div>
-          <button onclick="saveFeedback()">Guardar feedback</button>
-          <div class="feedback-saved" id="feedbackSaved"></div>
-        </div>
-      </div>`;
-    }
-
-    function printableReportHtml(report) {
-      const list = items => `<ul>${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-      const opportunities = (report.opportunities || []).map(opp => `<section>
-        <h2>${escapeHtml(opp.name)}</h2>
-        <p><strong>Proceso actual:</strong> ${escapeHtml(opp.current_process)}</p>
-        <p><strong>Problema:</strong> ${escapeHtml(opp.problem)}</p>
-        <p><strong>Empleado IA:</strong> ${escapeHtml(opp.ai_employee)}</p>
-        <p><strong>Qué haría:</strong></p>
-        ${list(opp.what_it_would_do)}
-        <p><strong>Datos necesarios:</strong> ${escapeHtml((opp.data_needed || []).join(", "))}</p>
-        <p><strong>Riesgos:</strong> ${escapeHtml((opp.risks || []).join(", "))}</p>
-        <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
-      </section>`).join("");
-      return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Diagnóstico - Tu Primer Empleado IA</title>
-        <style>
-          body { font-family: Inter, Arial, sans-serif; color: #171717; line-height: 1.45; margin: 32px; }
-          h1 { font-size: 34px; line-height: 1; margin-bottom: 8px; }
-          h2 { font-size: 21px; margin-top: 24px; }
-          section { break-inside: avoid; border-top: 1px solid #d7dfd8; padding-top: 12px; margin-top: 16px; }
-          .muted { color: #62645f; }
-          @page { margin: 18mm; }
-        </style></head><body>
-        <p class="muted">Encuentra Tu Primer Empleado IA</p>
-        <h1>${escapeHtml(report.recommended_employee)}</h1>
-        <p>${escapeHtml(report.summary)}</p>
-        <section><h2>Resumen de acción</h2>
-          <p><strong>Fuga principal:</strong> ${escapeHtml((report.opportunities || [])[0]?.name || "Proceso prioritario")}</p>
-          <p><strong>Empleado IA recomendado:</strong> ${escapeHtml((report.opportunities || [])[0]?.ai_employee || report.recommended_employee)}</p>
-          <p><strong>Primer paso:</strong> ${escapeHtml((report.opportunities || [])[0]?.first_step || (report.seven_day_plan || [])[0] || "Reunir ejemplos reales y validar una primera versión supervisada.")}</p>
-        </section>
-        <section><h2>Lo que he entendido</h2><p>${escapeHtml(report.business_snapshot)}</p></section>
-        <section><h2>Por qué empezar aquí</h2><p>${escapeHtml(report.recommendation_reason)}</p></section>
-        ${report.evidence_summary?.length ? `<section><h2>Señales detectadas</h2>${list(report.evidence_summary)}</section>` : ""}
-        <section><h2>Oportunidades prioritarias</h2>${opportunities}</section>
-        <section><h2>No automatizar todavía</h2>${list(report.do_not_automate_yet)}</section>
-        <section><h2>Plan de 7 días</h2>${list(report.seven_day_plan)}</section>
-        <section><h2>Plan de 30 días</h2>${list(report.thirty_day_plan)}</section>
-        <section><h2>Siguiente paso recomendado</h2><p>${escapeHtml(report.cta?.message || "")}</p></section>
-        </body></html>`;
-    }
-
-    function printLatestReport() {
-      if (!latestReport) {
-        setCrm("Primero genera el diagnóstico.", "error");
-        return;
-      }
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        setCrm("No he podido abrir la ventana de impresión. Revisa el bloqueador de ventanas.", "error");
-        return;
-      }
-      printWindow.document.write(printableReportHtml(latestReport));
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    async function copyReportLink() {
-      const url = latestReportUrl || latestReport?.public_report_url || "";
-      if (!url) {
-        setCrm("Primero genera el diagnóstico.", "error");
-        return;
-      }
-      const absoluteUrl = new URL(url, window.location.origin).toString();
-      try {
-        await navigator.clipboard.writeText(absoluteUrl);
-        setCrm("Enlace privado copiado.", "ok");
-      } catch (error) {
-        window.prompt("Copia este enlace privado del informe:", absoluteUrl);
-      }
-    }
-
-    async function saveFeedback() {
-      const selectedRating = document.querySelector("input[name='feedbackRating']:checked");
-      const feedback = {
-        rating: selectedRating ? Number(selectedRating.value) : null,
-        liked: document.getElementById("feedbackLiked")?.value.trim() || "",
-        missing: document.getElementById("feedbackMissing")?.value.trim() || "",
-        improve: document.getElementById("feedbackImprove")?.value.trim() || "",
-      };
-      feedback.text = [feedback.liked, feedback.missing, feedback.improve].filter(Boolean).join("\n\n");
-      await api("/api/feedback", { lead_id: leadId, feedback });
-      setCrm("Feedback recibido. Gracias.", "ok");
-      const saved = document.getElementById("feedbackSaved");
-      if (saved) saved.textContent = "Feedback guardado. Gracias.";
-    }
-
-    async function saveCtaInterest(segment) {
-      const saved = document.getElementById("intentSaved");
-      try {
-        await api("/api/cta", { lead_id: leadId, segment, source: "report_next_step" });
-        if (saved) saved.textContent = "Interés guardado. Lo tendremos en cuenta para el siguiente paso.";
-        setCrm("Interés en siguiente paso guardado.", "ok");
-      } catch (error) {
-        if (saved) saved.textContent = error.message;
-      }
-    }
-
-    function restoreSession() {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      let saved;
-      try {
-        saved = JSON.parse(raw);
-      } catch (error) {
-        clearSessionState();
-        return;
-      }
-      if (!saved?.leadId || !Array.isArray(saved.transcript)) return;
-      start.hidden = true;
-      start.disabled = true;
-      resetSession.hidden = false;
-      composer.hidden = false;
-      leadId = saved.leadId;
-      capturedEmail = saved.capturedEmail || "";
-      latestReportUrl = saved.latestReportUrl || "";
-      transcript = [];
-      chat.innerHTML = "";
-      starter?.remove();
-      const readyForReport = Boolean(saved.readyForReport || saved.stage === "recomendacion" || saved.stage === "informe");
-      input.disabled = readyForReport;
-      send.disabled = readyForReport;
-      micBtn.disabled = readyForReport || !transcriptionAvailable;
-      reportBtn.hidden = !readyForReport || saved.reportGenerated;
-      reportBtn.disabled = reportBtn.hidden;
-      setStage(saved.stage || "contexto");
-      statusEl.textContent = saved.status || "Diagnóstico recuperado.";
-      setCrm("He recuperado tu diagnóstico en este navegador.", "ok");
-      restoringSession = true;
-      saved.transcript.forEach(item => addMessage(item.role, item.content, item.role === "user" ? "Tú" : "Agente diagnóstico"));
-      restoringSession = false;
-      if (saved.lastDiscovery) updateDiscovery(saved.lastDiscovery);
-      if (readyForReport && !saved.reportGenerated) {
-        setCrm("Diagnóstico recuperado. Ya puedes ver el informe.", "ok");
-      }
-      saveSessionState(saved);
-      refreshCapabilities();
-    }
-
-    function micIcon() {
-      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg><span class="sr-only">Micrófono</span>`;
-    }
-
-    function stopIcon() {
-      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg><span class="sr-only">Parar grabación</span>`;
-    }
-
-    function supportedAudioMimeType() {
-      const options = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
-      return options.find(type => MediaRecorder.isTypeSupported?.(type)) || "";
-    }
-
-    async function startRecording() {
-      if (!transcriptionAvailable) {
-        setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
-        return;
-      }
-      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-        setMic("Tu navegador no permite grabar aquí. Puedes escribir la respuesta.", "error");
-        return;
-      }
-      try {
-        activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioChunks = [];
-        const mimeType = supportedAudioMimeType();
-        mediaRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
-        mediaRecorder.ondataavailable = event => {
-          if (event.data?.size) audioChunks.push(event.data);
-        };
-        mediaRecorder.onstop = transcribeRecording;
-        mediaRecorder.start();
-        listening = true;
-        micBtn.classList.add("listening");
-        micBtn.innerHTML = stopIcon();
-        setMic("Grabando... pulsa el cuadrado para transcribir.", "active");
-      } catch (error) {
-        activeStream?.getTracks().forEach(track => track.stop());
-        activeStream = null;
-        mediaRecorder = null;
-        setMic("No he podido activar el micro. Revisa permisos o escribe tu respuesta.", "error");
-      }
-    }
-
-    async function stopRecording() {
-      if (!mediaRecorder || mediaRecorder.state === "inactive") return;
-      setMic("Procesando audio...", "loading");
-      mediaRecorder.stop();
-      activeStream?.getTracks().forEach(track => track.stop());
-    }
-
-    async function transcribeRecording() {
-      listening = false;
-      micBtn.classList.remove("listening");
-      micBtn.innerHTML = micIcon();
-      try {
-        const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
-        setMic("Transcribiendo audio...", "loading");
-        const response = await fetch("/transcribe", { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "No se pudo transcribir");
-        input.value = `${input.value.trim()} ${(result.text || "").trim()}`.trim();
-        setMic("Transcripción añadida. Revisa y envía.", "active");
-      } catch (error) {
-        setMic(`Fallo de transcripción: ${error.message}`, "error");
-      } finally {
-        audioChunks = [];
-        activeStream = null;
-        mediaRecorder = null;
-      }
-    }
-
-    start.addEventListener("click", startSession);
-    resetSession.addEventListener("click", resetCurrentSession);
-    send.addEventListener("click", sendMessage);
-    reportBtn.addEventListener("click", generateReport);
-    micBtn.addEventListener("click", async () => {
-      if (listening) await stopRecording();
-      else await startRecording();
-    });
-    input.addEventListener("keydown", event => {
-      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) sendMessage();
-    });
-    restoreSession();
-    refreshCapabilities();
   </script>
 </body>
+
 </html>
