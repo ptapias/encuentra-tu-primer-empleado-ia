@@ -42,6 +42,7 @@ def static_page_check() -> dict:
         "analiza tu negocio como lo haría un consultor",
         "Por qué esta va primero",
         "Cómo funcionaría en la práctica",
+        "Matriz de priorización",
         "Ayúdanos a mejorar este diagnóstico",
         "Qué echaste en falta",
         "Utilidad del diagnóstico",

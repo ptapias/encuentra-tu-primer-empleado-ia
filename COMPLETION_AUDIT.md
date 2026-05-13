@@ -33,6 +33,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Progreso e insights vivos | Sidebar "Lo que estoy entendiendo" en `Agente_Real_CRM.html` | DOM verificado en navegador; `updateDiscovery()` actualiza claridad, foco, señales y gaps | Hecho |
 | Informe accionable y vendible | `/api/report`, `REPORT_INSTRUCTIONS`, `normalize_report()` | Informe real generado con empleado IA, oportunidades, riesgos y plan; normalización añadida tras detectar formato irregular | Hecho local |
 | Informe con decisión clara | `reportHtml()` en `Agente_Real_CRM.html` | Añade "Por qué esta va primero", prioridad inicial y flujo práctico Entrada -> Clasifica -> Prepara -> Revisión | Hecho base |
+| Matriz visual de priorización | `priority-map` en `Agente_Real_CRM.html` | El informe sitúa oportunidades en impacto frente a factibilidad y `test_beta_smoke.py` valida que la matriz esté presente | Hecho base |
 | Informe portable para usuario | `printLatestReport()` y `printableReportHtml()` en `Agente_Real_CRM.html` | Botón "Guardar PDF" abre versión imprimible; smoke test valida que está presente | Hecho base |
 | Guarda leads en CRM | SQLite `crm.sqlite3`, endpoints `/api/session`, `/api/email`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead` | `test_discovery_flow.py` crea leads y reportes; dashboard lee datos | Hecho |
 | CRM con métricas de beta | `/api/metrics`, `CRM_Dashboard.html` | `curl /api/metrics` devuelve leads, inicio, email, informe, feedback y turnos | Hecho |

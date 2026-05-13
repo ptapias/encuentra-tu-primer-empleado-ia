@@ -108,6 +108,7 @@ def main():
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
+    expect("Matriz de priorización" in public_html and "Impacto frente a factibilidad" in public_html, "el informe no incluye matriz visual de priorización")
     expect("Guardar PDF" in public_html and "printLatestReport" in public_html, "el informe no permite guardar/imprimir PDF")
     expect("Generar informe" in public_html and "Recibir informe" not in public_html, "el email-gate promete entrega por correo sin integración")
     expect("Ver mi diagnóstico" not in public_html, "el cierre usa un CTA demasiado pasivo")

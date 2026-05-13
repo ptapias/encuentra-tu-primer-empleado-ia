@@ -698,6 +698,92 @@
       border-radius: 999px;
     }
     .fill.penalty { background: #b65b35; }
+    .priority-map {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .priority-map-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+    }
+    .priority-map-head span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .priority-map-head strong {
+      font-size: 18px;
+    }
+    .priority-map-canvas {
+      position: relative;
+      min-height: 260px;
+      border-left: 2px solid #6d746b;
+      border-bottom: 2px solid #6d746b;
+      background:
+        linear-gradient(90deg, rgba(31, 122, 91, .08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(31, 122, 91, .08) 1px, transparent 1px);
+      background-size: 25% 25%;
+      overflow: hidden;
+    }
+    .priority-zone {
+      position: absolute;
+      inset: 0 0 50% 50%;
+      background: rgba(31, 122, 91, .08);
+      border-left: 1px dashed rgba(31, 122, 91, .35);
+      border-bottom: 1px dashed rgba(31, 122, 91, .35);
+    }
+    .priority-dot {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 3px solid #fff;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      box-shadow: 0 12px 24px rgba(0,0,0,.18);
+      transform: translate(-50%, 50%);
+    }
+    .priority-dot.low {
+      background: #b65b35;
+    }
+    .priority-label {
+      position: absolute;
+      max-width: 190px;
+      transform: translate(18px, 14px);
+      color: #343832;
+      background: rgba(255, 253, 248, .92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .axis-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .axis-y {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
     .lead-list {
       display: grid;
       gap: 8px;
@@ -792,6 +878,8 @@
       .shell { grid-template-columns: 1fr; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid { grid-template-columns: 1fr; }
+      .priority-map-canvas { min-height: 300px; }
+      .priority-label { max-width: 150px; }
     }
   </style>
 </head>
@@ -1267,6 +1355,16 @@
       const composite = score(mainOpportunity.composite_score);
       const scoreText = composite ? `${composite.toFixed(1)}/5` : "En revisión";
       const triageText = mainOpportunity.triage || "Prioridad por validar";
+      const safeScore = value => Math.max(1, Math.min(5, Number(value || 1)));
+      const mapDots = (report.opportunities || []).slice(0, 3).map((opp, index) => {
+        const impact = safeScore(opp.impact_score);
+        const feasibility = safeScore(opp.feasibility_score);
+        const x = ((feasibility - 1) / 4) * 88 + 6;
+        const y = ((impact - 1) / 4) * 82 + 8;
+        const low = score(opp.data_sensitivity_score) >= 4 || score(opp.composite_score) < 2.5;
+        return `<div class="priority-dot ${low ? "low" : ""}" style="left:${x}%; bottom:${y}%">${index + 1}</div>
+          <div class="priority-label" style="left:${x}%; bottom:${y}%">#${index + 1} ${escapeHtml(opp.name || opp.ai_employee || "Oportunidad")}</div>`;
+      }).join("");
       const workflowSteps = [
         ["Entrada", "Recibe emails, mensajes, leads o tareas repetitivas."],
         ["Clasifica", "Ordena por intención, urgencia, tipo de caso y siguiente acción."],
@@ -1332,6 +1430,21 @@
               ${workflowSteps.map(([label, text]) => `<div class="workflow-step"><span>${escapeHtml(label)}</span>${escapeHtml(text)}</div>`).join("")}
             </div>
           </div>
+        </div>
+        <div class="priority-map">
+          <div class="priority-map-head">
+            <div>
+              <span>Matriz de priorización</span>
+              <strong>Impacto frente a factibilidad</strong>
+            </div>
+            <span>Arriba derecha = empezar antes</span>
+          </div>
+          <div class="priority-map-canvas" aria-label="Matriz de priorización impacto factibilidad">
+            <div class="priority-zone"></div>
+            <div class="axis-y">Más impacto</div>
+            ${mapDots}
+          </div>
+          <div class="axis-label"><span>Menos factible</span><span>Más factible</span></div>
         </div>
         <h3>Oportunidades prioritarias</h3>
         <div class="opportunity-grid">${opportunities}</div>
