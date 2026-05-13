@@ -19,7 +19,9 @@ if [[ ! -f "app_server.py" || ! -d "deploy" ]]; then
 fi
 
 if [[ ! -f "${INPUTS_PATH}" ]]; then
-  echo "Falta ${INPUTS_PATH}. Crea una copia local: cp VPS_INPUTS.md VPS_INPUTS.local.md" >&2
+  echo "Falta ${INPUTS_PATH}." >&2
+  echo "Créalo con: python3 generate_vps_inputs.py" >&2
+  echo "Después valida con: python3 validate_vps_inputs.py --path ${INPUTS_PATH}" >&2
   exit 2
 fi
 

@@ -152,6 +152,7 @@ def deploy_config_check() -> dict:
         "launch_from_inputs_script_executable": LAUNCH_FROM_INPUTS_SCRIPT.exists() and bool(LAUNCH_FROM_INPUTS_SCRIPT.stat().st_mode & 0o111),
         "launch_from_inputs_validates_inputs": "validate_vps_inputs.py" in launch_from_inputs_script and "prepare_vps_launch_files.py" in launch_from_inputs_script,
         "launch_from_inputs_installs": "install_vps.sh" in launch_from_inputs_script and "render_privacy.py" in launch_from_inputs_script,
+        "launch_from_inputs_points_to_generator": "generate_vps_inputs.py" in launch_from_inputs_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
         "manual_production_test_exists": MANUAL_PRODUCTION_TEST.exists(),
