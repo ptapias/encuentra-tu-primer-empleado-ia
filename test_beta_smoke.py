@@ -229,6 +229,14 @@ def main():
     expect(status == 200 and email_saved.get("email") == "smoke@example.com", "no se guarda email con consentimiento")
     checks.append({"check": "email_consent", "ok": True})
 
+    try:
+        request(args.base, "/api/report", payload={"lead_id": session["lead_id"]}, timeout=5)
+        report_without_discovery = 200
+    except urllib.error.HTTPError as exc:
+        report_without_discovery = exc.code
+    expect(report_without_discovery == 409, "el informe no debería generarse sin discovery suficiente aunque ya haya email")
+    checks.append({"check": "report_quality_gate", "status": report_without_discovery})
+
     status, cta_saved = request(args.base, "/api/cta", payload={"lead_id": session["lead_id"], "segment": "cohort", "source": "smoke"})
     expect(status == 200 and cta_saved.get("cta_interest", {}).get("segment") == "cohort", "no se guarda intención de CTA")
     checks.append({"check": "cta_interest", "ok": True})

@@ -648,6 +648,66 @@ def enforce_readiness_window(result: dict, lead: dict) -> dict:
     return result
 
 
+def attach_discovery_state(result: dict, facts: dict) -> dict:
+    updated = dict(facts or {})
+    updated["_discovery"] = {
+        "ready_for_report": bool(result.get("ready_for_report")),
+        "confidence": float(result.get("confidence") or 0),
+        "current_focus": result.get("current_focus") or updated.get("selected_process", ""),
+        "candidate_processes": ensure_list(result.get("candidate_processes"))[:5],
+        "open_gaps": ensure_list(result.get("open_gaps"))[:5],
+        "live_insights": ensure_list(result.get("live_insights"))[:5],
+        "updated_at": now(),
+    }
+    return updated
+
+
+def report_readiness(lead: dict) -> tuple[bool, list[str]]:
+    facts = lead.get("facts") if isinstance(lead.get("facts"), dict) else {}
+    discovery = facts.get("_discovery") if isinstance(facts.get("_discovery"), dict) else {}
+    user_turns = len([item for item in lead.get("transcript", []) if item.get("role") == "user"])
+    confidence = float(discovery.get("confidence") or 0)
+    has_focus = bool(
+        discovery.get("current_focus")
+        or facts.get("selected_process")
+        or facts.get("main_processes")
+        or facts.get("example")
+    )
+    candidates = ensure_list(discovery.get("candidate_processes"))
+    evidence_fields = [
+        "example",
+        "frequency",
+        "impact",
+        "tools",
+        "data",
+        "risk",
+        "budget",
+        "urgency",
+        "preference",
+    ]
+    evidence_count = sum(1 for field in evidence_fields if facts.get(field))
+
+    if lead.get("stage") in {"recomendacion", "informe"} and has_focus and (candidates or evidence_count >= 2):
+        return True, []
+    if discovery.get("ready_for_report") and has_focus and (candidates or evidence_count >= 2):
+        return True, []
+    if user_turns >= 6 and has_focus and evidence_count >= 3:
+        return True, []
+    if user_turns >= 4 and has_focus and candidates and confidence >= 0.62:
+        return True, []
+
+    missing = []
+    if user_turns < 3:
+        missing.append("al menos 3 respuestas útiles")
+    if not has_focus:
+        missing.append("un proceso concreto a evaluar")
+    if not candidates and evidence_count < 2:
+        missing.append("evidencia sobre frecuencia, impacto, herramientas o riesgos")
+    if confidence and confidence < 0.62 and user_turns < 6:
+        missing.append("más confianza antes de recomendar")
+    return False, missing or ["más contexto de discovery"]
+
+
 def stagePctBackend():
     return {"contexto", "exploracion", "profundizacion", "evaluacion", "recomendacion", "informe"}
 
@@ -1346,11 +1406,12 @@ class Handler(SimpleHTTPRequestHandler):
         result = repair_repetitive_reply(result, lead, user_text)
         result = enforce_readiness_window(result, lead)
         transcript.append({"role": "assistant", "content": result.get("reply", ""), "at": now()})
+        facts_for_storage = attach_discovery_state(result, result.get("facts", lead["facts"]))
         update_lead(
             lead_id,
             email=payload.get("email", lead["email"]),
             stage=result.get("stage", lead["stage"]),
-            facts=result.get("facts", lead["facts"]),
+            facts=facts_for_storage,
             signals=result.get("signals", lead["signals"]),
             transcript=transcript,
         )
@@ -1369,6 +1430,16 @@ class Handler(SimpleHTTPRequestHandler):
         consent = lead.get("facts", {}).get("consent") if isinstance(lead.get("facts", {}).get("consent"), dict) else {}
         if not valid_email(lead.get("email", "")) or consent.get("accepted") is not True:
             self._json({"error": "Para generar el informe necesitamos email y consentimiento explícito."}, 400)
+            return
+        ready, missing = report_readiness(lead)
+        if not ready:
+            self._json(
+                {
+                    "error": "Aún no tengo suficiente evidencia para generar un diagnóstico útil. Continúa la conversación un poco más.",
+                    "missing": missing,
+                },
+                409,
+            )
             return
         prompt = json.dumps({"lead": lead}, ensure_ascii=False)
         started_at = time.monotonic()

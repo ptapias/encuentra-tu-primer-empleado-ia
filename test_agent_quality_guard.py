@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from app_server import enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply
+from app_server import attach_discovery_state, enforce_readiness_window, normalize_agent_result, normalize_report, repair_repetitive_reply, report_readiness
 
 
 def assert_true(condition, message):
@@ -139,9 +139,54 @@ def test_report_always_exposes_evidence_summary():
     )
 
 
+def test_report_readiness_blocks_empty_discovery():
+    lead = {
+        "stage": "contexto",
+        "facts": {},
+        "transcript": [{"role": "user", "content": "Hola"}],
+    }
+    ready, missing = report_readiness(lead)
+    assert_true(not ready, "Un diagnóstico sin discovery no debería poder generar informe")
+    assert_true(missing, "La puerta de informe debería explicar qué falta")
+
+
+def test_report_readiness_allows_evidenced_discovery():
+    result = normalize_agent_result(
+        {
+            "reply": "Con esto ya puedo cerrar.",
+            "stage": "recomendacion",
+            "ready_for_report": True,
+            "confidence": 0.78,
+            "current_focus": "triage de email",
+            "candidate_processes": [{"name": "triage de email", "confidence": 0.8}],
+            "facts": {
+                "selected_process": "triage de email",
+                "frequency": "10-15 emails al día",
+                "impact": "oportunidades comerciales sin responder",
+                "tools": "Outlook",
+            },
+        },
+        {"stage": "evaluacion", "facts": {}, "signals": {}, "transcript": []},
+    )
+    lead = {
+        "stage": result["stage"],
+        "facts": attach_discovery_state(result, result["facts"]),
+        "transcript": [
+            {"role": "user", "content": "Tengo una newsletter."},
+            {"role": "user", "content": "Me llegan emails todos los días."},
+            {"role": "user", "content": "Uso Outlook."},
+            {"role": "user", "content": "Pierdo oportunidades comerciales."},
+        ],
+    }
+    ready, missing = report_readiness(lead)
+    assert_true(ready, f"Una discovery con evidencia debería permitir informe: {missing}")
+
+
 if __name__ == "__main__":
     test_repeated_example_request_is_repaired()
     test_frustration_is_acknowledged()
     test_high_confidence_four_turns_can_close()
     test_report_always_exposes_evidence_summary()
+    test_report_readiness_blocks_empty_discovery()
+    test_report_readiness_allows_evidenced_discovery()
     print("agent_quality_guard ok")
