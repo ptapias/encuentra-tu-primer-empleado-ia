@@ -56,7 +56,10 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
     checks["privacy_config"] = privacy
     if not privacy.get("ok"):
         blockers.append("Falta privacidad final sin placeholders.")
-        next_actions.append("Genera `privacy_config.json` y después `python3 render_privacy.py --config privacy_config.json`.")
+        if env["ok"]:
+            next_actions.append("Genera o revisa `privacy_config.json` y después renderiza con `python3 render_privacy.py --config privacy_config.json`.")
+        else:
+            next_actions.append("El preparador también generará `privacy_config.json`; después renderiza con `python3 render_privacy.py --config privacy_config.json`.")
 
     manual = validate_manual_production_test.validate(manual_path) if manual_path.exists() else {
         "ok": False,
@@ -71,7 +74,8 @@ def readiness(inputs_path: Path, manual_path: Path, env_path: Path, privacy_path
 
     if not blockers:
         status = "ready_for_public_go_no_go"
-        next_actions.append("Ejecuta `python3 launch_go_no_go.py --public-beta ...` contra el dominio HTTPS.")
+        next_actions.append("Ejecuta `DOMAIN=tu-dominio PUBLIC_BETA=true BROWSER_CHECKS=true TRANSCRIPTION_CHECK=true MANUAL_PRODUCTION_TESTED=true MANUAL_TEST_PATH=MANUAL_PRODUCTION_TEST.local.md CRM_REVIEWED=true MIC_TESTED=true ./deploy/verify_vps.sh` contra el dominio HTTPS.")
+        next_actions.append("Si el micro queda fuera de la primera beta, usa `MIC_OPTIONAL=true` en lugar de `MIC_TESTED=true`.")
     elif inputs.get("ok") and env.get("ok") and privacy.get("ok"):
         status = "ready_for_vps_manual_test"
     elif inputs.get("ok"):

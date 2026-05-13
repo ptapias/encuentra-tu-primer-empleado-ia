@@ -42,6 +42,14 @@ def test_complete_artifacts_are_ready_for_public_go_no_go():
         result = beta_readiness_status.readiness(inputs, manual, env, privacy)
     assert_true(result["ok"], result)
     assert_true(result["status"] == "ready_for_public_go_no_go", result)
+    assert_true(
+        any("deploy/verify_vps.sh" in action and "PUBLIC_BETA=true" in action for action in result["next_actions"]),
+        "El estado listo debería recomendar el verificador VPS público completo",
+    )
+    assert_true(
+        any("MIC_OPTIONAL=true" in action for action in result["next_actions"]),
+        "Debe explicar cómo lanzar si el micro queda fuera de la primera beta",
+    )
 
 
 if __name__ == "__main__":
