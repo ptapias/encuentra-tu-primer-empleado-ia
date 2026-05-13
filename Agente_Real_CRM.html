@@ -269,6 +269,142 @@
       }
     }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 3 — STARTER (fase 01)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* === STARTER === */
+    .starter {
+      display: grid;
+      gap: var(--gap-4);
+      align-content: start;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .starter .hero-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--t-cover);
+      line-height: 0.98;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      margin: 0;
+      text-wrap: balance;
+    }
+    .starter .hero-lead {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--t-lead);
+      color: var(--ink-soft);
+      line-height: 1.3;
+      max-width: 64ch;
+      margin: 0;
+    }
+
+    /* CTA editorial cápsula */
+    .cta-primary {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 16px 28px;
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan-2);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background var(--duration-2) var(--ease), color var(--duration-2) var(--ease), transform var(--duration-2) var(--ease);
+    }
+    .cta-primary:hover { background: var(--cyan); color: var(--bg-deep); }
+    .cta-primary:active { background: var(--cyan-deep); transform: translateY(1px); }
+    .cta-primary .arrow { font-size: 16px; }
+
+    .micro-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-left: var(--gap-2);
+      vertical-align: middle;
+    }
+    .micro-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); display: inline-block; }
+
+    .sample-link {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      text-decoration: underline;
+      text-decoration-color: var(--rule-strong);
+      text-underline-offset: 4px;
+      cursor: pointer;
+      background: none; border: none;
+      padding: 0; margin-top: var(--gap-1);
+    }
+    .sample-link:hover { color: var(--cyan-2); text-decoration-color: var(--cyan-2); }
+
+    .hr-strong { height: 1px; background: var(--rule-strong); width: 0; transition: width 400ms var(--ease) 1000ms; }
+    .starter.is-revealed .hr-strong { width: 100%; }
+
+    /* Promise line: 3 nodos horizontales */
+    .promise-line {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap-4);
+    }
+    .promise {
+      display: grid; gap: var(--gap-1);
+    }
+    .promise .num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: var(--cyan-2);
+    }
+    .promise h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(20px, 2.4vw, 28px);
+      letter-spacing: -0.015em;
+      color: var(--ink);
+      margin: 0;
+    }
+    .promise p {
+      font-size: var(--t-small);
+      color: var(--ink-muted);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    @media (max-width: 800px) {
+      .promise-line { grid-template-columns: 1fr; gap: var(--gap-3); }
+    }
+
+    /* Slash motif ambient */
+    .slash-motif {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+      opacity: 0; transition: opacity 400ms var(--ease) 1300ms;
+    }
+    .starter.is-revealed .slash-motif { opacity: 0.5; }
+    .slash-motif::before {
+      content: "";
+      position: absolute;
+      width: 240%; height: 1px;
+      background: var(--rule-cyan);
+      top: 50%; left: -70%;
+      transform: rotate(-22deg);
+    }
+
+    /* Reveal-on-load helper (cada hijo lleva transition-delay inline) */
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity var(--duration-3) var(--ease), transform var(--duration-3) var(--ease); }
+    .starter.is-revealed .reveal { opacity: 1; transform: none; }
+
   </style>
 </head>
 <body>
@@ -289,10 +425,54 @@
 
     <div class="shell-body">
       <aside class="sidebar" id="sidebar">
-        <!-- Contenido contextual: starter / chat / email-gate / informe -->
+        <div class="eyebrow">01 / Discovery</div>
+        <h1 class="display" style="font-size: var(--t-h2);">Encuentra tu primer empleado IA.</h1>
+        <p class="lead">— Una mini sesión consultiva para detectar dónde se escapa tiempo, dinero o clientes.</p>
+        <div class="hr-strong" style="width: 100%; opacity: 1;"></div>
+        <div class="aside-receivable">
+          <div class="eyebrow muted">Qué recibirás</div>
+          <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: var(--gap-2);">
+            <li><strong style="font-family: var(--font-display); font-size: var(--t-body); display: block; color: var(--ink);">Fugas detectadas</strong><span class="small">Dónde se pierde tiempo, dinero, clientes o foco.</span></li>
+            <li><strong style="font-family: var(--font-display); font-size: var(--t-body); display: block; color: var(--ink);">Primer empleado IA recomendado</strong><span class="small">Qué debería hacer, con qué datos, límites y riesgos.</span></li>
+            <li><strong style="font-family: var(--font-display); font-size: var(--t-body); display: block; color: var(--ink);">Plan de 7 días</strong><span class="small">Primeros pasos realistas sin lenguaje técnico.</span></li>
+          </ul>
+        </div>
       </aside>
       <main id="mainStage">
-        <!-- Contenido contextual del flujo -->
+        <section class="starter" id="starter">
+          <div class="slash-motif" aria-hidden="true"></div>
+          <div class="eyebrow reveal" style="transition-delay: 120ms;">Discovery gratuito · 7-10 min</div>
+          <h2 class="hero-title reveal" style="transition-delay: 240ms;">¿Dónde se te escapa tiempo, dinero o clientes?</h2>
+          <p class="hero-lead reveal" style="transition-delay: 600ms;">— Una sesión consultiva con un agente que escucha, repregunta y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
+          <div class="reveal" style="transition-delay: 800ms;">
+            <button type="button" class="cta-primary" id="startSession">
+              Empezar conversación
+              <span class="arrow" aria-hidden="true">→</span>
+            </button>
+            <span class="micro-tag" id="microTag"><span class="dot"></span>Mejor con micro</span>
+          </div>
+          <div class="reveal" style="transition-delay: 900ms;">
+            <button type="button" class="sample-link" id="sampleLink">Ver un informe de muestra (2 min) →</button>
+          </div>
+          <div class="hr-strong"></div>
+          <div class="promise-line">
+            <article class="promise reveal" style="transition-delay: 1100ms;">
+              <span class="num">01 / Cuéntame una escena</span>
+              <h3>Una situación reciente</h3>
+              <p>Donde algo se acumuló, se retrasó o se quedó sin responder.</p>
+            </article>
+            <article class="promise reveal" style="transition-delay: 1180ms;">
+              <span class="num">02 / Yo extraigo el patrón</span>
+              <h3>De relato a procesos</h3>
+              <p>Convierto tu caso en señales y procesos repetibles.</p>
+            </article>
+            <article class="promise reveal" style="transition-delay: 1260ms;">
+              <span class="num">03 / Te entrego un plan</span>
+              <h3>Empleado IA recomendado</h3>
+              <p>Riesgos, primer paso, plan de 7 y 30 días.</p>
+            </article>
+          </div>
+        </section>
       </main>
     </div>
 
@@ -359,6 +539,14 @@
     // que alguien convierta este script a type="module").
     window.setPhase = setPhase;
     window.setSaveStatus = setSaveStatus;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 3 — STARTER REVEAL
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    requestAnimationFrame(() => {
+      const starter = document.getElementById("starter");
+      if (starter) starter.classList.add("is-revealed");
+    });
   </script>
 </body>
 
