@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 PUBLIC_PAGE = ROOT / "Agente_Real_CRM.html"
 PRIVACY_PAGE = ROOT / "PRIVACY_BETA.md"
+PUBLIC_PRIVACY_PAGE = ROOT / "PRIVACY_BETA.html"
 APP_SERVICE = ROOT / "deploy" / "primer-empleado-ia.service"
 BACKUP_SERVICE = ROOT / "deploy" / "primer-empleado-ia-backup.service"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
@@ -74,14 +75,23 @@ def static_page_check() -> dict:
 
 def privacy_check(require_final: bool) -> dict:
     text = PRIVACY_PAGE.read_text(encoding="utf-8") if PRIVACY_PAGE.exists() else ""
+    public_text = PUBLIC_PRIVACY_PAGE.read_text(encoding="utf-8") if PUBLIC_PRIVACY_PAGE.exists() else ""
     placeholders = ["Completar", "Definir", "revisarse antes de publicación definitiva"]
+    public_beta_markers = [
+        "Antes de abrir tráfico público amplio",
+        "datos fiscales",
+        "proveedores concretos",
+        "plazo de conservación",
+    ]
     found = [item for item in placeholders if item.lower() in text.lower()]
+    public_found = [item for item in public_beta_markers if item.lower() in public_text.lower()]
     return {
         "name": "privacy_beta",
-        "ok": not found if require_final else True,
+        "ok": (not found and not public_found) if require_final else True,
         "level": "error" if require_final else "warning",
         "placeholders": found,
-        "message": "Privacidad final pendiente" if found else "Privacidad sin placeholders detectados",
+        "public_beta_markers": public_found,
+        "message": "Privacidad final pendiente" if (found or public_found) else "Privacidad sin placeholders detectados",
     }
 
 

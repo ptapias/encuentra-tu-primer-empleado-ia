@@ -22,6 +22,7 @@ Completar antes de usar `--public-beta`:
 - Proveedores reales usados: VPS/hosting, correo si aplica, IA/transcripción.
 - Plazo de conservación.
 - Si los leads entran también a newsletter o solo al diagnóstico.
+- Actualizar también `PRIVACY_BETA.html`; el gate falla si la página pública conserva notas de beta como “antes de abrir tráfico público amplio”.
 
 Mientras esto no esté completo, `release_check.py --public-beta` debe fallar.
 
