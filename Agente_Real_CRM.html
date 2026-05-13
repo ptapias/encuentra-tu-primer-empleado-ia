@@ -514,6 +514,13 @@
       border-radius: 50%;
       animation: spin .8s linear infinite;
     }
+    .thinking {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-dark);
+      font-weight: 900;
+    }
     .mic-status.active::before {
       content: "";
       width: 8px;
@@ -1133,6 +1140,7 @@
     let pendingReport = false;
     let transcriptionAvailable = true;
     let restoringSession = false;
+    let waitTimer = null;
     const storageKey = "primerEmpleadoIaSession";
 
     const stagePct = {
@@ -1268,6 +1276,29 @@
       return json;
     }
 
+    function startWaitStatus(messages) {
+      clearWaitStatus();
+      const started = Date.now();
+      const steps = messages || ["El agente está pensando"];
+      const render = () => {
+        const elapsed = Math.max(0, Math.floor((Date.now() - started) / 1000));
+        const index = elapsed >= 28 ? Math.min(steps.length - 1, 3)
+          : elapsed >= 16 ? Math.min(steps.length - 1, 2)
+          : elapsed >= 7 ? Math.min(steps.length - 1, 1)
+          : 0;
+        statusEl.innerHTML = `<span class="thinking">${escapeHtml(steps[index])} · ${elapsed}s</span>`;
+      };
+      render();
+      waitTimer = window.setInterval(render, 1000);
+    }
+
+    function clearWaitStatus() {
+      if (waitTimer) {
+        window.clearInterval(waitTimer);
+        waitTimer = null;
+      }
+    }
+
     async function refreshCapabilities() {
       try {
         const result = await api("/api/capabilities", null, "GET");
@@ -1353,9 +1384,15 @@
       addMessage("user", text, "Tú");
       input.value = "";
       send.disabled = true;
-      statusEl.innerHTML = '<span class="thinking">El agente está pensando…</span>';
+      startWaitStatus([
+        "El agente está leyendo tu respuesta",
+        "Buscando procesos y señales útiles",
+        "Afinando la siguiente pregunta",
+        "Sigue trabajando; Codex puede tardar un poco"
+      ]);
       try {
         const result = await api("/api/chat", { lead_id: leadId, email: capturedEmail, message: text });
+        clearWaitStatus();
         await addTypingMessage("agent", result.reply, "Agente diagnóstico");
         setStage(result.stage);
         updateDiscovery(result);
@@ -1373,6 +1410,7 @@
           saveSessionState({ readyForReport: true });
         }
       } catch (error) {
+        clearWaitStatus();
         await addTypingMessage("agent", `Ahora mismo no puedo continuar con garantías.\n\n${error.message}\n\nTu respuesta no se ha perdido: puedes intentarlo de nuevo en unos segundos.`, "Agente diagnóstico");
         statusEl.textContent = "El agente necesita reintentar.";
         setCrm("Respuesta no generada. Puedes reintentar.", "error");
@@ -1394,9 +1432,15 @@
 
     async function runReport() {
       reportBtn.disabled = true;
-      statusEl.innerHTML = '<span class="thinking">Generando diagnóstico…</span>';
+      startWaitStatus([
+        "Generando diagnóstico",
+        "Priorizando oportunidades",
+        "Preparando matriz e informe",
+        "Sigue trabajando; el informe tarda más que una respuesta"
+      ]);
       try {
         const result = await api("/api/report", { lead_id: leadId });
+        clearWaitStatus();
         latestReport = result.report;
         addHtml("agent", reportHtml(latestReport), "Informe");
         setStage("informe");
@@ -1404,6 +1448,7 @@
         setCrm("Diagnóstico listo.", "ok");
         saveSessionState({ reportGenerated: true });
       } catch (error) {
+        clearWaitStatus();
         await addTypingMessage("agent", `No he podido generar el informe con garantías.\n\n${error.message}\n\nPuedes volver a intentarlo en unos segundos.`, "Agente diagnóstico");
         statusEl.textContent = "Informe pendiente de reintento.";
         setCrm("Informe no generado. Reintenta en unos segundos.", "error");

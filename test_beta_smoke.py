@@ -115,6 +115,7 @@ def main():
     expect("Empieza cuando quieras: el agente irá tirando del hilo." in public_html, "el estado inicial suena interno o poco conversacional")
     expect("Habla con un agente que analiza tu negocio como lo haría un consultor" in public_html, "falta la promesa consultiva del agente")
     expect("No hace falta que lo tengas ordenado" in public_html, "el inicio no reduce fricción para usuarios no técnicos")
+    expect("Codex puede tardar un poco" in public_html and "el informe tarda más que una respuesta" in public_html, "falta estado de espera para respuestas lentas")
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Matriz de priorización" in public_html and "Impacto frente a factibilidad" in public_html, "el informe no incluye matriz visual de priorización")
