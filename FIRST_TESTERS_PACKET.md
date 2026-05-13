@@ -2,7 +2,7 @@
 
 Objetivo: conseguir 8-12 pruebas reales sin explicar demasiado el producto. Queremos medir si la promesa se entiende sola, si el agente hace una discovery útil y si el informe genera ganas de actuar.
 
-Promesa que debe percibirse: **¿Dónde se te escapa tiempo, dinero o clientes?** El diagnóstico debe sentirse como una conversación con un consultor que entiende procesos, no como un formulario.
+Promesa que debe percibirse: **¿Dónde se te escapa tiempo, dinero o clientes?** Debe sentirse como un **Discovery gratuito**: **Empieza con una escena real**, el agente repregunta y convierte tu relato en procesos, señales y prioridades. No debe sentirse como un formulario.
 
 ## Enlace base
 
@@ -33,9 +33,9 @@ https://diagnostico.tu-dominio.com/?utm_source=linkedin&utm_medium=dm&utm_campai
 
 Te quería pedir una prueba rápida.
 
-Estoy probando un diagnóstico gratuito con IA para detectar dónde se te escapa tiempo, dinero o clientes en tu negocio, y qué primer proceso tendría más sentido automatizar.
+Estoy probando un discovery gratuito con IA para detectar dónde se te escapa tiempo, dinero o clientes en tu negocio, y qué primer proceso tendría más sentido automatizar.
 
-Funciona como una mini sesión de discovery: le cuentas tu caso, te repregunta y al final te genera un informe con oportunidades, riesgos y un primer plan de acción.
+Funciona como una mini sesión consultiva: empiezas con una escena real, te repregunta y al final te genera un informe con oportunidades, riesgos y un primer plan de acción.
 
 Lo ideal es que lo hagas con un caso real y respondas como si estuvieras hablando conmigo. Si puedes, usa el micro durante la primera respuesta: ayuda a que el agente entienda mejor el contexto. Al final te pedirá feedback; eso es lo que más me ayuda ahora.
 

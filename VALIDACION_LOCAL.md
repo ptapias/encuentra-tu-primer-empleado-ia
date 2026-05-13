@@ -18,6 +18,7 @@ Comprueba:
 
 - La página empieza sin pedir email.
 - El gancho principal es `¿Dónde se te escapa tiempo, dinero o clientes?`.
+- El posicionamiento visible incluye `Discovery gratuito`, `mini sesión consultiva` y `Empieza con una escena real`.
 - El texto de apoyo transmite que hablas con un agente que analiza el negocio como lo haría un consultor.
 - El botón visible es `Empezar diagnóstico`.
 - La primera pantalla invita a contar el negocio en bruto y recomienda usar el micrófono, sin mencionar que al final se pedirá email.
