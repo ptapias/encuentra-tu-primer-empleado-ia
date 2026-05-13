@@ -42,9 +42,10 @@ Con el servidor arrancado:
 ```bash
 python3 test_public_ui_flow.py --base http://localhost:8787
 python3 test_public_report_flow.py --base http://localhost:8787
+python3 test_session_restore_flow.py --base http://localhost:8787
 ```
 
-Estas pruebas abren la página como escritorio y móvil, comprueban que el gancho inicial aparece pronto, que se puede empezar sin pedir email, que el estado de espera aparece mientras el agente prepara la respuesta y que el cierre genera email-gate, informe y feedback.
+Estas pruebas abren la página como escritorio y móvil, comprueban que el gancho inicial aparece pronto, que se puede empezar sin pedir email, que el estado de espera aparece mientras el agente prepara la respuesta, que el cierre genera email-gate, informe y feedback, y que una recarga no borra la sesión.
 
 Si quieres probar la transcripción con audio real generado localmente:
 

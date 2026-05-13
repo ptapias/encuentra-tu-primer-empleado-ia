@@ -88,7 +88,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Feedback al final | UI de informe con rating, campos de claridad/faltantes/mejora y `/api/feedback` | Requiere email/consentimiento; `test_beta_smoke.py` valida guardado estructurado en CRM; dashboard y CSV muestran campos de feedback | Hecho |
 | Email-gate honesto | `Agente_Real_CRM.html`, `README.md`, `test_beta_smoke.py` | CTA dice "Generar informe" y no promete envío por correo mientras no haya proveedor conectado | Hecho base |
 | Cierre visual completo | `test_public_report_flow.py`, `Agente_Real_CRM.html` | Prueba de navegador con respuestas simuladas valida cierre del agente, botón `Generar informe`, email-gate final con consentimiento, render del informe, matriz, feedback y guardado de feedback | Hecho base |
-| Recuperación ante recarga | `localStorage` en `Agente_Real_CRM.html` conserva `lead_id`, conversación, email y estado de discovery | JS validado; prueba en navegador recupera conversación tras reload | Hecho base |
+| Recuperación ante recarga | `localStorage` en `Agente_Real_CRM.html`, `test_session_restore_flow.py` conserva `lead_id`, conversación, email y estado de discovery | Prueba de navegador recupera sesión a mitad de discovery con input/micro activos, y sesión lista para informe con botón `Generar informe` visible | Hecho base |
 
 ## Evidencia de comandos recientes
 

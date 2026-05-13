@@ -35,6 +35,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `test_beta_smoke.py`: prueba rápida post-despliegue para comprobar salud, página pública, sesión y protección de métricas/CRM.
 - `test_public_ui_flow.py`: prueba de navegador para validar gancho inicial, móvil, arranque sin email y estado de espera del agente.
 - `test_public_report_flow.py`: prueba de navegador del cierre completo: agente listo, email final, informe renderizado y feedback.
+- `test_session_restore_flow.py`: prueba de navegador para recuperar una sesión a mitad de discovery o lista para informe tras recargar.
 - `test_transcription_local.py`: prueba local opcional que genera audio real, lo manda a `/transcribe` y comprueba que vuelve texto.
 - `preflight_vps.py`: comprobación previa de VPS para validar `.env`, proveedor IA, auth, permisos y binarios antes de arrancar systemd.
 - `release_check.py`: chequeo agrupado de release para validar sintaxis, copy público, privacidad beta, preflight y smoke test antes de abrir la beta.

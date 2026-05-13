@@ -203,6 +203,7 @@ def main():
                 "test_privacy_renderer.py",
                 "test_public_ui_flow.py",
                 "test_public_report_flow.py",
+                "test_session_restore_flow.py",
                 "test_crm_webhook_sync.py",
                 "test_transcription_local.py",
                 "test_launch_go_no_go.py",
@@ -240,6 +241,7 @@ def main():
         if args.with_browser:
             steps.append(run_step("public_ui_flow", [sys.executable, "test_public_ui_flow.py", "--base", args.base], timeout=60))
             steps.append(run_step("public_report_flow", [sys.executable, "test_public_report_flow.py", "--base", args.base], timeout=60))
+            steps.append(run_step("session_restore_flow", [sys.executable, "test_session_restore_flow.py", "--base", args.base], timeout=60))
         if args.with_transcription:
             steps.append(run_step("transcription_local", [sys.executable, "test_transcription_local.py", "--base", args.base], timeout=240))
     elif args.with_browser or args.with_transcription:
