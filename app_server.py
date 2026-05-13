@@ -631,7 +631,9 @@ def enforce_readiness_window(result: dict, lead: dict) -> dict:
     confidence = float(result.get("confidence") or 0)
     has_candidates = bool(result.get("candidate_processes"))
     has_focus = bool(result.get("current_focus") or result.get("facts", {}).get("selected_process"))
-    enough_evidence = has_focus and has_candidates and confidence >= 0.74 and user_turns >= 4
+    facts = result.get("facts") if isinstance(result.get("facts"), dict) else {}
+    evidence_count = sum(1 for field in ["frequency", "impact", "tools", "risk", "preference", "data", "example"] if facts.get(field))
+    enough_evidence = has_focus and has_candidates and confidence >= 0.70 and user_turns >= 4 and evidence_count >= 2
     long_enough = has_focus and confidence >= 0.62 and user_turns >= 8
     if result.get("ready_for_report") or not (enough_evidence or long_enough):
         return result

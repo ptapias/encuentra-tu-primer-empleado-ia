@@ -96,13 +96,50 @@ def test_high_confidence_four_turns_can_close():
         "open_gaps": ["criterios concretos", "cadencia de seguimiento"],
         "live_insights": ["Hay volumen y pérdida comercial."],
         "candidate_processes": [{"name": "cualificación de leads", "confidence": 0.8}],
-        "facts": {"selected_process": "cualificación de leads por WhatsApp"},
+        "facts": {
+            "selected_process": "cualificación de leads por WhatsApp",
+            "frequency": "20 o 30 leads al día",
+            "impact": "contestación lenta y pérdida comercial",
+            "tools": "WhatsApp, Gmail y hoja de cálculo",
+        },
         "signals": {},
     }
 
     closed = enforce_readiness_window(normalize_agent_result(raw_result, lead), lead)
     assert_true(closed["ready_for_report"], "No cerró una discovery con confianza alta y suficiente evidencia")
     assert_true("suficiente" in closed["reply"].lower(), "El cierre no explica que ya hay base para informe")
+
+
+def test_compressed_discovery_can_close_with_solid_evidence():
+    lead = {
+        "stage": "evaluacion",
+        "facts": {},
+        "signals": {},
+        "transcript": [
+            {"role": "user", "content": "Soy consultor B2B."},
+            {"role": "user", "content": "Me entran correos y mensajes de LinkedIn."},
+            {"role": "user", "content": "Pierdo 3 horas semanales revisando y pensando respuestas."},
+            {"role": "user", "content": "Uso Gmail, LinkedIn y Notion y quiero registrar siguientes pasos."},
+        ],
+    }
+    raw_result = {
+        "reply": "Antes necesito los criterios exactos.",
+        "stage": "profundizacion",
+        "ready_for_report": False,
+        "confidence": 0.72,
+        "current_focus": "detección, respuesta y registro de leads entrantes",
+        "candidate_processes": [{"name": "seguimiento comercial de leads", "confidence": 0.8}],
+        "facts": {
+            "selected_process": "seguimiento comercial de leads",
+            "frequency": "cada semana",
+            "impact": "3 horas semanales y oportunidades sin seguimiento",
+            "tools": "Gmail, LinkedIn y Notion",
+            "preference": "detectar oportunidades, preparar respuesta y registrar siguientes pasos",
+        },
+        "signals": {},
+    }
+    closed = enforce_readiness_window(normalize_agent_result(raw_result, lead), lead)
+    assert_true(closed["ready_for_report"], "Una discovery comprimida con evidencia sólida debería cerrar")
 
 
 def test_report_always_exposes_evidence_summary():
@@ -186,6 +223,7 @@ if __name__ == "__main__":
     test_repeated_example_request_is_repaired()
     test_frustration_is_acknowledged()
     test_high_confidence_four_turns_can_close()
+    test_compressed_discovery_can_close_with_solid_evidence()
     test_report_always_exposes_evidence_summary()
     test_report_readiness_blocks_empty_discovery()
     test_report_readiness_allows_evidenced_discovery()
