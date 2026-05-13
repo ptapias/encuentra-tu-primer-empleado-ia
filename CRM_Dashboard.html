@@ -122,6 +122,19 @@
       align-items: center;
       gap: 10px;
     }
+    .filters {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .filter-note {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
     .table-wrap { overflow: auto; }
     table {
       width: 100%;
@@ -216,7 +229,7 @@
     @media (max-width: 980px) {
       header, main { padding-left: 18px; padding-right: 18px; }
       header { align-items: start; flex-direction: column; }
-      main, .grid, .metrics { grid-template-columns: 1fr; }
+      main, .grid, .metrics, .filters { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -244,6 +257,24 @@
       <div class="panel-head">
         <h2>Leads capturados</h2>
         <button id="refresh">Actualizar</button>
+      </div>
+      <div class="filters">
+        <label>Oferta
+          <select id="offerFilter">
+            <option value="">Todas</option>
+          </select>
+        </label>
+        <label>Estado
+          <select id="statusFilter">
+            <option value="">Todos</option>
+          </select>
+        </label>
+        <label>Origen
+          <select id="sourceFilter">
+            <option value="">Todos</option>
+          </select>
+        </label>
+        <div class="filter-note" id="filterNote">Sin filtros activos.</div>
       </div>
       <div class="table-wrap">
         <table>
@@ -277,6 +308,11 @@
     const detail = document.getElementById("detail");
     const selected = document.getElementById("selected");
     const metricsEl = document.getElementById("metrics");
+    const offerFilter = document.getElementById("offerFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const sourceFilter = document.getElementById("sourceFilter");
+    const filterNote = document.getElementById("filterNote");
+    let cachedLeads = [];
 
     function escapeHtml(text) {
       return String(text || "").replace(/[&<>"']/g, char => ({
@@ -331,9 +367,29 @@
       return `<option value="${escapeHtml(value)}"${selectedAttr}>${escapeHtml(label)}</option>`;
     }
 
-    async function loadLeads() {
-      const { leads } = await api("/api/leads");
-      rows.innerHTML = leads.map(lead => `<tr data-id="${escapeHtml(lead.id)}">
+    function filterOption(value, label) {
+      return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+    }
+
+    function populateFilter(select, values, labeler = value => value || "Pendiente") {
+      const current = select.value;
+      select.innerHTML = filterOption("", "Todos") + values.map(value => filterOption(value, labeler(value))).join("");
+      if (values.includes(current)) select.value = current;
+    }
+
+    function renderLeads() {
+      const filtered = cachedLeads.filter(lead => {
+        const source = lead.source || "directo";
+        return (!offerFilter.value || (lead.offer || "") === offerFilter.value)
+          && (!statusFilter.value || (lead.status || "") === statusFilter.value)
+          && (!sourceFilter.value || source === sourceFilter.value);
+      });
+      filterNote.textContent = `${filtered.length} de ${cachedLeads.length} leads`;
+      if (!filtered.length) {
+        rows.innerHTML = `<tr><td colspan="7">Sin leads para estos filtros.</td></tr>`;
+        return;
+      }
+      rows.innerHTML = filtered.map(lead => `<tr data-id="${escapeHtml(lead.id)}">
         <td><strong>${escapeHtml(lead.email || lead.id.slice(0, 8))}</strong><br>${escapeHtml(new Date(lead.updated_at * 1000).toLocaleString())}</td>
         <td>${escapeHtml(lead.source || "directo")}<br><span class="badge">${escapeHtml(lead.campaign || "sin campaña")}</span></td>
         <td>${escapeHtml(lead.recommended_employee || lead.use_case || "sin informe")}<br><span class="badge">${escapeHtml(lead.turns)} turnos</span></td>
@@ -343,6 +399,15 @@
         <td>${lead.has_feedback ? "sí" : "no"}</td>
       </tr>`).join("");
       rows.querySelectorAll("tr").forEach(row => row.addEventListener("click", () => loadLead(row.dataset.id)));
+    }
+
+    async function loadLeads() {
+      const { leads } = await api("/api/leads");
+      cachedLeads = leads;
+      populateFilter(offerFilter, [...new Set(leads.map(lead => lead.offer || "").filter(Boolean))].sort(), offerLabel);
+      populateFilter(statusFilter, [...new Set(leads.map(lead => lead.status || "").filter(Boolean))].sort(), statusLabel);
+      populateFilter(sourceFilter, [...new Set(leads.map(lead => lead.source || "directo"))].sort(), value => value);
+      renderLeads();
     }
 
     function renderMetric(label, value, note) {
@@ -504,6 +569,7 @@
     }
 
     document.getElementById("refresh").addEventListener("click", refreshAll);
+    [offerFilter, statusFilter, sourceFilter].forEach(select => select.addEventListener("change", renderLeads));
     refreshAll().catch(error => {
       rows.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
     });

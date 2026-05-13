@@ -116,6 +116,10 @@ def main():
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
 
+    status, dashboard_headers, dashboard_html = request_raw(args.base, "/CRM_Dashboard.html", auth=auth)
+    expect(status == 200 and "offerFilter" in dashboard_html and "sourceFilter" in dashboard_html, "el CRM no incluye filtros operativos")
+    checks.append({"check": "dashboard_filters", "ok": True})
+
     status, privacy_headers, privacy_html = request_raw(args.base, "/PRIVACY_BETA.html")
     expect(status == 200 and "Cómo usamos tus datos" in privacy_html, "la página de privacidad no carga")
     expect("Completar razón social" not in privacy_html and "Contacto | Completar" not in privacy_html, "la privacidad pública contiene placeholders internos")

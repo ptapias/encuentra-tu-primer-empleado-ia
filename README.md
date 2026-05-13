@@ -16,7 +16,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `Prompt_Agente_Diagnostico.md`: prompt listo para usar en un agente conversacional.
 - `Scoring_y_CRM.csv`: criterios de scoring y campos internos recomendados.
 - `Agente_Real_CRM.html`: versión nueva con agente conectado a backend, CRM SQLite, micrófono, diagnóstico accionable, matriz visual de decisión y feedback.
-- `CRM_Dashboard.html`: dashboard interno para revisar métricas de embudo, leads, conversación, outcome, oferta recomendada, feedback estructurado, cambiar estado/oferta manualmente y exportar CSV.
+- `CRM_Dashboard.html`: dashboard interno para revisar métricas de embudo, filtrar leads por oferta/estado/origen, ver conversación, outcome, oferta recomendada, feedback estructurado, cambiar estado/oferta manualmente y exportar CSV.
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead`, `/api/metrics`, `/api/export.csv` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
 - `DEPLOYMENT_VPS.md`: guía para desplegar en VPS con Codex CLI, systemd y Caddy.
