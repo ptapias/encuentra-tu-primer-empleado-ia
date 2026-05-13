@@ -19,6 +19,8 @@ INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
 UPDATE_SCRIPT = ROOT / "deploy" / "update_vps.sh"
 LAUNCH_FROM_INPUTS_SCRIPT = ROOT / "deploy" / "launch_from_inputs.sh"
+VPS_LAUNCH_PACKET = ROOT / "VPS_LAUNCH_PACKET.md"
+DEPLOYMENT_GUIDE = ROOT / "DEPLOYMENT_VPS.md"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
@@ -115,6 +117,8 @@ def deploy_config_check() -> dict:
     verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8") if VERIFY_SCRIPT.exists() else ""
     update_script = UPDATE_SCRIPT.read_text(encoding="utf-8") if UPDATE_SCRIPT.exists() else ""
     launch_from_inputs_script = LAUNCH_FROM_INPUTS_SCRIPT.read_text(encoding="utf-8") if LAUNCH_FROM_INPUTS_SCRIPT.exists() else ""
+    vps_launch_packet = VPS_LAUNCH_PACKET.read_text(encoding="utf-8") if VPS_LAUNCH_PACKET.exists() else ""
+    deployment_guide = DEPLOYMENT_GUIDE.read_text(encoding="utf-8") if DEPLOYMENT_GUIDE.exists() else ""
     required = {
         "app_service_NoNewPrivileges": "NoNewPrivileges=true" in app_service,
         "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
@@ -153,6 +157,10 @@ def deploy_config_check() -> dict:
         "launch_from_inputs_validates_inputs": "validate_vps_inputs.py" in launch_from_inputs_script and "prepare_vps_launch_files.py" in launch_from_inputs_script,
         "launch_from_inputs_installs": "install_vps.sh" in launch_from_inputs_script and "render_privacy.py" in launch_from_inputs_script,
         "launch_from_inputs_points_to_generator": "generate_vps_inputs.py" in launch_from_inputs_script,
+        "vps_launch_packet_no_duplicate_install_pass": "Segundo pase" not in vps_launch_packet and "ya valida la ficha" in vps_launch_packet,
+        "vps_launch_packet_uses_sudo_env": "sudo env DOMAIN=" in vps_launch_packet,
+        "deployment_guide_uses_sudo_env": "sudo DOMAIN=" not in deployment_guide and "sudo env DOMAIN=" in deployment_guide,
+        "deployment_guide_warns_no_env_before_guided_launch": "No crees `.env` antes de usar el lanzador guiado" in deployment_guide,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
         "manual_production_test_exists": MANUAL_PRODUCTION_TEST.exists(),

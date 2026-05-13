@@ -23,10 +23,9 @@ sudo -H -u primeria codex exec --skip-git-repo-check --ephemeral 'Responde solo:
 git clone https://github.com/ptapias/encuentra-tu-primer-empleado-ia.git /opt/primer-empleado-ia
 sudo chown -R primeria:primeria /opt/primer-empleado-ia
 cd /opt/primer-empleado-ia
-cp .env.example .env
 ```
 
-Si quieres reducir pasos manuales, genera primero la ficha local guiada. El archivo queda ignorado por Git:
+Ruta recomendada: genera primero la ficha local guiada. El archivo queda ignorado por Git:
 
 ```bash
 python3 generate_vps_inputs.py
@@ -34,16 +33,18 @@ python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
 python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
 ```
 
-Después puedes usar el lanzador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`; si no existe, crea `.env` desde `.env.example` y se detiene para que configures la contraseña real:
+Después usa el lanzador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`, renderiza privacidad, instala servicios, activa backup y valida Caddy:
 
 ```bash
-sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
+sudo env DOMAIN=diagnostico.tu-dominio.com ./deploy/launch_from_inputs.sh
 ```
 
-Cuando `.env` ya esté completo, puedes relanzarlo con dominio para instalar servicios, activar backup y validar Caddy:
+No crees `.env` antes de usar el lanzador guiado: si `.env` ya existe, el instalador la conserva y no copiará `.env.generated`.
+
+Si decides saltarte el flujo guiado, entonces crea `.env` manualmente:
 
 ```bash
-sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/install_vps.sh
+cp .env.example .env
 ```
 
 Edita `.env`:
@@ -64,6 +65,12 @@ AI_QUEUE_WAIT_SECONDS=8
 BETA_NOINDEX=true
 WHISPER_BIN=/usr/local/bin/whisper
 FFMPEG_BIN=/usr/bin/ffmpeg
+```
+
+Cuando `.env` ya esté completo, instala servicios con dominio:
+
+```bash
+sudo env DOMAIN=diagnostico.tu-dominio.com ./deploy/install_vps.sh
 ```
 
 `CRM_WEBHOOK_URL` es opcional. Úsalo si quieres enviar automáticamente email capturado, informe, interés CTA y feedback a Make, n8n, Zapier, Airtable, HubSpot u otro CRM.
@@ -225,7 +232,7 @@ Con verificación HTTPS después del reinicio:
 
 ```bash
 cd /opt/primer-empleado-ia
-sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/update_vps.sh
+sudo env DOMAIN=diagnostico.tu-dominio.com ./deploy/update_vps.sh
 ```
 
 El script exige worktree limpio, hace backup antes de traer cambios, usa `git pull --ff-only`, ejecuta preflight, actualiza las unidades systemd según `APP_DIR`, `APP_USER` y `APP_GROUP`, reinicia systemd y corre smoke test local. Si el update falla después de moverse a un nuevo commit, intenta volver al commit anterior y reiniciar el servicio. Si pasas `DOMAIN`, llama también a `verify_vps.sh`.

@@ -22,6 +22,10 @@ def test_generate_valid_local_inputs():
         output = Path(tmp) / "VPS_INPUTS.local.md"
         result = generate_vps_inputs.generate(output, answers_from_valid_inputs(), force=False)
         assert_true(result["ok"], result)
+        assert_true(
+            "sudo env DOMAIN=tu-dominio ./deploy/launch_from_inputs.sh" in result["next_actions"],
+            "La siguiente acción debería conservar DOMAIN al ejecutar con sudo",
+        )
         text = output.read_text(encoding="utf-8")
         assert_true("diagnostico.example.com" in text, "No escribió dominio")
         assert_true("clave-super-larga-2026" in text, "No escribió contraseña de prueba")

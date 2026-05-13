@@ -111,7 +111,7 @@ def generate(output: Path, answers: dict[str, str], *, force: bool = False) -> d
         "next_actions": [
             f"python3 validate_vps_inputs.py --path {output}",
             f"python3 prepare_vps_launch_files.py --inputs {output}",
-            "sudo DOMAIN=tu-dominio ./deploy/launch_from_inputs.sh",
+            "sudo env DOMAIN=tu-dominio ./deploy/launch_from_inputs.sh",
         ],
     }
 
