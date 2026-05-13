@@ -66,7 +66,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Config VPS segura por defecto | `.env.example`, `preflight_vps.py`, `DEPLOYMENT_VPS.md` | Ejemplo usa `HOST=127.0.0.1` detrás de Caddy; preflight avisa si se expone `0.0.0.0` | Hecho base |
 | HTTPS preparado para micrófono | `deploy/Caddyfile.example`, `release_check.py` | Caddy incluye `Permissions-Policy` con `microphone=(self)` para que la beta HTTPS pueda pedir permiso de micro en el propio dominio | Hecho base |
 | Instalación VPS guiada | `deploy/install_vps.sh`, `release_check.py`, `DEPLOYMENT_VPS.md` | Script crea `.env` si falta, exige contraseña real, instala systemd/backup, valida Caddy si hay dominio y corre smoke test local; release check valida que exista y sea ejecutable | Hecho base |
-| Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
+| Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local en escritorio y móvil: hero claro, estado inicial no técnico, compositor oculto hasta empezar, botón inicial no duplicado tras iniciar; estándar "YC-level" sigue necesitando test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin degradación silenciosa a fallback | `ALLOW_AI_FALLBACK=false`, errores `502` e evento `ai_error` cuando falla el proveedor real | Preflight exige fallback desactivado para beta pública | Hecho |
 | Control de concurrencia IA | `MAX_AI_CONCURRENCY`, `AI_QUEUE_WAIT_SECONDS`, `AiBusyError` en `app_server.py`, `test_ai_concurrency.py` | Limita procesos Codex/OpenAI concurrentes y devuelve `429` con reintento si el agente está ocupado | Hecho base |
@@ -104,7 +104,7 @@ Resultado reciente:
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
 - Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK tras cambios de evidencia/consentimiento/CTA; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback, incluyeron `evidence_summary` y recomendaron empleados IA específicos por sector.
-- Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar.
+- Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar. En móvil, el compositor queda oculto hasta empezar y aparece activo al iniciar la sesión.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
 - Prueba anti-fallback silencioso: con `CODEX_BIN` inválido y `ALLOW_AI_FALLBACK=false`, `/api/chat` devuelve `502` y no genera respuesta fallback.
