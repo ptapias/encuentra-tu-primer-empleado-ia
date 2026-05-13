@@ -30,13 +30,15 @@ Usa este documento después de desplegar en VPS y antes de pasar el enlace a tes
 | Paso | Esperado | Resultado | Evidencia |
 |---|---|---|---|
 | Abrir landing | Hero “¿Dónde se te escapa tiempo, dinero o clientes?” visible |  |  |
+| Discovery en vivo | Se ve bloque “Discovery en vivo” y queda claro que no es un formulario |  |  |
 | Empezar diagnóstico | Se oculta starter, aparece chat y composer |  |  |
 | Primer mensaje | Pide contexto de negocio de forma conversacional |  |  |
 | Responder por texto | El agente responde adaptándose al caso |  |  |
 | Espera larga | Se muestra contador/mensaje de espera, no parece congelado |  |  |
 | Progreso lateral | Foco, claridad, señales y gaps se actualizan |  |  |
 | Micrófono HTTPS | Pide permiso, graba, transcribe y añade texto |  |  |
-| Discovery | Cierra cuando tiene suficiente, sin repetir preguntas |  |  |
+| Discovery adaptativa | Repregunta según la respuesta real y no sigue un guion fijo |  |  |
+| Cierre discovery | Cierra cuando tiene suficiente, sin repetir preguntas |  |  |
 | Email-gate | Pide email solo al final y exige consentimiento |  |  |
 | Informe | Genera diagnóstico con oportunidades y recomendación principal |  |  |
 | Matriz | Se ve impacto frente a factibilidad |  |  |

@@ -59,6 +59,18 @@ def test_filled_doc_passes():
     assert_true(result["ok"], result)
 
 
+def test_template_tracks_core_product_promises():
+    template = validate_manual_production_test.TEMPLATE_PATH.read_text(encoding="utf-8")
+    for label in [
+        "Discovery en vivo",
+        "Discovery adaptativa",
+        "Progreso lateral",
+        "Latencia IA",
+    ]:
+        assert_true(label in template, f"La prueba manual debería cubrir `{label}`")
+        assert_true(label in validate_manual_production_test.CRITICAL_ROWS, f"`{label}` debería ser crítico antes de abrir beta")
+
+
 def test_no_go_final_blocks():
     with tempfile.TemporaryDirectory(prefix="primer-empleado-manual-test-") as tmp:
         path = Path(tmp) / "manual.md"
@@ -70,5 +82,6 @@ def test_no_go_final_blocks():
 if __name__ == "__main__":
     test_template_fails()
     test_filled_doc_passes()
+    test_template_tracks_core_product_promises()
     test_no_go_final_blocks()
     print("manual_production_validator ok")
