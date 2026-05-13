@@ -44,6 +44,8 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Gate de release para VPS | `release_check.py` | Agrupa sintaxis, copy público, privacidad beta, preflight y smoke test contra URL local/dominio | Hecho base |
 | Lista blanca de estáticos públicos | `PUBLIC_STATIC_FILES`, `ADMIN_STATIC_FILES`, `allowed_static_path()` en `app_server.py`, `test_beta_smoke.py` | Solo sirve página pública, privacidad HTML y dashboard con auth; bloquea docs, prototipos, scripts, backups y datos internos | Hecho base |
 | Noindex de beta | `BETA_NOINDEX`, `/robots.txt`, `X-Robots-Tag` en `app_server.py` | Smoke test valida robots y cabecera noindex cuando la beta lo tiene activo | Hecho base |
+| Dominio raíz usable | `GET /` y `HEAD /` en `app_server.py`, `test_beta_smoke.py` | Redirige a `/Agente_Real_CRM.html`; smoke test valida `HEAD /` para checks externos | Hecho base |
+| Config VPS segura por defecto | `.env.example`, `preflight_vps.py`, `DEPLOYMENT_VPS.md` | Ejemplo usa `HOST=127.0.0.1` detrás de Caddy; preflight avisa si se expone `0.0.0.0` | Hecho base |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local hecha; estándar "YC-level" es subjetivo y falta test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin degradación silenciosa a fallback | `ALLOW_AI_FALLBACK=false`, errores `502` e evento `ai_error` cuando falla el proveedor real | Preflight exige fallback desactivado para beta pública | Hecho |
@@ -72,6 +74,8 @@ Resultado reciente:
 - Smoke test con `ADMIN_PASSWORD`: OK; `/api/lead/update`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
 - Preflight valida `MAX_AI_CONCURRENCY` y `AI_QUEUE_WAIT_SECONDS`; `healthz` expone `ai_concurrency`; `test_ai_concurrency.py` prueba el error de agente ocupado.
+- Smoke test valida que `HEAD /` redirige al diagnóstico para que checks externos no vean un falso 404.
+- `.env.example` usa `HOST=127.0.0.1`; `preflight_vps.py` avisa si la app queda expuesta públicamente sin pasar por Caddy.
 - Métricas locales: el CRM registra leads, conversaciones iniciadas, emails, informes y feedback; el CSV exporta rating, claridad, faltantes y mejora sugerida.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar.
