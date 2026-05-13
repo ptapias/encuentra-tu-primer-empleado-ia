@@ -129,7 +129,18 @@ def main() -> int:
         blockers.append("Falla el release check local. Mira `checks.release_check_local` para el detalle.")
 
     if args.with_real_agent:
-        discovery = run_step("real_agent_discovery_cases", [sys.executable, "test_discovery_flow.py"], timeout=900)
+        discovery = run_step(
+            "real_agent_discovery_cases",
+            [
+                sys.executable,
+                "test_discovery_flow.py",
+                "--base",
+                args.base,
+                "--client-ip",
+                "198.51.100.40",
+            ],
+            timeout=900,
+        )
         checks.append(discovery)
         if not discovery["ok"]:
             blockers.append("Falla la prueba de discovery con agente real.")
