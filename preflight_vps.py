@@ -92,6 +92,7 @@ def main():
         check(env_path.exists(), "env_file", f"Archivo env encontrado: {env_path}"),
         check(provider in {"codex", "openai", "fallback"}, "ai_provider", f"AI_PROVIDER={provider}"),
         check(bool(host), "host", f"HOST={host or 'vacío'}", level="warning"),
+        check(host != "0.0.0.0", "host_not_public", "HOST debería ser 127.0.0.1 si Caddy/HTTPS hace de proxy", level="warning"),
         check(bool(port and str(port).isdigit()), "port", f"PORT={port or 'vacío'}"),
         check(str(max_ai_concurrency).isdigit() and int(max_ai_concurrency) >= 1, "max_ai_concurrency", f"MAX_AI_CONCURRENCY={max_ai_concurrency}"),
         check(str(ai_queue_wait).replace(".", "", 1).isdigit(), "ai_queue_wait", f"AI_QUEUE_WAIT_SECONDS={ai_queue_wait}"),
