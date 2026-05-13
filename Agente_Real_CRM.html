@@ -777,6 +777,15 @@
       }
       while (node && node.nextElementSibling) node.nextElementSibling.remove();
       node.remove();
+      // Truncar SESSION.transcript en sitio para que coincida con el estado del DOM
+      // (el backend lo truncará también al recibir rewind_to_turn en el próximo send,
+      // pero el cliente debe quedar consistente desde ya, no entre llamadas).
+      const userIndices = SESSION.transcript
+        .map((m, i) => (m.role === "user" ? i : -1))
+        .filter(i => i >= 0);
+      if (index < userIndices.length) {
+        SESSION.transcript.length = userIndices[index];
+      }
       SESSION.pendingRewindTo = index;
       if (composer) composer.focus();
     }
@@ -821,6 +830,9 @@
       }
     });
 
+    // Exposición a window. Convención: SESSION es un objeto namespace estable,
+    // jamás reasignar (solo mutar sus propiedades) para que window.SESSION no
+    // se desincronice del módulo cuando tasks futuras lean estado.
     window.SESSION = SESSION;
     window.enterChat = enterChat;
     window.appendTurn = appendTurn;
