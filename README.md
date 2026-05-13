@@ -20,6 +20,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `app_server.py`: servidor local con endpoints `/api/session`, `/api/chat`, `/api/report`, `/api/feedback`, `/api/leads`, `/api/lead`, `/api/metrics`, `/api/export.csv` y `/transcribe`.
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
 - `DEPLOYMENT_VPS.md`: guía para desplegar en VPS con Codex CLI, systemd y Caddy.
+- `PRODUCTION_READINESS.md`: lista corta de datos, variables, legal, gate final y prueba manual antes de abrir la beta.
 - `deploy/install_vps.sh`: instalador con guardarraíles para crear `.env`, copiar servicios, activar backups y validar smoke test en el VPS.
 - `deploy/primer-empleado-ia-backup.service` y `deploy/primer-empleado-ia-backup.timer`: unidades systemd para backup diario del CRM en VPS.
 - `VALIDACION_LOCAL.md`: checklist para probar experiencia, agente, email-gate, informe y CRM antes del VPS.
