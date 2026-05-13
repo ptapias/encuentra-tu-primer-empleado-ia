@@ -79,7 +79,7 @@ La versión actual incluye grabación por micrófono con transcripción local v�
 Para arrancar la versión con agente + CRM:
 
 ```bash
-python3 app_server.py
+./run_local_beta.sh
 ```
 
 Luego abre:
@@ -87,6 +87,14 @@ Luego abre:
 - Agente: `http://localhost:8787/Agente_Real_CRM.html`
 - CRM interno: `http://localhost:8787/CRM_Dashboard.html`
 - Prototipo anterior: `http://localhost:8787/Prototipo_Conversacional.html`
+
+Si el puerto ya está ocupado por un servidor antiguo, el script lo dirá y no arrancará encima. Para sustituirlo:
+
+```bash
+REPLACE=true ./run_local_beta.sh
+```
+
+También puedes arrancar a mano con `python3 app_server.py`, pero para demos y pruebas conviene usar `run_local_beta.sh` porque imprime `/healthz.version` y evita confundir una versión vieja con el código actual.
 
 Por defecto el backend intenta usar `AI_PROVIDER=codex`, que llama a Codex CLI autenticado localmente con tu cuenta de ChatGPT/Codex. Esto sirve para pruebas internas en tu máquina o en un servidor donde hayas iniciado sesión con Codex CLI. No es la vía recomendada para una web pública con tráfico abierto.
 

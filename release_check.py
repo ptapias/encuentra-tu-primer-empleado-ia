@@ -19,6 +19,7 @@ INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
 UPDATE_SCRIPT = ROOT / "deploy" / "update_vps.sh"
 LAUNCH_FROM_INPUTS_SCRIPT = ROOT / "deploy" / "launch_from_inputs.sh"
+RUN_LOCAL_SCRIPT = ROOT / "run_local_beta.sh"
 VPS_LAUNCH_PACKET = ROOT / "VPS_LAUNCH_PACKET.md"
 DEPLOYMENT_GUIDE = ROOT / "DEPLOYMENT_VPS.md"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
@@ -213,6 +214,7 @@ def deploy_config_check() -> dict:
     verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8") if VERIFY_SCRIPT.exists() else ""
     update_script = UPDATE_SCRIPT.read_text(encoding="utf-8") if UPDATE_SCRIPT.exists() else ""
     launch_from_inputs_script = LAUNCH_FROM_INPUTS_SCRIPT.read_text(encoding="utf-8") if LAUNCH_FROM_INPUTS_SCRIPT.exists() else ""
+    run_local_script = RUN_LOCAL_SCRIPT.read_text(encoding="utf-8") if RUN_LOCAL_SCRIPT.exists() else ""
     vps_launch_packet = VPS_LAUNCH_PACKET.read_text(encoding="utf-8") if VPS_LAUNCH_PACKET.exists() else ""
     deployment_guide = DEPLOYMENT_GUIDE.read_text(encoding="utf-8") if DEPLOYMENT_GUIDE.exists() else ""
     required = {
@@ -254,6 +256,8 @@ def deploy_config_check() -> dict:
         "launch_from_inputs_validates_inputs": "validate_vps_inputs.py" in launch_from_inputs_script and "prepare_vps_launch_files.py" in launch_from_inputs_script,
         "launch_from_inputs_installs": "install_vps.sh" in launch_from_inputs_script and "render_privacy.py" in launch_from_inputs_script,
         "launch_from_inputs_points_to_generator": "generate_vps_inputs.py" in launch_from_inputs_script,
+        "run_local_script_executable": RUN_LOCAL_SCRIPT.exists() and bool(RUN_LOCAL_SCRIPT.stat().st_mode & 0o111),
+        "run_local_script_replace_guard": "REPLACE=true" in run_local_script and "/healthz" in run_local_script,
         "vps_launch_packet_no_duplicate_install_pass": "Segundo pase" not in vps_launch_packet and "ya valida la ficha" in vps_launch_packet,
         "vps_launch_packet_uses_sudo_env": "sudo env DOMAIN=" in vps_launch_packet,
         "deployment_guide_uses_sudo_env": "sudo DOMAIN=" not in deployment_guide and "sudo env DOMAIN=" in deployment_guide,
@@ -352,6 +356,19 @@ def main():
                 "launch_go_no_go.py",
                 "local_acceptance_check.py",
                 "generate_vps_inputs.py",
+            ],
+        ),
+        run_step(
+            "shell_syntax",
+            [
+                "bash",
+                "-n",
+                "run_local_beta.sh",
+                "deploy/install_vps.sh",
+                "deploy/verify_vps.sh",
+                "deploy/update_vps.sh",
+                "deploy/launch_from_inputs.sh",
+                "deploy/render_systemd_units.sh",
             ],
         ),
         run_step("ai_concurrency", [sys.executable, "test_ai_concurrency.py"]),
