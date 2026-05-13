@@ -4,15 +4,15 @@ Estado actual: la app local esta en verde para demo controlada. El agente real c
 
 ## 1. Rellena estos 8 datos
 
-Abre `VPS_ANSWERS.local.json` y completa solo lo que falta:
+Abre `VPS_ANSWERS.local.json` y completa solo lo que falta. Importante: no renombres las claves; deben quedar exactamente como aparecen en el JSON.
 
-- `Dominio/subdominio publico`: por ejemplo `diagnostico.tuprimerempleadoia.com`.
-- `IP del VPS`: IP publica del servidor.
+- `Dominio/subdominio público`: por ejemplo `diagnostico.tuprimerempleadoia.com`.
+- `IP del VPS`: IP pública del servidor.
 - `Usuario SSH`: usuario con permisos para entrar al VPS.
-- `Contrasena real CRM`: minimo 16 caracteres, sin espacios, comillas, `#` ni barras invertidas.
+- `Contraseña real CRM`: mínimo 16 caracteres, sin espacios, comillas, `#` ni barras invertidas.
 - `Responsable legal`: nombre o sociedad responsable.
-- `NIF/CIF o razon social`: dato legal que aparecera en privacidad.
-- `Email de contacto privacidad`: email para derechos/supresion.
+- `NIF/CIF o razón social`: dato legal que aparecerá en privacidad.
+- `Email de contacto privacidad`: email para derechos/supresión.
 - `Proveedor VPS/hosting`: proveedor donde esta alojado el servidor.
 
 Mantener el resto como esta sirve para una primera beta controlada, salvo que quieras activar webhook externo desde el dia 1.

@@ -59,9 +59,26 @@ def test_answers_template_has_all_fields_and_defaults():
     assert_true(template["Contraseña real CRM"] == "", "La plantilla no debería inventar contraseña")
 
 
+def test_deployment_handoff_uses_exact_json_keys():
+    handoff = Path("NEXT_DEPLOYMENT_HANDOFF.md").read_text(encoding="utf-8")
+    for label in [
+        "Dominio/subdominio público",
+        "IP del VPS",
+        "Usuario SSH",
+        "Contraseña real CRM",
+        "Responsable legal",
+        "NIF/CIF o razón social",
+        "Email de contacto privacidad",
+        "Proveedor VPS/hosting",
+    ]:
+        assert_true(f"`{label}`" in handoff, f"El handoff no contiene la clave exacta `{label}`")
+    assert_true("no renombres las claves" in handoff, "El handoff debería advertir que no se renombren las claves JSON")
+
+
 if __name__ == "__main__":
     test_generate_valid_local_inputs()
     test_generate_refuses_overwrite_without_force()
     test_cli_with_answers_json_generates_file()
     test_answers_template_has_all_fields_and_defaults()
+    test_deployment_handoff_uses_exact_json_keys()
     print("generate_vps_inputs ok")
