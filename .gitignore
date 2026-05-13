@@ -4,6 +4,7 @@ crm.sqlite3-*
 .env
 .env.*
 !.env.example
+.env.generated
 backups/
 privacy_config.json
 VPS_INPUTS.local.md

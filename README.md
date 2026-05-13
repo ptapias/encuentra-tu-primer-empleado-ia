@@ -46,6 +46,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `release_check.py --public-beta`: gate estricto para VPS público; exige HTTPS, credenciales CRM, privacidad final y proveedor IA verificado.
 - `launch_go_no_go.py`: veredicto operativo final antes de enseñar la beta, combinando release check, navegador/transcripción y confirmaciones manuales.
 - `validate_vps_inputs.py`: valida que `VPS_INPUTS.md` esté completo antes de tocar el VPS.
+- `prepare_vps_launch_files.py`: genera `.env.generated` y `privacy_config.json` desde `VPS_INPUTS.local.md`.
 - `test_public_beta_gate.py`: prueba unitaria del gate público para no abrir por error en localhost, sin HTTPS o con credenciales incorrectas.
 - `test_ai_concurrency.py`: prueba rápida de que el backend devuelve agente ocupado cuando no hay hueco de IA disponible.
 - `test_agent_quality_guard.py`: prueba de calidad conversacional para evitar que el agente repita una petición cuando el usuario ya dio un ejemplo o se frustra.
