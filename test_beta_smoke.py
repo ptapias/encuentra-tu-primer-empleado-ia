@@ -164,6 +164,20 @@ def main():
     expect(session.get("facts", {}).get("attribution", {}).get("source") == "youtube", "no se guarda la atribución inicial")
     checks.append({"check": "session", "lead_id": session.get("lead_id")})
 
+    try:
+        request(args.base, "/api/email", payload={"lead_id": session["lead_id"], "email": "smoke@example.com"})
+        email_without_consent = 200
+    except urllib.error.HTTPError as exc:
+        email_without_consent = exc.code
+    expect(email_without_consent == 400, "el email-gate debería exigir consentimiento explícito")
+    status, email_saved = request(
+        args.base,
+        "/api/email",
+        payload={"lead_id": session["lead_id"], "email": "smoke@example.com", "consent": True, "privacy_version": "smoke"},
+    )
+    expect(status == 200 and email_saved.get("email") == "smoke@example.com", "no se guarda email con consentimiento")
+    checks.append({"check": "email_consent", "ok": True})
+
     status, delete_session = request(args.base, "/api/session", payload={})
     expect(status == 200 and delete_session.get("lead_id"), "no se puede crear sesión de borrado")
 
@@ -204,6 +218,7 @@ def main():
     saved_feedback = lead_detail.get("lead", {}).get("feedback", {})
     expect(saved_feedback.get("rating") == 4 and saved_feedback.get("missing") == "Costes estimados", "el feedback estructurado no queda guardado en CRM")
     expect(lead_detail.get("lead", {}).get("facts", {}).get("attribution", {}).get("campaign") == "whatsapp_ia", "la atribución no queda disponible en CRM")
+    expect(lead_detail.get("lead", {}).get("facts", {}).get("consent", {}).get("accepted") is True, "el consentimiento no queda guardado en CRM")
     checks.append({"check": "structured_feedback", "ok": True})
 
     try:

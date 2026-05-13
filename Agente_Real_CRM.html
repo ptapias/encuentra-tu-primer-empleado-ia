@@ -402,6 +402,25 @@
       grid-template-columns: 1fr auto;
       gap: 10px;
     }
+    .consent-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      color: #3a4f46;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .consent-row input {
+      margin-top: 2px;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+    }
+    .consent-row a {
+      color: var(--accent-dark);
+      font-weight: 900;
+      text-decoration: none;
+    }
     .email-error {
       min-height: 18px;
       color: var(--danger);
@@ -1317,6 +1336,10 @@
           <input id="finalEmail" type="email" placeholder="persona@empresa.com" autocomplete="email">
           <button onclick="captureEmailAndReport()">Generar informe</button>
         </div>
+        <label class="consent-row">
+          <input id="finalConsent" type="checkbox">
+          <span>Acepto que se use mi email y esta conversación para generar el informe, guardar el diagnóstico y mejorar la beta. <a href="/PRIVACY_BETA.html" target="_blank" rel="noopener">Ver privacidad</a>.</span>
+        </label>
         <div class="email-error" id="emailError"></div>
       </div>`;
       addHtml("agent", html, "Entrega del informe");
@@ -1327,6 +1350,7 @@
 
     async function captureEmailAndReport() {
       const field = document.getElementById("finalEmail");
+      const consent = document.getElementById("finalConsent");
       const error = document.getElementById("emailError");
       const value = field?.value.trim() || "";
       if (!field?.checkValidity() || !value) {
@@ -1334,9 +1358,14 @@
         field?.focus();
         return;
       }
+      if (!consent?.checked) {
+        if (error) error.textContent = "Acepta el uso de datos para generar y guardar el diagnóstico.";
+        consent?.focus();
+        return;
+      }
       try {
         if (error) error.textContent = "";
-        await api("/api/email", { lead_id: leadId, email: value });
+        await api("/api/email", { lead_id: leadId, email: value, consent: true, privacy_version: "beta-2026-05" });
         capturedEmail = value;
         saveSessionState();
         setCrm("Perfecto. Preparando informe...", "ok");

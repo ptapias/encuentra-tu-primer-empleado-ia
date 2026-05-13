@@ -56,6 +56,7 @@ def static_page_check() -> dict:
         "Por qué esta va primero",
         "Cómo funcionaría en la práctica",
         "Matriz de priorización",
+        "Acepto que se use mi email y esta conversación",
         "Ayúdanos a mejorar este diagnóstico",
         "Qué echaste en falta",
         "Utilidad del diagnóstico",

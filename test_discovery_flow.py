@@ -80,7 +80,7 @@ def run_case(case):
     assert_true(last.get("confidence", 0) > 0.25, "confidence demasiado baja")
     assert_true(last.get("ready_for_report"), "El agente no cerró la discovery tras 4 turnos con evidencia suficiente")
 
-    post("/api/email", {"lead_id": lead_id, "email": case["email"]})
+    post("/api/email", {"lead_id": lead_id, "email": case["email"], "consent": True, "privacy_version": "test"})
     report = post("/api/report", {"lead_id": lead_id})["report"]
     assert_true(report.get("recommended_employee"), "Falta recommended_employee")
     assert_true(report.get("opportunities"), "Faltan opportunities")

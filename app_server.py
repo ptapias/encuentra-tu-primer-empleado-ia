@@ -1160,9 +1160,18 @@ class Handler(SimpleHTTPRequestHandler):
         if not valid_email(email):
             self._json({"error": "Introduce un email válido para recibir el informe."}, 400)
             return
-        get_lead(lead_id)
-        update_lead(lead_id, email=email)
-        insert_event(lead_id, "email_captured", {"email": email})
+        if payload.get("consent") is not True:
+            self._json({"error": "Necesitamos tu consentimiento para generar y guardar el diagnóstico."}, 400)
+            return
+        lead = get_lead(lead_id)
+        facts = lead["facts"]
+        facts["consent"] = {
+            "accepted": True,
+            "accepted_at": now(),
+            "privacy_version": payload.get("privacy_version") or "beta",
+        }
+        update_lead(lead_id, email=email, facts=facts)
+        insert_event(lead_id, "email_captured", {"email": email, "consent": facts["consent"]})
         self._json({"ok": True, "email": email})
 
     def _handle_chat(self):

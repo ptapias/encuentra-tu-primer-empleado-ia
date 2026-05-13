@@ -22,6 +22,7 @@ Comprueba:
 - Al empezar aparece `Lo que estoy entendiendo`.
 - El botón `Generar informe` no aparece hasta que el agente decide que tiene suficiente.
 - El email se pide solo antes de generar el diagnóstico.
+- El email exige aceptar el uso de datos y enlaza a privacidad.
 - El informe incluye `Matriz de priorización`, `Por qué esta va primero` y feedback al final.
 
 ## 2. Arrancar con Codex real
