@@ -28,6 +28,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `deploy/primer-empleado-ia-backup.service` y `deploy/primer-empleado-ia-backup.timer`: unidades systemd para backup diario del CRM en VPS.
 - `VALIDACION_LOCAL.md`: checklist para probar experiencia, agente, email-gate, informe y CRM antes del VPS.
 - `BETA_TEST_PLAN.md`: plan para reclutar testers, medir calidad del diagnóstico y decidir si la beta está lista para abrir más tráfico.
+- `FIRST_TESTERS_PACKET.md`: mensajes listos para invitar testers por DM, newsletter, YouTube y seguimiento.
 - `COMPLETION_AUDIT.md`: auditoría requisito por requisito del estado real frente al objetivo Ontora-lite.
 - `PRIVACY_BETA.md`: nota operativa de privacidad para la beta, con información básica y pendientes antes de tráfico público.
 - `PRIVACY_BETA.html`: página pública de privacidad enlazada desde el diagnóstico.

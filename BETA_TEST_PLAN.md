@@ -14,7 +14,7 @@ Recluta 8-12 personas. Prioridad:
 
 ## Instrucción para testers
 
-Envía este texto:
+Envía este texto o usa las variantes listas de `FIRST_TESTERS_PACKET.md`:
 
 > Estoy probando una herramienta gratuita que analiza tu negocio y te dice qué procesos podrías automatizar primero con IA. Funciona como una mini sesión de discovery: le cuentas tu caso, te repregunta y al final te genera un informe. Lo más útil es que respondas con ejemplos reales, como si estuvieras hablando conmigo. Al terminar, deja feedback sincero sobre qué te sirvió y qué echaste en falta.
 
