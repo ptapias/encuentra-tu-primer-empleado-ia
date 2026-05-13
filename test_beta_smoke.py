@@ -82,6 +82,20 @@ def main():
     checks.append({"check": "lead_update", "auth_required": bool(auth), "status_without_auth": update_without_auth})
 
     try:
+        status, legacy_crm = request(args.base, "/crm", payload={"event": "smoke_legacy_crm", "lead_id": session["lead_id"]})
+        legacy_crm_without_auth = status
+    except urllib.error.HTTPError as exc:
+        legacy_crm_without_auth = exc.code
+        legacy_crm = {}
+    if auth:
+        expect(legacy_crm_without_auth == 401, "el endpoint legacy /crm debería estar protegido sin autenticación")
+        status, legacy_crm = request(args.base, "/crm", auth=auth, payload={"event": "smoke_legacy_crm", "lead_id": session["lead_id"]})
+        expect(status == 200 and legacy_crm.get("ok"), "el endpoint legacy /crm no responde con autenticación")
+    else:
+        expect(legacy_crm_without_auth == 200 and legacy_crm.get("ok"), "el endpoint legacy /crm no responde en entorno sin auth")
+    checks.append({"check": "legacy_crm", "auth_required": bool(auth), "status_without_auth": legacy_crm_without_auth})
+
+    try:
         status, metrics = request(args.base, "/api/metrics")
         metrics_without_auth = status
     except urllib.error.HTTPError as exc:

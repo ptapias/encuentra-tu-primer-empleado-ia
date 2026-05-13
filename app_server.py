@@ -859,7 +859,7 @@ class Handler(SimpleHTTPRequestHandler):
         if int(self.headers.get("Content-Length", "0")) > MAX_BODY_BYTES:
             self._json({"error": "Payload demasiado grande"}, 413)
             return
-        admin_routes = {"/api/lead/update"}
+        admin_routes = {"/api/lead/update", "/crm"}
         if self.path in admin_routes and not self._require_admin():
             return
         routes = {
