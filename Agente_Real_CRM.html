@@ -140,6 +140,11 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 2 — EDITORIAL SHELL COMPONENTS
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
     /* === SHELL === */
     .shell {
       min-height: 100dvh;
@@ -186,12 +191,13 @@
       grid-auto-columns: 1fr;
       align-items: center;
       gap: var(--gap-1);
+      /* 4 nodos × ~60px min — evita que la línea colapse en desktop estrecho */
       min-width: 240px;
     }
     .phase-line .node {
       display: flex; align-items: center; gap: var(--gap-1);
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: var(--t-eyebrow);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--ink-faint);
@@ -225,7 +231,7 @@
     .footframe .counter,
     .footframe .mark {
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: var(--t-small);
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--ink-faint);
@@ -278,7 +284,7 @@
         <div class="conn"></div>
         <div class="node" data-phase="4"><span>Cierre</span></div>
       </nav>
-      <div class="save-status mono" id="saveStatus" aria-live="polite"></div>
+      <div class="save-status" id="saveStatus" aria-live="polite"></div>
     </header>
 
     <div class="shell-body">
@@ -297,6 +303,17 @@
   </div>
 
   <script>
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 2 — SHELL HELPERS
+       setPhase, setSaveStatus y session anchor.
+       Estos helpers viven en el scope global del <script> (function
+       declarations en script clásico, no module) para que los
+       <script> de tasks futuros puedan invocarlos sin imports.
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    // Tiempo antes de que un estado "syncing" se desvanezca solo en el top frame.
+    const SAVE_STATUS_DISMISS_MS = 2200;
+
     /* === SESSION ANCHOR === */
     (() => {
       const months = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
@@ -314,7 +331,7 @@
         const idx = i + 1;
         if (idx < n) node.dataset.state = "done";
         else if (idx === n) node.dataset.state = "active";
-        else node.removeAttribute("data-state");
+        else node.removeAttribute("data-state");  // sin data-state = futuro/idle
       });
       conns.forEach((conn, i) => {
         if (i + 1 < n) conn.dataset.state = "done";
@@ -334,9 +351,14 @@
       el.dataset.state = state;
       el.textContent = message;
       if (state === "syncing") {
-        _saveStatusTimer = setTimeout(() => setSaveStatus(null), 2200);
+        _saveStatusTimer = setTimeout(() => setSaveStatus(null), SAVE_STATUS_DISMISS_MS);
       }
     }
+
+    // Exposición explícita para uso desde tasks futuros (defensa frente a
+    // que alguien convierta este script a type="module").
+    window.setPhase = setPhase;
+    window.setSaveStatus = setSaveStatus;
   </script>
 </body>
 
