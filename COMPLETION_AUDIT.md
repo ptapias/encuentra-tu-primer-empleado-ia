@@ -51,15 +51,18 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Exportación operativa | `/api/export.csv`, botón "Exportar CSV" en `CRM_Dashboard.html` | CSV probado localmente; `test_beta_smoke.py` comprueba protección y respuesta | Hecho |
 | Backups de beta | `backup_crm.py`, `deploy/primer-empleado-ia-backup.service`, `deploy/primer-empleado-ia-backup.timer`, `test_backup_crm.py`, `backups/` ignorado por Git | Script genera copia SQLite consistente y JSONL si existe; timer diario preparado para VPS; release check prueba backup en entorno temporal | Hecho base |
 | Privacidad beta | `PRIVACY_BETA.html`, `PRIVACY_BETA.md`, enlace en UI, texto corto en email-gate, `release_check.py` | Página pública HTML informa sin pedir email al inicio e incluye proveedores de CRM/webhook; documento operativo mantiene pendientes legales reales; `--public-beta` falla si MD o HTML conservan placeholders/notas públicas de beta | Parcial |
+| Generación de privacidad final | `privacy_config.example.json`, `render_privacy.py`, `.gitignore`, `test_privacy_renderer.py`, `release_check.py` | Permite generar `PRIVACY_BETA.md` y `PRIVACY_BETA.html` desde datos reales; falla si conserva placeholders; `privacy_config.json` queda ignorado para no subir datos legales; release check ejecuta el test dedicado | Hecho base |
 | Consentimiento al email-gate | `finalConsent` en `Agente_Real_CRM.html`, `/api/email` en `app_server.py`, `CRM_Dashboard.html`, CSV | El informe exige consentimiento explícito antes de guardar email; CRM muestra `facts.consent`; CSV exporta consentimiento; `test_beta_smoke.py` valida rechazo sin consentimiento y guardado/export | Hecho base |
 | Métricas de consentimiento | `/api/metrics`, `CRM_Dashboard.html`, `test_beta_smoke.py` | Dashboard muestra tasa y número de consentimientos aceptados; smoke test valida agregación | Hecho base |
 | Gate backend de informe | `/api/report` en `app_server.py` | Aunque alguien invoque la API directamente, el informe no se genera sin email válido y consentimiento; `test_beta_smoke.py` lo valida | Hecho base |
 | Captura de intención comercial | Botón de siguiente paso en `Agente_Real_CRM.html`, `/api/cta`, `CRM_Dashboard.html`, CSV | El usuario puede marcar interés en el CTA recomendado; requiere email/consentimiento; CRM y CSV muestran `cta_interest`; smoke test valida guardado y exportación | Hecho base |
 | Métricas de intención comercial | `/api/metrics`, `CRM_Dashboard.html` | Dashboard muestra tasa de interés CTA y CTA top; smoke test valida agregación por segmento | Hecho base |
 | Salud operativa de IA/webhook | `/api/metrics`, `CRM_Dashboard.html`, eventos `ai_error`, `ai_busy`, `webhook_error` | Dashboard muestra "Salud IA", estado de webhook e incidencias recientes con detalle para detectar fallos de Codex/API/sincronización durante la beta; smoke test valida presencia | Hecho base |
+| Latencia IA visible en CRM | Eventos `chat_turn` y `report_generated` en `app_server.py`, `/api/metrics`, `CRM_Dashboard.html`, `test_beta_smoke.py` | Cada respuesta/informe guarda `elapsed_seconds` y proveedor; dashboard muestra latencia media de chat e informe para decidir si Codex CLI aguanta beta o hay que migrar | Hecho base |
 | Guardas antiabuso básicos | `MAX_PUBLIC_EVENTS_PER_HOUR`, `rate_limited()`, `client_ip()`, `MAX_BODY_BYTES`, `test_server_guards.py` | POST públicos tienen rate limit por IP y tamaño máximo de payload; `X-Forwarded-For` solo se respeta cuando la petición viene del proxy local; release check ejecuta prueba de rate limit, cabecera proxy y emails inválidos | Hecho base |
-| Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `VPS_LAUNCH_PACKET.md`, `deploy/install_vps.sh`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight, release check, instalador no-root y smoke test locales OK; checklist operativo preparado; despliegue real no ejecutado | Parcial |
-| Gate de release para VPS | `release_check.py` | Agrupa sintaxis, copy público, privacidad beta, preflight y smoke test contra URL local/dominio; `--public-beta` exige HTTPS, no localhost, credenciales CRM, privacidad final y Codex live | Hecho base |
+| Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `VPS_LAUNCH_PACKET.md`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight, release check, instalador no-root, verificador VPS y smoke test locales OK; checklist operativo preparado; despliegue real no ejecutado | Parcial |
+| Gate de release para VPS | `release_check.py`, `deploy/verify_vps.sh` | Agrupa sintaxis, copy público, privacidad beta, test del generador de privacidad, preflight y smoke test contra URL local/dominio; `--public-beta` exige HTTPS, no localhost, credenciales CRM, privacidad final y Codex live | Hecho base |
+| Codex verificado como usuario systemd | `preflight_vps.py`, `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `test_server_guards.py`, docs VPS | El preflight puede recibir `--service-user primeria`; si se usa `--check-codex-live`, ejecuta Codex como ese usuario, evitando el falso positivo de login como `root` | Hecho base |
 | Preparación de producción | `PRODUCTION_READINESS.md` | Lista datos necesarios, variables `.env`, gate final, prueba manual obligatoria y criterios de no apertura | Hecho base |
 | Plan de beta externa | `BETA_TEST_PLAN.md` | Define muestra mínima, mensaje para testers, variables a observar en CRM, criterios de éxito y experimentos por canal | Hecho base |
 | Lista blanca de estáticos públicos | `PUBLIC_STATIC_FILES`, `ADMIN_STATIC_FILES`, `allowed_static_path()` en `app_server.py`, `test_beta_smoke.py` | Solo sirve página pública, privacidad HTML y dashboard con auth; bloquea docs, prototipos, scripts, backups y datos internos | Hecho base |
@@ -68,11 +71,12 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | UTMs conservadas desde raíz | `diagnostic_location()` en `app_server.py`, `test_beta_smoke.py` | `GET /?utm_source=...` redirige a `/Agente_Real_CRM.html?...` sin perder parámetros de atribución | Hecho base |
 | Config VPS segura por defecto | `.env.example`, `preflight_vps.py`, `DEPLOYMENT_VPS.md` | Ejemplo usa `HOST=127.0.0.1` detrás de Caddy; preflight avisa si se expone `0.0.0.0` | Hecho base |
 | HTTPS preparado para micrófono | `deploy/Caddyfile.example`, `release_check.py` | Caddy incluye `Permissions-Policy` con `microphone=(self)` para que la beta HTTPS pueda pedir permiso de micro en el propio dominio | Hecho base |
-| Instalación VPS guiada | `deploy/install_vps.sh`, `release_check.py`, `DEPLOYMENT_VPS.md` | Script crea `.env` si falta, exige contraseña real, instala systemd/backup, valida Caddy si hay dominio y corre smoke test local; release check valida que exista y sea ejecutable | Hecho base |
+| Instalación VPS guiada | `deploy/install_vps.sh`, `deploy/verify_vps.sh`, `release_check.py`, `DEPLOYMENT_VPS.md` | Script crea `.env` si falta, exige contraseña real, instala systemd/backup, valida Codex como service user, valida Caddy si hay dominio y corre smoke test local; verificador ejecuta preflight, smoke local, smoke HTTPS y release gate | Hecho base |
 | Experiencia visual comparable a startup YC | `Agente_Real_CRM.html` con hero fuerte, layout, progreso, tarjetas de proceso | Revisión visual local en escritorio y móvil: hero claro, estado inicial no técnico, compositor oculto hasta empezar, botón inicial no duplicado tras iniciar; estándar "YC-level" sigue necesitando test con usuarios | Parcial |
 | Sin preguntas predefinidas | Prompt prohíbe guion fijo; Codex real adapta | Fallback sigue siendo heurístico y se usa solo para pruebas; Codex real verificado en una sesión | Parcial: faltan más casos reales |
 | Sin degradación silenciosa a fallback | `ALLOW_AI_FALLBACK=false`, errores `502` e evento `ai_error` cuando falla el proveedor real | Preflight exige fallback desactivado para beta pública | Hecho |
 | Control de concurrencia IA | `MAX_AI_CONCURRENCY`, `AI_QUEUE_WAIT_SECONDS`, `AiBusyError` en `app_server.py`, `test_ai_concurrency.py` | Limita procesos Codex/OpenAI concurrentes y devuelve `429` con reintento si el agente está ocupado | Hecho base |
+| Espera honesta ante respuestas lentas | `startWaitStatus()` en `Agente_Real_CRM.html`, `test_beta_smoke.py` | La UI muestra contador y mensajes progresivos mientras Codex piensa o genera informe, reduciendo sensación de bloqueo en esperas largas | Hecho base |
 | Sin UI mediocre ni términos internos | Búsqueda pública eliminó JSON, fallback, CRM, "informe potente" | `test_beta_smoke.py` comprueba gancho y ausencia de textos internos básicos | Hecho base |
 | Micrófono | `MediaRecorder`, `/transcribe`, `WHISPER_BIN`, `FFMPEG_BIN`, `/api/capabilities` | Smoke test cubre disponibilidad del servicio; permisos/grabación real siguen siendo prueba manual | Parcial |
 | Feedback al final | UI de informe con rating, campos de claridad/faltantes/mejora y `/api/feedback` | Requiere email/consentimiento; `test_beta_smoke.py` valida guardado estructurado en CRM; dashboard y CSV muestran campos de feedback | Hecho |
@@ -84,9 +88,13 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 ```bash
 python3 -m py_compile app_server.py test_discovery_flow.py test_beta_smoke.py
 python3 test_agent_quality_guard.py
+python3 test_server_guards.py
+python3 test_privacy_renderer.py
 python3 test_beta_smoke.py --base http://localhost:8787
 python3 test_beta_smoke.py --base http://localhost:8788 --admin-user admin --admin-password testpass
 python3 release_check.py --env /tmp/primer-empleado-valid.env --base http://localhost:8787
+python3 release_check.py --env /tmp/primer-empleado-valid.env --service-user "$(whoami)" --base http://localhost:8787
+APP_DIR="$PWD" CHECK_CODEX_LIVE=false ./deploy/verify_vps.sh
 curl http://localhost:8787/healthz
 curl http://localhost:8787/api/metrics
 curl -X POST http://localhost:8787/api/lead/update
@@ -94,7 +102,7 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: `{"ok": true, "provider": "codex"}`
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local: `e20130c`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK; `/api/lead/update`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local: OK con `.env` temporal válido y URL local; privacidad beta queda como warning mientras no se completen datos legales.
@@ -110,20 +118,24 @@ Resultado reciente:
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar. En móvil, el compositor queda oculto hasta empezar y aparece activo al iniciar la sesión.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
+- Preflight con `--service-user`: valida que el usuario exista; con `--check-codex-live` exige ejecutarse como root/sudo para probar Codex como el usuario systemd.
+- `deploy/verify_vps.sh`: probado en modo local con CRM protegido; valida preflight, smoke local y deja preparado el camino para smoke HTTPS/dominio.
+- `test_privacy_renderer.py`: valida que la privacidad con placeholders falle y que una configuración final genere MD/HTML sin marcadores de beta.
+- UI de espera lenta: prueba con navegador simulando `/api/chat` confirma que se muestra estado progresivo y vuelve al progreso normal cuando llega la respuesta.
 - Prueba anti-fallback silencioso: con `CODEX_BIN` inválido y `ALLOW_AI_FALLBACK=false`, `/api/chat` devuelve `502` y no genera respuesta fallback.
 
 ## Huecos no cerrados
 
 | Hueco | Por qué importa | Próxima acción |
 |---|---|---|
-| VPS no desplegado todavía | "Listo para beta pública" requiere comprobar dominio, HTTPS, systemd, auth y persistencia en servidor real | Ejecutar `DEPLOYMENT_VPS.md` en el VPS y correr `test_beta_smoke.py` contra el dominio |
-| Faltan datos de lanzamiento | Sin dominio, acceso SSH, contraseña CRM y datos legales no se puede completar `--public-beta` | Recoger los datos de `VPS_LAUNCH_PACKET.md` |
+| VPS no desplegado todavía | "Listo para beta pública" requiere comprobar dominio, HTTPS, systemd, auth y persistencia en servidor real | Ejecutar `DEPLOYMENT_VPS.md` y luego `DOMAIN=... ./deploy/verify_vps.sh` en el VPS |
+| Faltan datos de lanzamiento | Sin dominio, acceso SSH, contraseña CRM y datos legales no se puede completar `--public-beta` | Recoger los datos de `VPS_LAUNCH_PACKET.md` y generar privacidad con `render_privacy.py` |
 | Codex CLI en producción es frágil para tráfico abierto | Puede tardar, romper sesión o no estar pensado como backend multiusuario | Beta privada primero; si hay uso real, migrar a API oficial o cola supervisada |
 | Grabación real de micrófono no cubierta por smoke test | Los permisos del navegador requieren prueba manual aunque `/api/capabilities` valide binarios | Probar micrófono manualmente en local y en VPS con HTTPS |
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
 | Calidad adaptativa probada en pocos casos reales con Codex | Un caso bueno no garantiza robustez en sectores distintos | Ejecutar 5 discovery sessions reales: newsletter, clínica, inmobiliaria, agencia, ecommerce |
 | CRM externo real no elegido | El webhook ya permite sincronizar con Make/n8n/Zapier/Airtable/HubSpot, pero falta escoger destino y configurar credenciales reales | Elegir CRM/destino y completar `CRM_WEBHOOK_URL` en VPS |
-| Privacidad pendiente de datos reales | La beta ya informa, pero falta responsable legal, contacto y plazo concreto | Completar `PRIVACY_BETA.md` antes de tráfico público abierto |
+| Privacidad pendiente de datos reales | La beta ya informa, pero falta responsable legal, contacto y plazo concreto | Rellenar `privacy_config.json`, ejecutar `render_privacy.py` y correr `release_check.py --public-beta` |
 
 ## Decisión de auditoría
 
