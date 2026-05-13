@@ -24,11 +24,10 @@ cp VPS_INPUTS.md VPS_INPUTS.local.md
 nano VPS_INPUTS.local.md
 python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
 python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
-cp .env.generated .env
 python3 render_privacy.py --config privacy_config.json
 ```
 
-El validador falla si quedan campos clave vacíos o placeholders. `prepare_vps_launch_files.py` genera `.env.generated` y `privacy_config.json` desde la ficha local. El generador de privacidad actualiza `PRIVACY_BETA.md` y `PRIVACY_BETA.html`. Si queda algún `Completar`, se detiene.
+El validador falla si quedan campos clave vacíos o placeholders. `prepare_vps_launch_files.py` genera `.env.generated` y `privacy_config.json` desde la ficha local. El instalador usa `.env.generated` para crear `.env` si aún no existe. El generador de privacidad actualiza `PRIVACY_BETA.md` y `PRIVACY_BETA.html`. Si queda algún `Completar`, se detiene.
 
 ## 2. Decisión de proveedor IA para la beta
 

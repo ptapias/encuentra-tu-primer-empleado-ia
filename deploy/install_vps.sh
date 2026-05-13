@@ -38,11 +38,18 @@ cd "${APP_DIR}"
 mkdir -p backups
 
 if [[ ! -f ".env" ]]; then
-  cp .env.example .env
+  if [[ -f ".env.generated" ]]; then
+    cp .env.generated .env
+    echo "He creado ${APP_DIR}/.env desde .env.generated." >&2
+  else
+    cp .env.example .env
+    chown "${APP_USER}:${APP_GROUP}" .env
+    chmod 600 .env
+    echo "He creado ${APP_DIR}/.env desde .env.example. Edita ADMIN_PASSWORD, CODEX_BIN y dominio antes de arrancar." >&2
+    exit 2
+  fi
   chown "${APP_USER}:${APP_GROUP}" .env
   chmod 600 .env
-  echo "He creado ${APP_DIR}/.env. Edita ADMIN_PASSWORD, CODEX_BIN y dominio antes de arrancar." >&2
-  exit 2
 fi
 
 if grep -q '^ADMIN_PASSWORD=change-me$' .env || ! grep -q '^ADMIN_PASSWORD=.\+' .env; then

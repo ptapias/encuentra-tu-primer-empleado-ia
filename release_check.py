@@ -130,6 +130,7 @@ def deploy_config_check() -> dict:
         "render_systemd_uses_app_config": "APP_DIR_ESCAPED" in render_systemd_script and "User=${APP_USER_ESCAPED}" in render_systemd_script and "Group=${APP_GROUP_ESCAPED}" in render_systemd_script,
         "install_script_executable": INSTALL_SCRIPT.exists() and bool(INSTALL_SCRIPT.stat().st_mode & 0o111),
         "install_script_env_guard": "ADMIN_PASSWORD=change-me" in install_script,
+        "install_script_uses_generated_env": ".env.generated" in install_script and "cp .env.generated .env" in install_script,
         "install_script_smoke": "test_beta_smoke.py" in install_script,
         "install_script_preflight_service_user": "--service-user" in install_script and "CHECK_CODEX_LIVE" in install_script,
         "install_script_preserves_git_repo": '--exclude ".git"' not in install_script and "--exclude '.git'" not in install_script,

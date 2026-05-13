@@ -26,9 +26,14 @@ cd /opt/primer-empleado-ia
 cp .env.example .env
 ```
 
-Si quieres reducir pasos manuales, puedes usar el instalador desde la raíz del repo. La primera ejecución crea `.env` si no existe y se detiene para que configures la contraseña real:
+Si quieres reducir pasos manuales, puedes usar el instalador desde la raíz del repo. Si existe `.env.generated`, lo usa para crear `.env`; si no existe, crea `.env` desde `.env.example` y se detiene para que configures la contraseña real:
 
 ```bash
+cp VPS_INPUTS.md VPS_INPUTS.local.md
+nano VPS_INPUTS.local.md
+python3 validate_vps_inputs.py --path VPS_INPUTS.local.md
+python3 prepare_vps_launch_files.py --inputs VPS_INPUTS.local.md
+python3 render_privacy.py --config privacy_config.json
 sudo ./deploy/install_vps.sh
 ```
 
