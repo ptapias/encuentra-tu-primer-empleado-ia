@@ -149,7 +149,7 @@ curl -X POST http://localhost:8787/api/lead/update
 
 Resultado reciente:
 
-- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado por aceptación local: `3163180`.
+- `healthz`: expone `ok`, `provider`, `transcription`, `ai_concurrency`, `beta_noindex` y `version`; último valor local verificado por discovery real: `c800bb3`.
 - Smoke test local: OK, incluyendo actualización de lead y feedback estructurado.
 - Smoke test con `ADMIN_PASSWORD`: OK en `1761140` con instancia temporal en `localhost:8791`; `/api/lead/update`, `/api/lead/delete`, `/crm`, `/api/metrics` y `/api/export.csv` devuelven `401` sin auth y `200` con auth; `/api/feedback` guarda datos estructurados y el CRM los devuelve con autenticación.
 - Release check local ampliado: OK en `cf94a71` y de nuevo tras endurecer el lanzamiento VPS hasta `e24c2cf`, con `.env` temporal válido, URL local, pruebas Playwright de UI/informe/sesión y transcripción local real; privacidad beta queda como warning mientras no se completen datos legales.
@@ -164,7 +164,7 @@ Resultado reciente:
 - Atribución de funnel: `utm_source`, `utm_medium`, `utm_campaign`, `video` y `ref` se guardan en `facts.attribution`; el dashboard muestra origen/campaña y el CSV exporta source/medium/campaign/video/ref.
 - Inteligencia comercial: el informe normalizado puede incluir frases útiles, objeciones e ideas de contenido; el CRM y CSV lo muestran para ventas/newsletter/YouTube.
 - Actualización manual de CRM: endpoint protegido y edición estado/oferta/notas desde dashboard añadidos.
-- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK en `ed51cd2`; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector. Latencias recientes con Codex CLI local: clínica dental 1199.2s, inmobiliaria 2204.1s, consultor B2B 440.0s. Esto confirma calidad de discovery, pero también que Codex CLI debe tratarse como beta controlada con pocos testers.
+- Prueba real de discovery con Codex en clínica dental, inmobiliaria y consultor B2B: OK en `c800bb3`; los tres casos cerraron `ready_for_report=true`, generaron 3 oportunidades, no usaron fallback y recomendaron empleados IA específicos por sector. Resultados recientes tras el ajuste de prompt: clínica dental -> "Asistente IA de triaje de primeras consultas dentales" en 160.4s; inmobiliaria -> "Asistente IA supervisado de cualificación y seguimiento de leads inmobiliarios" en 139.4s; consultor B2B -> "Asistente IA de seguimiento comercial B2B" en 161.4s. Esto confirma mejor calidad/latencia local que pasadas anteriores, pero Codex CLI sigue requiriendo beta controlada con pocos testers.
 - Revisión visual con Chrome: hero mantiene el gancho "¿Dónde se te escapa tiempo, dinero o clientes?", informe muestra matriz de decisión y flujo práctico, sin términos internos como JSON/fallback/descargar. En móvil, el compositor queda oculto hasta empezar y aparece activo al iniciar la sesión.
 - Preflight local: falla correctamente con `.env.example` y pasa con un `.env` temporal válido.
 - Preflight con `--check-codex-live`: Codex CLI responde correctamente en local.
