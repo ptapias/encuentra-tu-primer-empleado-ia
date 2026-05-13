@@ -26,6 +26,10 @@ def test_default_repo_is_blocked_on_launch_inputs():
         any("generate_vps_inputs.py" in action for action in result["next_actions"]),
         "El siguiente paso debería recomendar el generador guiado de inputs",
     )
+    assert_true(
+        any("VPS_ANSWERS.local.json" in action for action in result["next_actions"]),
+        "El semáforo debería enseñar también la ruta no interactiva con JSON local",
+    )
 
 
 def test_complete_artifacts_are_ready_for_public_go_no_go():
