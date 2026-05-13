@@ -21,6 +21,7 @@ MVP estratégico y operativo para convertir audiencia de YouTube/newsletter en l
 - `MVP_Final_Roadmap.md`: definición de versión enseñable/vendible, brechas y tramos de ejecución.
 - `DEPLOYMENT_VPS.md`: guía para desplegar en VPS con Codex CLI, systemd y Caddy.
 - `VPS_LAUNCH_PACKET.md`: checklist operativo con datos necesarios, comandos, validación, prueba manual y criterios para abrir tráfico.
+- `NEXT_DEPLOYMENT_HANDOFF.md`: siguiente acción exacta para pasar de local a beta VPS: 8 datos pendientes, comandos y gate final.
 - `VPS_INPUTS.md`: plantilla de ficha corta; rellena la copia ignorada `VPS_INPUTS.local.md` con dominio, SSH, privacidad, CRM, proveedor IA y decisiones de beta antes de tocar el VPS.
 - `MANUAL_PRODUCTION_TEST.md`: plantilla de aceptación manual para probar escritorio, móvil, micrófono HTTPS, informe, CRM, CSV y go/no-go antes de testers.
 - `validate_manual_production_test.py`: valida la copia local `MANUAL_PRODUCTION_TEST.local.md` antes de permitir una apertura pública.
