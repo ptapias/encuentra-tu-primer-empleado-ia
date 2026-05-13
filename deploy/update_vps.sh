@@ -3,6 +3,7 @@ set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/primer-empleado-ia}"
 APP_USER="${APP_USER:-primeria}"
+APP_GROUP="${APP_GROUP:-${APP_USER}}"
 ADMIN_USER="${ADMIN_USER:-admin}"
 DOMAIN="${DOMAIN:-}"
 CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE:-true}"
@@ -43,14 +44,16 @@ python3 backup_crm.py || {
   exit 1
 }
 
-BEFORE="$(git rev-parse --short HEAD)"
+GIT=(git -c safe.directory="${APP_DIR}")
+
+BEFORE="$("${GIT[@]}" rev-parse --short HEAD)"
 echo "2/7 Pull de GitHub desde ${BEFORE}"
-git fetch origin main
-git pull --ff-only origin main
-AFTER="$(git rev-parse --short HEAD)"
+"${GIT[@]}" fetch origin main
+"${GIT[@]}" pull --ff-only origin main
+AFTER="$("${GIT[@]}" rev-parse --short HEAD)"
 
 echo "3/7 Permisos"
-chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
+chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
 chmod 700 "${APP_DIR}"
 chmod 600 "${APP_DIR}/.env"
 
