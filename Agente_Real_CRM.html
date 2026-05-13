@@ -405,6 +405,123 @@
     .reveal { opacity: 0; transform: translateY(8px); transition: opacity var(--duration-3) var(--ease), transform var(--duration-3) var(--ease); }
     .starter.is-revealed .reveal { opacity: 1; transform: none; }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 4 — CHAT SURFACE
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .chat-stage {
+      display: flex; flex-direction: column;
+      flex: 1; min-height: 0;
+      gap: var(--gap-3);
+    }
+    .chat-scroll {
+      flex: 1; min-height: 0;
+      overflow-y: auto;
+      display: flex; flex-direction: column;
+      gap: var(--gap-3);
+      padding-right: 8px;
+      scroll-behavior: smooth;
+    }
+    .chat-scroll::-webkit-scrollbar { width: 8px; }
+    .chat-scroll::-webkit-scrollbar-thumb { background: var(--rule-strong); }
+
+    .turn {
+      display: grid; gap: 6px;
+      max-width: 70%;
+      position: relative;
+    }
+    .turn[data-role="agent"] { justify-self: start; }
+    .turn[data-role="user"]  { justify-self: end; text-align: right; }
+    .turn .label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+    .turn[data-role="user"] .label { color: var(--ink-faint); }
+    .turn .body {
+      font-size: var(--t-body);
+      color: var(--ink-soft);
+      line-height: 1.5;
+    }
+    .turn[data-role="agent"][data-short="true"] .body {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 1.9vw, 19px);
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .turn-separator {
+      height: 1px; background: var(--rule);
+      width: 32px; margin: 0 auto;
+    }
+
+    .turn .edit-handle {
+      position: absolute; top: 0; right: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border: 1px solid var(--rule-strong);
+      padding: 4px 10px;
+      background: var(--bg-elev);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity var(--duration-2) var(--ease), color var(--duration-2) var(--ease);
+    }
+    .turn[data-role="user"]:hover .edit-handle,
+    .turn[data-role="user"][data-edit-visible="true"] .edit-handle { opacity: 1; }
+    .turn .edit-handle:hover { color: var(--cyan-2); border-color: var(--cyan); }
+
+    .composer-wrap {
+      border: 1px solid var(--rule);
+      background: var(--bg-elev);
+      padding: var(--gap-2);
+      display: grid; gap: var(--gap-1);
+    }
+    .composer-grid {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: var(--gap-2);
+      align-items: end;
+    }
+    .composer-grid textarea {
+      width: 100%; resize: none;
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      font: inherit;
+      font-size: var(--t-body);
+      min-height: 56px;
+      max-height: 200px;
+      padding: 8px 0;
+    }
+    .composer-grid textarea::placeholder { color: var(--ink-muted); font-style: italic; }
+    .composer-grid textarea:focus { outline: none; }
+    .composer-grid .icon-btn {
+      width: 44px; height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid var(--rule-strong);
+      color: var(--ink-soft);
+      cursor: pointer;
+    }
+    .composer-grid .icon-btn[data-recording="true"] { background: var(--cyan); color: var(--bg-deep); border-color: var(--cyan); }
+    .composer-grid .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .composer-grid .send-btn { padding: 10px 22px; }
+    .composer-hint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+
+    @media (max-width: 800px) {
+      .turn { max-width: 90%; }
+    }
+
   </style>
 </head>
 <body>
@@ -547,6 +664,168 @@
       const starter = document.getElementById("starter");
       if (starter) starter.classList.add("is-revealed");
     });
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 4 — CHAT SURFACE
+       enterChat(), appendTurn(), sendMessage(), rewindToTurn()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    let SESSION = { lead_id: null, transcript: [] };
+
+    function enterChat() {
+      setPhase(2);
+      const main = document.getElementById("mainStage");
+      main.innerHTML = `
+        <div class="chat-stage">
+          <div class="chat-scroll" id="chatScroll" aria-live="polite" aria-relevant="additions"></div>
+          <div class="composer-wrap">
+            <div class="composer-grid">
+              <textarea id="composer" placeholder="Cuéntame una escena reciente…" aria-label="Tu mensaje"></textarea>
+              <button class="icon-btn" id="micBtn" type="button" aria-label="Grabar con micrófono" title="Micrófono">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <path d="M12 19v3"></path>
+                </svg>
+              </button>
+              <button class="cta-primary send-btn" id="sendBtn" type="button">Enviar <span class="arrow">→</span></button>
+            </div>
+            <div class="composer-hint" id="composerHint">⏎ enviar · ⇧⏎ línea nueva</div>
+          </div>
+        </div>
+      `;
+      document.getElementById("composer").focus();
+    }
+
+    function appendTurn(role, content) {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return;
+      const isFirstOfRole = !scroll.querySelector(`.turn[data-role="${role}"]`);
+      const isShort = role === "agent" && (content || "").length <= 120;
+      if (scroll.lastElementChild && !scroll.lastElementChild.classList.contains("turn-separator")) {
+        const sep = document.createElement("div");
+        sep.className = "turn-separator";
+        scroll.appendChild(sep);
+      }
+      const turn = document.createElement("div");
+      turn.className = "turn";
+      turn.dataset.role = role;
+      if (isShort) turn.dataset.short = "true";
+      turn.dataset.index = String(SESSION.transcript.filter(m => m.role === role).length);
+      turn.innerHTML = `
+        ${isFirstOfRole ? `<span class="label">${role === "agent" ? "Agente" : "Tú"}</span>` : ""}
+        <div class="body"></div>
+        ${role === "user" ? `<button class="edit-handle" type="button" aria-label="Reescribir esta respuesta">Reescribir</button>` : ""}
+      `;
+      turn.querySelector(".body").textContent = content || "";
+      if (role === "user") {
+        const handle = turn.querySelector(".edit-handle");
+        handle.addEventListener("click", () => rewindToTurn(parseInt(turn.dataset.index, 10)));
+      }
+      scroll.appendChild(turn);
+      SESSION.transcript.push({ role, content });
+      scroll.scrollTop = scroll.scrollHeight;
+      const hint = document.getElementById("composerHint");
+      if (hint && role === "user") hint.style.display = "none";
+    }
+
+    async function sendMessage(text, opts = {}) {
+      if (!SESSION.lead_id || !text.trim()) return;
+      appendTurn("user", text);
+      const sendBtn = document.getElementById("sendBtn");
+      const composer = document.getElementById("composer");
+      if (sendBtn) { sendBtn.disabled = true; sendBtn.innerHTML = "Enviando ▍"; }
+      if (composer) { composer.disabled = true; composer.value = ""; }
+      setSaveStatus("syncing", "GUARDANDO ▍");
+      try {
+        const body = { lead_id: SESSION.lead_id, message: text };
+        if (opts.rewindTo !== undefined) body.rewind_to_turn = opts.rewindTo;
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 429) {
+          appendTurn("agent", data.error || "Estoy con otra sesión. Vuelvo en unos segundos.");
+          return;
+        }
+        if (!res.ok) {
+          appendTurn("agent", "No te entrego una respuesta mediocre. Lo retomamos en un momento.");
+          return;
+        }
+        appendTurn("agent", data.reply || "");
+        setSaveStatus("syncing", "GUARDADO HACE 0s");
+      } catch (e) {
+        setSaveStatus("reconnect", "RECONECTANDO ▍");
+      } finally {
+        if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`; }
+        if (composer) { composer.disabled = false; composer.focus(); }
+      }
+    }
+
+    function rewindToTurn(index) {
+      const composer = document.getElementById("composer");
+      const scroll = document.getElementById("chatScroll");
+      const userTurns = scroll.querySelectorAll(`.turn[data-role="user"]`);
+      const target = userTurns[index];
+      if (!target) return;
+      if (composer) composer.value = target.querySelector(".body").textContent;
+      let node = target;
+      if (node.previousElementSibling && node.previousElementSibling.classList.contains("turn-separator")) {
+        node = node.previousElementSibling;
+      }
+      while (node && node.nextElementSibling) node.nextElementSibling.remove();
+      node.remove();
+      SESSION.pendingRewindTo = index;
+      if (composer) composer.focus();
+    }
+
+    /* CTA del starter conecta con enterChat() */
+    document.addEventListener("click", async (e) => {
+      if (e.target && (e.target.id === "startSession" || e.target.closest("#startSession"))) {
+        try {
+          const res = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+          const data = await res.json();
+          SESSION.lead_id = data.lead_id;
+          enterChat();
+          // Si el backend devuelve un primer mensaje del agente, renderizarlo
+          if (data.greeting) appendTurn("agent", data.greeting);
+          if (Array.isArray(data.transcript) && data.transcript.length > 0) {
+            data.transcript.forEach(m => appendTurn(m.role === "assistant" ? "agent" : "user", m.content));
+          }
+        } catch (err) {
+          console.error("session start failed", err);
+        }
+      }
+    });
+
+    /* Envío del composer */
+    document.addEventListener("keydown", (e) => {
+      if (e.target && e.target.id === "composer" && e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const text = e.target.value.trim();
+        if (!text) return;
+        const opts = SESSION.pendingRewindTo !== undefined ? { rewindTo: SESSION.pendingRewindTo } : {};
+        delete SESSION.pendingRewindTo;
+        sendMessage(text, opts);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (e.target && (e.target.id === "sendBtn" || e.target.closest("#sendBtn"))) {
+        const text = document.getElementById("composer").value.trim();
+        if (!text) return;
+        const opts = SESSION.pendingRewindTo !== undefined ? { rewindTo: SESSION.pendingRewindTo } : {};
+        delete SESSION.pendingRewindTo;
+        sendMessage(text, opts);
+      }
+    });
+
+    window.SESSION = SESSION;
+    window.enterChat = enterChat;
+    window.appendTurn = appendTurn;
+    window.sendMessage = sendMessage;
+    window.rewindToTurn = rewindToTurn;
   </script>
 </body>
 

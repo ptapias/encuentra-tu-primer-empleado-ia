@@ -1573,6 +1573,15 @@ class Handler(SimpleHTTPRequestHandler):
         lead = self._load_lead_or_404(lead_id)
         if not lead:
             return
+        rewind_to = payload.get("rewind_to_turn")
+        if isinstance(rewind_to, int) and rewind_to >= 0:
+            # Descartar desde el user turn de índice rewind_to en adelante;
+            # conservar sólo los turnos anteriores (0..rewind_to-1 inclusive)
+            user_indices = [i for i, m in enumerate(lead["transcript"]) if m.get("role") == "user"]
+            if rewind_to < len(user_indices):
+                cutoff = user_indices[rewind_to]  # posición del turno a descartar (exclusive)
+                lead["transcript"] = lead["transcript"][:cutoff]
+                insert_event(lead_id, "session_rewind", {"to_turn": rewind_to, "kept_messages": len(lead["transcript"])})
         user_turns = len([m for m in lead["transcript"] if m.get("role") == "user"])
         if user_turns >= MAX_USER_TURNS:
             self._json({"error": "Ya hay suficiente información. Genera el informe para cerrar el diagnóstico."}, 400)
