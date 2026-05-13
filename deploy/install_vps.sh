@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/primer-empleado-ia}"
 APP_USER="${APP_USER:-primeria}"
-APP_GROUP="${APP_GROUP:-primeria}"
+APP_GROUP="${APP_GROUP:-${APP_USER}}"
 DOMAIN="${DOMAIN:-}"
 ADMIN_USER="${ADMIN_USER:-admin}"
 CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE:-true}"
@@ -17,6 +17,10 @@ if [[ ! -f "app_server.py" || ! -d "deploy" ]]; then
   echo "Ejecuta desde la raíz del repo clonado: ${APP_DIR}" >&2
   exit 1
 fi
+
+sed_escape() {
+  printf '%s' "$1" | sed 's/[\/&]/\\&/g'
+}
 
 if ! id "${APP_USER}" >/dev/null 2>&1; then
   adduser --system --group --home "${APP_DIR}" "${APP_USER}"
@@ -61,8 +65,19 @@ fi
 "${PREFLIGHT[@]}"
 python3 release_check.py --env .env
 
-cp deploy/primer-empleado-ia.service /etc/systemd/system/
-cp deploy/primer-empleado-ia-backup.service /etc/systemd/system/
+APP_DIR_ESCAPED="$(sed_escape "${APP_DIR}")"
+APP_USER_ESCAPED="$(sed_escape "${APP_USER}")"
+APP_GROUP_ESCAPED="$(sed_escape "${APP_GROUP}")"
+sed \
+  -e "s/\/opt\/primer-empleado-ia/${APP_DIR_ESCAPED}/g" \
+  -e "s/User=primeria/User=${APP_USER_ESCAPED}/g" \
+  -e "s/Group=primeria/Group=${APP_GROUP_ESCAPED}/g" \
+  deploy/primer-empleado-ia.service > /etc/systemd/system/primer-empleado-ia.service
+sed \
+  -e "s/\/opt\/primer-empleado-ia/${APP_DIR_ESCAPED}/g" \
+  -e "s/User=primeria/User=${APP_USER_ESCAPED}/g" \
+  -e "s/Group=primeria/Group=${APP_GROUP_ESCAPED}/g" \
+  deploy/primer-empleado-ia-backup.service > /etc/systemd/system/primer-empleado-ia-backup.service
 cp deploy/primer-empleado-ia-backup.timer /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable primer-empleado-ia
