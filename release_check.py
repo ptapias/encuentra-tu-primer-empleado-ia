@@ -16,6 +16,7 @@ BACKUP_TIMER = ROOT / "deploy" / "primer-empleado-ia-backup.timer"
 CADDYFILE = ROOT / "deploy" / "Caddyfile.example"
 INSTALL_SCRIPT = ROOT / "deploy" / "install_vps.sh"
 VERIFY_SCRIPT = ROOT / "deploy" / "verify_vps.sh"
+UPDATE_SCRIPT = ROOT / "deploy" / "update_vps.sh"
 PRIVACY_RENDERER = ROOT / "render_privacy.py"
 PRIVACY_CONFIG_EXAMPLE = ROOT / "privacy_config.example.json"
 MANUAL_PRODUCTION_TEST = ROOT / "MANUAL_PRODUCTION_TEST.md"
@@ -109,6 +110,7 @@ def deploy_config_check() -> dict:
     caddyfile = CADDYFILE.read_text(encoding="utf-8") if CADDYFILE.exists() else ""
     install_script = INSTALL_SCRIPT.read_text(encoding="utf-8") if INSTALL_SCRIPT.exists() else ""
     verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8") if VERIFY_SCRIPT.exists() else ""
+    update_script = UPDATE_SCRIPT.read_text(encoding="utf-8") if UPDATE_SCRIPT.exists() else ""
     required = {
         "app_service_NoNewPrivileges": "NoNewPrivileges=true" in app_service,
         "app_service_local_write_path": "ReadWritePaths=/opt/primer-empleado-ia" in app_service,
@@ -130,6 +132,9 @@ def deploy_config_check() -> dict:
         "verify_script_public_beta_gate": "PUBLIC_BETA" in verify_script and "--public-beta" in verify_script,
         "verify_script_https_smoke": "https://${DOMAIN}" in verify_script and "test_beta_smoke.py" in verify_script,
         "verify_script_preflight_service_user": "--service-user" in verify_script and "APP_USER" in verify_script,
+        "update_script_executable": UPDATE_SCRIPT.exists() and bool(UPDATE_SCRIPT.stat().st_mode & 0o111),
+        "update_script_backup_before_pull": "backup_crm.py" in update_script and "git pull --ff-only" in update_script,
+        "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),
         "manual_production_test_exists": MANUAL_PRODUCTION_TEST.exists(),

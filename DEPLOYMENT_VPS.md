@@ -202,7 +202,25 @@ journalctl -u primer-empleado-ia-backup.service -n 50 --no-pager
 - Mira logs con `journalctl -u primer-empleado-ia -f`.
 - Si Codex CLI falla o tarda demasiado, cambia a `AI_PROVIDER=openai` temporalmente.
 
-## 7. Riesgos conocidos
+## 7. Actualizar versión en VPS
+
+Cuando haya cambios en `main`, actualiza sin tocar `.env`, CRM ni backups:
+
+```bash
+cd /opt/primer-empleado-ia
+sudo ./deploy/update_vps.sh
+```
+
+Con verificación HTTPS después del reinicio:
+
+```bash
+cd /opt/primer-empleado-ia
+sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/update_vps.sh
+```
+
+El script hace backup antes de traer cambios, usa `git pull --ff-only`, ejecuta preflight, reinicia systemd y corre smoke test local. Si pasas `DOMAIN`, llama también a `verify_vps.sh`.
+
+## 8. Riesgos conocidos
 
 - Codex CLI no está pensado como backend público de alto tráfico.
 - Cada turno puede tardar 9-15 segundos y cada informe 30-60 segundos.
