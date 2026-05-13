@@ -151,7 +151,7 @@ def main() -> int:
             stale_page.fill("#input", "Ocurre todos los días.")
             stale_page.click("#send")
             stale_page.get_by_role("heading", name="Este diagnóstico ya no está disponible.").wait_for(timeout=5000)
-            stale_page.get_by_text("Empezar diagnóstico nuevo").wait_for(timeout=5000)
+            stale_page.get_by_role("button", name="Empezar diagnóstico nuevo").wait_for(timeout=5000)
             assert stale_page.locator("#input").is_disabled()
             result["checks"].append("stale_session_recovers")
             stale_page.close()

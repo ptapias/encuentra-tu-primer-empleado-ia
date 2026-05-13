@@ -58,8 +58,14 @@ def main() -> int:
             page.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=desktop", wait_until="networkidle")
             page.get_by_text("¿Dónde se te escapa tiempo, dinero o clientes?").wait_for(timeout=5000)
             page.get_by_text("analiza tu negocio como lo haría un consultor").wait_for(timeout=5000)
+            page.get_by_text("Discovery en vivo").wait_for(timeout=5000)
+            page.get_by_text("No formulario · preguntas según tu caso").wait_for(timeout=5000)
+            page.get_by_text("Oportunidades sin seguimiento").wait_for(timeout=5000)
+            page.get_by_text("La IA prepara; la persona aprueba.").wait_for(timeout=5000)
+            cta_text = page.locator("section.starter button.start-primary").inner_text().strip()
+            assert_true(cta_text == "Empezar diagnóstico", "El CTA principal debe sonar a sesión de diagnóstico, no a formulario genérico")
             assert_true(page.locator("#emailGate").count() == 0, "El email no debe pedirse antes de empezar")
-            result["checks"].append("desktop_hero_copy")
+            result["checks"].append("desktop_hero_copy_and_preview")
             if screenshot_dir:
                 page.screenshot(path=str(screenshot_dir / "desktop-hero.png"), full_page=True)
 
