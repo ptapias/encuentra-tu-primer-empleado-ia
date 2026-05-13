@@ -7,6 +7,8 @@ ADMIN_USER="${ADMIN_USER:-admin}"
 APP_USER="${APP_USER:-primeria}"
 PUBLIC_BETA="${PUBLIC_BETA:-false}"
 CHECK_CODEX_LIVE="${CHECK_CODEX_LIVE:-true}"
+BROWSER_CHECKS="${BROWSER_CHECKS:-false}"
+TRANSCRIPTION_CHECK="${TRANSCRIPTION_CHECK:-false}"
 
 if [[ ! -d "${APP_DIR}" ]]; then
   echo "No existe APP_DIR=${APP_DIR}" >&2
@@ -70,6 +72,12 @@ if [[ "${CHECK_CODEX_LIVE}" == "true" ]]; then
 fi
 if [[ "${PUBLIC_BETA}" == "true" ]]; then
   RELEASE+=(--public-beta)
+fi
+if [[ "${BROWSER_CHECKS}" == "true" ]]; then
+  RELEASE+=(--with-browser)
+fi
+if [[ "${TRANSCRIPTION_CHECK}" == "true" ]]; then
+  RELEASE+=(--with-transcription)
 fi
 
 echo "4/4 Release gate"

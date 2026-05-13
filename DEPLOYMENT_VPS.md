@@ -165,6 +165,12 @@ También puedes ejecutar el verificador completo del VPS. Lee la contraseña des
 DOMAIN=diagnostico.tu-dominio.com ./deploy/verify_vps.sh
 ```
 
+Si el VPS tiene Playwright/Chromium y transcripción disponibles, puedes sumar pruebas más cercanas a usuario real:
+
+```bash
+DOMAIN=diagnostico.tu-dominio.com BROWSER_CHECKS=true TRANSCRIPTION_CHECK=true ./deploy/verify_vps.sh
+```
+
 Para una apertura pública más allá de beta controlada, completa antes `PRIVACY_BETA.md` y `PRIVACY_BETA.html`, y usa:
 
 ```bash
