@@ -1208,10 +1208,11 @@
       transcript = [];
       chat.innerHTML = "";
       starter?.remove();
-      input.disabled = false;
-      send.disabled = false;
+      const readyForReport = Boolean(saved.readyForReport || saved.stage === "recomendacion" || saved.stage === "informe");
+      input.disabled = readyForReport;
+      send.disabled = readyForReport;
       micBtn.disabled = true;
-      reportBtn.hidden = !saved.readyForReport && saved.stage !== "recomendacion";
+      reportBtn.hidden = !readyForReport || saved.reportGenerated;
       reportBtn.disabled = reportBtn.hidden;
       setStage(saved.stage || "contexto");
       statusEl.textContent = saved.status || "Diagnóstico recuperado.";
@@ -1220,6 +1221,9 @@
       saved.transcript.forEach(item => addMessage(item.role, item.content, item.role === "user" ? "Tú" : "Agente diagnóstico"));
       restoringSession = false;
       if (saved.lastDiscovery) updateDiscovery(saved.lastDiscovery);
+      if (readyForReport && !saved.reportGenerated) {
+        setCrm("Diagnóstico recuperado. Ya puedes ver el informe.", "ok");
+      }
       saveSessionState(saved);
       refreshCapabilities();
     }
