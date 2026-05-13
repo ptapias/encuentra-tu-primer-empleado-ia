@@ -1937,6 +1937,8 @@ class Handler(SimpleHTTPRequestHandler):
             "urgency",
             "budget",
             "offer",
+            "first_opportunity",
+            "first_step",
             "recommended_employee",
             "turns",
             "has_feedback",
@@ -1961,6 +1963,8 @@ class Handler(SimpleHTTPRequestHandler):
             cta_interest = facts.get("cta_interest") if isinstance(facts.get("cta_interest"), dict) else {}
             discovery = facts.get("_discovery") if isinstance(facts.get("_discovery"), dict) else {}
             crm = outcome.get("crm_summary", {})
+            opportunities = outcome.get("opportunities") if isinstance(outcome.get("opportunities"), list) else []
+            first_opportunity = opportunities[0] if opportunities and isinstance(opportunities[0], dict) else {}
             sales_intelligence = outcome.get("sales_intelligence") if isinstance(outcome.get("sales_intelligence"), dict) else {}
             writer.writerow(
                 {
@@ -1991,6 +1995,8 @@ class Handler(SimpleHTTPRequestHandler):
                     "urgency": humanize(crm.get("urgency")),
                     "budget": humanize(crm.get("budget")),
                     "offer": humanize(crm.get("offer")),
+                    "first_opportunity": humanize(first_opportunity.get("name")),
+                    "first_step": humanize(first_opportunity.get("first_step")),
                     "recommended_employee": humanize(outcome.get("recommended_employee")),
                     "turns": len([m for m in transcript if m.get("role") == "user"]),
                     "has_feedback": "yes" if feedback else "no",

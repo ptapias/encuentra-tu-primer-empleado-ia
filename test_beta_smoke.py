@@ -149,6 +149,7 @@ def main():
     expect(status == 200 and "offerFilter" in dashboard_html and "sourceFilter" in dashboard_html, "el CRM no incluye filtros operativos")
     expect("Consentimiento" in dashboard_html, "el CRM no muestra consentimiento del lead")
     expect("Interés CTA" in dashboard_html, "el CRM no muestra intención de CTA")
+    expect("Resumen de acción" in dashboard_html and "Fuga principal" in dashboard_html, "el CRM no muestra resumen accionable del diagnóstico")
     expect("Discovery viva" in dashboard_html and "Procesos candidatos" in dashboard_html, "el CRM no muestra discovery viva ni procesos candidatos")
     checks.append({"check": "dashboard_filters", "ok": True})
 
@@ -385,6 +386,7 @@ def main():
     expect("consent_accepted,consent_accepted_at,privacy_version" in export_header, "el export CSV no incluye consentimiento")
     expect("discovery_focus,discovery_confidence,candidate_processes,open_gaps,live_insights" in export_header, "el export CSV no incluye discovery viva")
     expect("cta_interest,cta_clicked_at" in export_header, "el export CSV no incluye intención de CTA")
+    expect("first_opportunity,first_step" in export_header, "el export CSV no incluye resumen de acción")
     expect("objections,content_ideas" in export_header, "el export CSV no incluye inteligencia comercial")
     expect("evidence_summary" in export_header, "el export CSV no incluye señales de evidencia")
     checks.append({"check": "export_csv", "auth_required": bool(auth), "status_without_auth": export_without_auth})
