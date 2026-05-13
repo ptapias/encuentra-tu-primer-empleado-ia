@@ -2,7 +2,9 @@
 import argparse
 import base64
 import json
+import os
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -13,10 +15,11 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 NO_REDIRECT_OPENER = urllib.request.build_opener(NoRedirect)
+SMOKE_IP = f"198.51.{os.getpid() % 250}.{int(time.time() * 1000) % 250 + 1}"
 
 
 def request(base, path, *, auth=None, method="GET", payload=None, timeout=30):
-    headers = {}
+    headers = {"X-Forwarded-For": SMOKE_IP}
     body = None
     if payload is not None:
         headers["Content-Type"] = "application/json"
@@ -35,7 +38,7 @@ def request(base, path, *, auth=None, method="GET", payload=None, timeout=30):
 
 
 def request_no_redirect(base, path, *, method="GET", timeout=30):
-    req = urllib.request.Request(base.rstrip("/") + path, method=method)
+    req = urllib.request.Request(base.rstrip("/") + path, headers={"X-Forwarded-For": SMOKE_IP}, method=method)
     try:
         with NO_REDIRECT_OPENER.open(req, timeout=timeout) as response:
             return response.status, dict(response.headers)
@@ -44,7 +47,7 @@ def request_no_redirect(base, path, *, method="GET", timeout=30):
 
 
 def request_raw(base, path, *, auth=None, timeout=30):
-    headers = {}
+    headers = {"X-Forwarded-For": SMOKE_IP}
     if auth:
         token = base64.b64encode(f"{auth[0]}:{auth[1]}".encode("utf-8")).decode("ascii")
         headers["Authorization"] = f"Basic {token}"

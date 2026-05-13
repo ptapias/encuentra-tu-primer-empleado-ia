@@ -55,7 +55,7 @@ Construir una versión "Ontora-lite" para pymes españolas de "Encuentra Tu Prim
 | Captura de intención comercial | Botón de siguiente paso en `Agente_Real_CRM.html`, `/api/cta`, `CRM_Dashboard.html`, CSV | El usuario puede marcar interés en el CTA recomendado; requiere email/consentimiento; CRM y CSV muestran `cta_interest`; smoke test valida guardado y exportación | Hecho base |
 | Métricas de intención comercial | `/api/metrics`, `CRM_Dashboard.html` | Dashboard muestra tasa de interés CTA y CTA top; smoke test valida agregación por segmento | Hecho base |
 | Guardas antiabuso básicos | `MAX_PUBLIC_EVENTS_PER_HOUR`, `rate_limited()`, `MAX_BODY_BYTES`, `test_server_guards.py` | POST públicos tienen rate limit por IP y tamaño máximo de payload; release check ejecuta prueba de rate limit y emails inválidos | Hecho base |
-| Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `deploy/install_vps.sh`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight, release check, instalador no-root y smoke test locales OK; despliegue real no ejecutado | Parcial |
+| Listo para beta pública en VPS | `DEPLOYMENT_VPS.md`, `VPS_LAUNCH_PACKET.md`, `deploy/install_vps.sh`, `deploy/primer-empleado-ia.service`, `deploy/Caddyfile.example`, `.env.example`, `preflight_vps.py`, `test_beta_smoke.py` | Preflight, release check, instalador no-root y smoke test locales OK; checklist operativo preparado; despliegue real no ejecutado | Parcial |
 | Gate de release para VPS | `release_check.py` | Agrupa sintaxis, copy público, privacidad beta, preflight y smoke test contra URL local/dominio; `--public-beta` exige HTTPS, no localhost, credenciales CRM, privacidad final y Codex live | Hecho base |
 | Preparación de producción | `PRODUCTION_READINESS.md` | Lista datos necesarios, variables `.env`, gate final, prueba manual obligatoria y criterios de no apertura | Hecho base |
 | Plan de beta externa | `BETA_TEST_PLAN.md` | Define muestra mínima, mensaje para testers, variables a observar en CRM, criterios de éxito y experimentos por canal | Hecho base |
@@ -114,6 +114,7 @@ Resultado reciente:
 | Hueco | Por qué importa | Próxima acción |
 |---|---|---|
 | VPS no desplegado todavía | "Listo para beta pública" requiere comprobar dominio, HTTPS, systemd, auth y persistencia en servidor real | Ejecutar `DEPLOYMENT_VPS.md` en el VPS y correr `test_beta_smoke.py` contra el dominio |
+| Faltan datos de lanzamiento | Sin dominio, acceso SSH, contraseña CRM y datos legales no se puede completar `--public-beta` | Recoger los datos de `VPS_LAUNCH_PACKET.md` |
 | Codex CLI en producción es frágil para tráfico abierto | Puede tardar, romper sesión o no estar pensado como backend multiusuario | Beta privada primero; si hay uso real, migrar a API oficial o cola supervisada |
 | Grabación real de micrófono no cubierta por smoke test | Los permisos del navegador requieren prueba manual aunque `/api/capabilities` valide binarios | Probar micrófono manualmente en local y en VPS con HTTPS |
 | Visual "startup YC" no validado con usuarios externos | Puede verse bien para nosotros pero no convertir | Test con 5 usuarios: claridad del hero, ganas de empezar, comprensión del informe |
