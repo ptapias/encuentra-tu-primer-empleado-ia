@@ -492,6 +492,15 @@
       font-size: clamp(30px, 4vw, 46px);
       line-height: 1;
     }
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .report-actions button {
+      width: fit-content;
+    }
     .feedback-box {
       border: 1px solid #cfe1d8;
       background: #f7fbf8;
@@ -1294,6 +1303,9 @@
           <span class="report-label">Diagnóstico generado</span>
           <h2>Tu primer empleado IA debería ser: ${escapeHtml(report.recommended_employee)}</h2>
           <p>${escapeHtml(report.summary)}</p>
+          <div class="report-actions">
+            <button class="secondary" type="button" onclick="printLatestReport()">Guardar PDF</button>
+          </div>
         </div>
         <div class="mini-grid">
           <div class="diagnosis-card"><span>Lo que he entendido</span>${escapeHtml(report.business_snapshot)}</div>
@@ -1357,6 +1369,57 @@
           <div class="feedback-saved" id="feedbackSaved"></div>
         </div>
       </div>`;
+    }
+
+    function printableReportHtml(report) {
+      const list = items => `<ul>${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      const opportunities = (report.opportunities || []).map(opp => `<section>
+        <h2>${escapeHtml(opp.name)}</h2>
+        <p><strong>Proceso actual:</strong> ${escapeHtml(opp.current_process)}</p>
+        <p><strong>Problema:</strong> ${escapeHtml(opp.problem)}</p>
+        <p><strong>Empleado IA:</strong> ${escapeHtml(opp.ai_employee)}</p>
+        <p><strong>Qué haría:</strong></p>
+        ${list(opp.what_it_would_do)}
+        <p><strong>Datos necesarios:</strong> ${escapeHtml((opp.data_needed || []).join(", "))}</p>
+        <p><strong>Riesgos:</strong> ${escapeHtml((opp.risks || []).join(", "))}</p>
+        <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
+      </section>`).join("");
+      return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Diagnóstico - Tu Primer Empleado IA</title>
+        <style>
+          body { font-family: Inter, Arial, sans-serif; color: #171717; line-height: 1.45; margin: 32px; }
+          h1 { font-size: 34px; line-height: 1; margin-bottom: 8px; }
+          h2 { font-size: 21px; margin-top: 24px; }
+          section { break-inside: avoid; border-top: 1px solid #d7dfd8; padding-top: 12px; margin-top: 16px; }
+          .muted { color: #62645f; }
+          @page { margin: 18mm; }
+        </style></head><body>
+        <p class="muted">Encuentra Tu Primer Empleado IA</p>
+        <h1>${escapeHtml(report.recommended_employee)}</h1>
+        <p>${escapeHtml(report.summary)}</p>
+        <section><h2>Lo que he entendido</h2><p>${escapeHtml(report.business_snapshot)}</p></section>
+        <section><h2>Por qué empezar aquí</h2><p>${escapeHtml(report.recommendation_reason)}</p></section>
+        <section><h2>Oportunidades prioritarias</h2>${opportunities}</section>
+        <section><h2>No automatizar todavía</h2>${list(report.do_not_automate_yet)}</section>
+        <section><h2>Plan de 7 días</h2>${list(report.seven_day_plan)}</section>
+        <section><h2>Plan de 30 días</h2>${list(report.thirty_day_plan)}</section>
+        <section><h2>Siguiente paso recomendado</h2><p>${escapeHtml(report.cta?.message || "")}</p></section>
+        </body></html>`;
+    }
+
+    function printLatestReport() {
+      if (!latestReport) {
+        setCrm("Primero genera el diagnóstico.", "error");
+        return;
+      }
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        setCrm("No he podido abrir la ventana de impresión. Revisa el bloqueador de ventanas.", "error");
+        return;
+      }
+      printWindow.document.write(printableReportHtml(latestReport));
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
     }
 
     async function saveFeedback() {
