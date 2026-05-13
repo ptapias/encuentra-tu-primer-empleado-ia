@@ -142,6 +142,8 @@ python3 launch_go_no_go.py \
   --mic-tested
 ```
 
+Si el micro queda fuera de la primera beta, usa `--mic-optional` en lugar de `--mic-tested` y lanza el diagnóstico como flujo principalmente por texto.
+
 ## 5. Prueba manual de producto
 
 Hacer dos diagnósticos reales en producción:

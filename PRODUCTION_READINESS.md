@@ -86,6 +86,8 @@ python3 launch_go_no_go.py \
   --mic-tested
 ```
 
+Si decides lanzar una beta por texto aunque el micro no esté validado en HTTPS, sustituye `--mic-tested` por `--mic-optional` y asegúrate de que el copy no presente el dictado como vía principal.
+
 Debe validar:
 
 - App viva en HTTPS.

@@ -129,7 +129,8 @@ def main() -> int:
     parser.add_argument("--manual-production-tested", action="store_true")
     parser.add_argument("--crm-reviewed", action="store_true")
     parser.add_argument("--mic-tested", action="store_true")
-    parser.add_argument("--mic-required", action="store_true", default=True)
+    parser.add_argument("--mic-required", dest="mic_required", action="store_true", default=True)
+    parser.add_argument("--mic-optional", dest="mic_required", action="store_false", help="Permite abrir beta aunque el micro no esté validado, si el flujo por texto queda claro")
     parser.add_argument("--timeout", type=int, default=420)
     args = parser.parse_args()
 

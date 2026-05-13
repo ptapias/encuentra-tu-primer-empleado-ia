@@ -48,8 +48,17 @@ def test_release_failure_blocks():
     assert_true("privacy_beta" in result["blockers"][0], result["blockers"])
 
 
+def test_mic_can_be_marked_optional():
+    result = launch_go_no_go.evaluate(
+        args(mic_required=False, mic_tested=False, with_transcription=False),
+        {"ok": True, "steps": [], "command": "release"},
+    )
+    assert_true(result["verdict"] == "GO", f"El micro opcional no debería bloquear: {result}")
+
+
 if __name__ == "__main__":
     test_public_beta_go()
     test_public_beta_blocks_localhost_and_manual_missing()
     test_release_failure_blocks()
+    test_mic_can_be_marked_optional()
     print("launch_go_no_go ok")
