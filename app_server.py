@@ -1459,17 +1459,24 @@ class Handler(SimpleHTTPRequestHandler):
         with_email = 0
         with_report = 0
         with_feedback = 0
+        with_cta_interest = 0
         started_chat = 0
         total_turns = 0
         offer_counts: dict[str, int] = {}
         use_case_counts: dict[str, int] = {}
         source_counts: dict[str, int] = {}
+        cta_counts: dict[str, int] = {}
         recent_reports = []
         for row in lead_rows:
             facts = json.loads(row["facts_json"] or "{}")
             attribution = facts.get("attribution") if isinstance(facts.get("attribution"), dict) else {}
             source = humanize(attribution.get("source") or attribution.get("ref")) or "directo"
             source_counts[source] = source_counts.get(source, 0) + 1
+            cta_interest = facts.get("cta_interest") if isinstance(facts.get("cta_interest"), dict) else {}
+            if cta_interest.get("segment"):
+                with_cta_interest += 1
+                segment = humanize(cta_interest.get("segment")) or "sin segmento"
+                cta_counts[segment] = cta_counts.get(segment, 0) + 1
             transcript = json.loads(row["transcript_json"] or "[]")
             turns = len([m for m in transcript if m.get("role") == "user"])
             total_turns += turns
@@ -1512,15 +1519,18 @@ class Handler(SimpleHTTPRequestHandler):
             "email_captured": with_email,
             "reports_generated": with_report,
             "feedback_received": with_feedback,
+            "cta_interest": with_cta_interest,
             "chat_start_rate": pct(started_chat),
             "email_capture_rate": pct(with_email),
             "report_rate": pct(with_report),
             "feedback_rate": pct(with_feedback),
+            "cta_interest_rate": pct(with_cta_interest),
             "avg_user_turns": round(total_turns / total, 1) if total else 0,
             "events": {row["event"]: row["count"] for row in event_rows},
             "top_offers": top_items(offer_counts),
             "top_use_cases": top_items(use_case_counts),
             "top_sources": top_items(source_counts),
+            "top_cta_interest": top_items(cta_counts),
             "recent_reports": sorted(recent_reports, key=lambda item: item["updated_at"], reverse=True)[:5],
         }
         self._json({"metrics": metrics})

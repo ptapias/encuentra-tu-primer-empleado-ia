@@ -293,6 +293,8 @@ def main():
     else:
         expect(metrics_without_auth == 200 and "metrics" in metrics, "las métricas no responden en entorno sin auth")
     expect(any(item.get("name") == "youtube" for item in metrics["metrics"].get("top_sources", [])), "las métricas no agregan origen de lead")
+    expect(metrics["metrics"].get("cta_interest", 0) >= 1, "las métricas no cuentan interés de CTA")
+    expect(any(item.get("name") == "cohort" for item in metrics["metrics"].get("top_cta_interest", [])), "las métricas no agregan CTA por segmento")
     checks.append({"check": "metrics", "auth_required": bool(auth), "status_without_auth": metrics_without_auth})
 
     try:

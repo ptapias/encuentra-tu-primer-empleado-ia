@@ -417,13 +417,16 @@
     async function loadMetrics() {
       const { metrics } = await api("/api/metrics");
       const topSource = (metrics.top_sources || [])[0];
+      const topCta = (metrics.top_cta_interest || [])[0];
       metricsEl.innerHTML = [
         renderMetric("Leads", metrics.total_leads, "Total capturado"),
         renderMetric("Conversan", `${metrics.chat_start_rate}%`, `${metrics.started_chat} con mensajes`),
         renderMetric("Email", `${metrics.email_capture_rate}%`, `${metrics.email_captured} contactos`),
         renderMetric("Informe", `${metrics.report_rate}%`, `${metrics.reports_generated} generados`),
+        renderMetric("Interés CTA", `${metrics.cta_interest_rate || 0}%`, `${metrics.cta_interest || 0} señales`),
         renderMetric("Feedback", `${metrics.feedback_rate}%`, `${metrics.feedback_received} respuestas`),
         renderMetric("Turnos", metrics.avg_user_turns, "Media usuario"),
+        renderMetric("CTA top", topCta?.name || "sin datos", topCta ? `${topCta.count} leads` : "Aún sin clics"),
         renderMetric("Origen top", topSource?.name || "sin datos", topSource ? `${topSource.count} leads` : "Añade UTM al enlace")
       ].join("");
     }
