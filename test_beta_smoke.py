@@ -110,6 +110,7 @@ def main():
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
     expect("Guardar PDF" in public_html and "printLatestReport" in public_html, "el informe no permite guardar/imprimir PDF")
     expect("Generar informe" in public_html and "Recibir informe" not in public_html, "el email-gate promete entrega por correo sin integración")
+    expect("Ver mi diagnóstico" not in public_html, "el cierre usa un CTA demasiado pasivo")
     expect("Qué echaste en falta" in public_html and "Utilidad del diagnóstico" in public_html, "falta feedback estructurado al final")
     expect("sales_intelligence" not in public_html, "la página pública expone términos internos de ventas")
     expect("/PRIVACY_BETA.html" in public_html, "la página pública no enlaza a la privacidad HTML")

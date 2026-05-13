@@ -46,7 +46,7 @@ def static_page_check() -> dict:
         "Qué echaste en falta",
         "Utilidad del diagnóstico",
     ]
-    forbidden = ["Descargar JSON", "informe potente"]
+    forbidden = ["Descargar JSON", "informe potente", "Ver mi diagnóstico"]
     missing = [item for item in required if item not in html]
     leaked = [item for item in forbidden if item.lower() in html.lower()]
     return {

@@ -908,7 +908,7 @@
           <button id="send" disabled>Enviar</button>
         </div>
         <div class="composer-actions">
-          <button class="secondary" id="report" disabled hidden>Ver mi diagnóstico</button>
+          <button class="secondary" id="report" disabled hidden>Generar informe</button>
         </div>
         <div class="mic-status" id="micStatus"></div>
       </div>
@@ -1170,6 +1170,7 @@
         saveSessionState({ lastDiscovery: result });
         if (result.ready_for_report) {
           statusEl.textContent = "Ya puedo preparar tu diagnóstico.";
+          reportBtn.textContent = "Generar informe";
           reportBtn.hidden = false;
           reportBtn.disabled = false;
           reportBtn.classList.remove("secondary");
