@@ -39,6 +39,8 @@ AI_QUEUE_WAIT_SECONDS = max(0.0, float(os.environ.get("AI_QUEUE_WAIT_SECONDS", "
 BETA_NOINDEX = os.environ.get("BETA_NOINDEX", "true").lower() in {"1", "true", "yes", "on"}
 RATE_BUCKETS: dict[str, list[int]] = {}
 AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
+PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.md"}
+ADMIN_STATIC_FILES = {"/CRM_Dashboard.html"}
 
 
 class AiBusyError(RuntimeError):
@@ -849,6 +851,11 @@ def forbidden_static_path(path: str) -> bool:
     return suffix in {".py", ".pyc", ".sqlite", ".sqlite3", ".db", ".jsonl", ".log", ".toml"}
 
 
+def allowed_static_path(path: str) -> bool:
+    clean_path = parse.urlparse(path).path
+    return clean_path in PUBLIC_STATIC_FILES or clean_path in ADMIN_STATIC_FILES
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -868,7 +875,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(encoded)))
             self.end_headers()
             return
-        if forbidden_static_path(route.path):
+        if forbidden_static_path(route.path) or not allowed_static_path(route.path):
             self.send_error(404, "Not found")
             return
         super().do_HEAD()
@@ -895,7 +902,7 @@ class Handler(SimpleHTTPRequestHandler):
         if route.path == "/api/capabilities":
             self._json({"transcription": transcription_status()})
             return
-        if route.path in ("/CRM_Dashboard.html", "/api/leads", "/api/lead", "/api/metrics", "/api/export.csv") and not self._require_admin():
+        if route.path in (*ADMIN_STATIC_FILES, "/api/leads", "/api/lead", "/api/metrics", "/api/export.csv") and not self._require_admin():
             return
         if route.path == "/api/leads":
             self._handle_list_leads()
@@ -909,7 +916,7 @@ class Handler(SimpleHTTPRequestHandler):
         if route.path == "/api/export.csv":
             self._handle_export_csv()
             return
-        if forbidden_static_path(route.path):
+        if forbidden_static_path(route.path) or not allowed_static_path(route.path):
             self.send_error(404, "Not found")
             return
         super().do_GET()

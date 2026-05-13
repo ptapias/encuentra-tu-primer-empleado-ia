@@ -77,7 +77,18 @@ def main():
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
 
-    blocked_static = ["/.env", "/crm.sqlite3", "/crm_leads.jsonl", "/app_server.py", "/backup_crm.py", "/backups/"]
+    blocked_static = [
+        "/.env",
+        "/crm.sqlite3",
+        "/crm_leads.jsonl",
+        "/app_server.py",
+        "/backup_crm.py",
+        "/backups/",
+        "/README.md",
+        "/DEPLOYMENT_VPS.md",
+        "/Prototipo_Conversacional.html",
+        "/Sistema_Completo.md",
+    ]
     blocked_statuses = {}
     for path in blocked_static:
         try:
