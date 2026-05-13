@@ -38,19 +38,41 @@ if [[ -z "${ADMIN_PASSWORD}" || "${ADMIN_PASSWORD}" == "change-me" ]]; then
   exit 1
 fi
 
+GIT=(git -c safe.directory="${APP_DIR}")
+
+if ! "${GIT[@]}" diff --quiet || ! "${GIT[@]}" diff --cached --quiet; then
+  echo "El repo tiene cambios locales. No actualizo para no pisar trabajo manual en el VPS." >&2
+  exit 1
+fi
+
+BEFORE="$("${GIT[@]}" rev-parse --short HEAD)"
+ROLLBACK_ENABLED=false
+
+rollback() {
+  local exit_code=$?
+  if [[ "${ROLLBACK_ENABLED}" == "true" ]]; then
+    echo "Actualización fallida. Intento rollback a ${BEFORE}..." >&2
+    "${GIT[@]}" reset --hard "${BEFORE}" || true
+    chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}" || true
+    systemctl restart primer-empleado-ia || true
+  fi
+  exit "${exit_code}"
+}
+trap rollback ERR
+
 echo "1/7 Backup antes de actualizar"
 python3 backup_crm.py || {
   echo "Backup falló. No actualizo." >&2
   exit 1
 }
 
-GIT=(git -c safe.directory="${APP_DIR}")
-
-BEFORE="$("${GIT[@]}" rev-parse --short HEAD)"
 echo "2/7 Pull de GitHub desde ${BEFORE}"
 "${GIT[@]}" fetch origin main
 "${GIT[@]}" pull --ff-only origin main
 AFTER="$("${GIT[@]}" rev-parse --short HEAD)"
+if [[ "${AFTER}" != "${BEFORE}" ]]; then
+  ROLLBACK_ENABLED=true
+fi
 
 echo "3/7 Permisos"
 chown -R "${APP_USER}:${APP_GROUP}" "${APP_DIR}"
@@ -95,4 +117,5 @@ if [[ -n "${DOMAIN}" ]]; then
   ./deploy/verify_vps.sh
 fi
 
+ROLLBACK_ENABLED=false
 echo "Actualización completada: ${BEFORE} -> ${AFTER}"

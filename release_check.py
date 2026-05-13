@@ -135,6 +135,8 @@ def deploy_config_check() -> dict:
         "update_script_executable": UPDATE_SCRIPT.exists() and bool(UPDATE_SCRIPT.stat().st_mode & 0o111),
         "update_script_backup_before_pull": "backup_crm.py" in update_script and "pull --ff-only" in update_script,
         "update_script_safe_directory": "safe.directory" in update_script,
+        "update_script_clean_worktree": "diff --quiet" in update_script and "diff --cached --quiet" in update_script,
+        "update_script_rollback": "reset --hard" in update_script and "ROLLBACK_ENABLED" in update_script,
         "update_script_smoke_after_restart": "systemctl restart primer-empleado-ia" in update_script and "test_beta_smoke.py" in update_script,
         "privacy_renderer_exists": PRIVACY_RENDERER.exists(),
         "privacy_config_example_exists": PRIVACY_CONFIG_EXAMPLE.exists(),

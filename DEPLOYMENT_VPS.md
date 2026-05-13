@@ -218,7 +218,7 @@ cd /opt/primer-empleado-ia
 sudo DOMAIN=diagnostico.tu-dominio.com ./deploy/update_vps.sh
 ```
 
-El script hace backup antes de traer cambios, usa `git pull --ff-only`, ejecuta preflight, reinicia systemd y corre smoke test local. Si pasas `DOMAIN`, llama también a `verify_vps.sh`.
+El script exige worktree limpio, hace backup antes de traer cambios, usa `git pull --ff-only`, ejecuta preflight, reinicia systemd y corre smoke test local. Si el update falla después de moverse a un nuevo commit, intenta volver al commit anterior y reiniciar el servicio. Si pasas `DOMAIN`, llama también a `verify_vps.sh`.
 
 ## 8. Riesgos conocidos
 
