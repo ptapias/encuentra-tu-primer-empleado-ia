@@ -187,6 +187,14 @@
       white-space: pre-wrap;
     }
     .message.user { border-left-color: var(--accent); }
+    .mini-list {
+      display: grid;
+      gap: 8px;
+    }
+    .mini-list p {
+      margin: 0;
+      color: #30322f;
+    }
     .ops-form {
       display: grid;
       gap: 10px;
@@ -370,6 +378,15 @@
         <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
       </div>`).join("");
       const transcript = (lead.transcript || []).map(item => `<div class="message ${escapeHtml(item.role)}"><strong>${escapeHtml(item.role)}:</strong> ${escapeHtml(item.content)}</div>`).join("");
+      const feedback = lead.feedback || {};
+      const feedbackHtml = feedback && Object.keys(feedback).length
+        ? `<div class="mini-list">
+            <p><strong>Utilidad:</strong> ${escapeHtml(feedback.rating || "sin valorar")}</p>
+            <p><strong>Claridad:</strong> ${escapeHtml(feedback.liked || feedback.text || "sin respuesta")}</p>
+            <p><strong>Faltó:</strong> ${escapeHtml(feedback.missing || "sin respuesta")}</p>
+            <p><strong>Mejora:</strong> ${escapeHtml(feedback.improve || "sin respuesta")}</p>
+          </div>`
+        : "<p>Sin feedback todavía.</p>";
       detail.innerHTML = `<div class="grid">
         <div class="card"><span>Email</span>${escapeHtml(lead.email || "sin email")}</div>
         <div class="card"><span>Estado</span>${escapeHtml(statusLabel(lead.status))} · ${escapeHtml(lead.stage)}</div>
@@ -418,7 +435,7 @@
       <div class="card"><span>Resumen</span><p>${escapeHtml(report.summary || "Genera el informe para ver el outcome.")}</p></div>
       <div class="card"><span>Oportunidades</span>${opportunities || "<p>Sin oportunidades calculadas todavía.</p>"}</div>
       <div class="card"><span>No automatizar todavía</span>${list(report.do_not_automate_yet)}</div>
-      <div class="card"><span>Feedback</span><p>${escapeHtml(lead.feedback?.text || "Sin feedback todavía.")}</p></div>
+      <div class="card"><span>Feedback</span>${feedbackHtml}</div>
       <div class="card"><span>Conversación</span>${transcript || "<p>Sin conversación.</p>"}</div>`;
       document.getElementById("ops-form").addEventListener("submit", event => saveLeadOps(event, id));
       document.getElementById("delete-lead").addEventListener("click", () => deleteLead(id));

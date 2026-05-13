@@ -492,6 +492,46 @@
       font-size: clamp(30px, 4vw, 46px);
       line-height: 1;
     }
+    .feedback-box {
+      border: 1px solid #cfe1d8;
+      background: #f7fbf8;
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .feedback-box h3 {
+      margin: 0;
+    }
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .feedback-grid .field:last-child {
+      grid-column: 1 / -1;
+    }
+    .rating-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .rating-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .feedback-saved {
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 900;
+      min-height: 18px;
+    }
     .report-label {
       width: fit-content;
       color: var(--accent-dark);
@@ -742,7 +782,7 @@
     @media (max-width: 980px) {
       .shell { grid-template-columns: 1fr; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
-      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip { grid-template-columns: 1fr; }
+      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1268,18 +1308,48 @@
         ${list(report.thirty_day_plan)}
         <h3>Siguiente paso</h3>
         <p>${escapeHtml(report.cta?.message || "")}</p>
-        <div class="field">
-          <label>¿Qué mejorarías de este diagnóstico?</label>
-          <textarea id="feedbackText" placeholder="¿Qué te faltó? ¿Qué te dio claridad?"></textarea>
+        <div class="feedback-box">
+          <h3>Ayúdanos a mejorar este diagnóstico</h3>
+          <p>Esto nos ayuda a saber si el agente está entendiendo negocios reales o si se queda corto.</p>
+          <div class="field">
+            <label>Utilidad del diagnóstico</label>
+            <div class="rating-row" role="radiogroup" aria-label="Utilidad del diagnóstico">
+              ${[1,2,3,4,5].map(value => `<label><input type="radio" name="feedbackRating" value="${value}"> ${value}</label>`).join("")}
+            </div>
+          </div>
+          <div class="feedback-grid">
+            <div class="field">
+              <label>Qué te dio más claridad</label>
+              <textarea id="feedbackLiked" placeholder="Ej: entender por dónde empezar, ver riesgos, ordenar prioridades..."></textarea>
+            </div>
+            <div class="field">
+              <label>Qué echaste en falta</label>
+              <textarea id="feedbackMissing" placeholder="Ej: más detalle técnico, ejemplos de herramientas, costes, pasos..."></textarea>
+            </div>
+            <div class="field">
+              <label>Qué cambiarías para que fuese más útil</label>
+              <textarea id="feedbackImprove" placeholder="Cuéntanos una mejora concreta del proceso, preguntas o informe."></textarea>
+            </div>
+          </div>
+          <button onclick="saveFeedback()">Guardar feedback</button>
+          <div class="feedback-saved" id="feedbackSaved"></div>
         </div>
-        <button onclick="saveFeedback()">Guardar feedback</button>
       </div>`;
     }
 
     async function saveFeedback() {
-      const feedback = { text: document.getElementById("feedbackText")?.value || "" };
+      const selectedRating = document.querySelector("input[name='feedbackRating']:checked");
+      const feedback = {
+        rating: selectedRating ? Number(selectedRating.value) : null,
+        liked: document.getElementById("feedbackLiked")?.value.trim() || "",
+        missing: document.getElementById("feedbackMissing")?.value.trim() || "",
+        improve: document.getElementById("feedbackImprove")?.value.trim() || "",
+      };
+      feedback.text = [feedback.liked, feedback.missing, feedback.improve].filter(Boolean).join("\n\n");
       await api("/api/feedback", { lead_id: leadId, feedback });
       setCrm("Feedback recibido. Gracias.", "ok");
+      const saved = document.getElementById("feedbackSaved");
+      if (saved) saved.textContent = "Feedback guardado. Gracias.";
     }
 
     function restoreSession() {

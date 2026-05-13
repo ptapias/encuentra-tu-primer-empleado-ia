@@ -1319,6 +1319,10 @@ class Handler(SimpleHTTPRequestHandler):
             "recommended_employee",
             "turns",
             "has_feedback",
+            "feedback_rating",
+            "feedback_liked",
+            "feedback_missing",
+            "feedback_improve",
             "summary",
         ]
         writer = csv.DictWriter(output, fieldnames=fieldnames)
@@ -1346,6 +1350,10 @@ class Handler(SimpleHTTPRequestHandler):
                     "recommended_employee": humanize(outcome.get("recommended_employee")),
                     "turns": len([m for m in transcript if m.get("role") == "user"]),
                     "has_feedback": "yes" if feedback else "no",
+                    "feedback_rating": humanize(feedback.get("rating")) if feedback else "",
+                    "feedback_liked": humanize(feedback.get("liked") or feedback.get("text")) if feedback else "",
+                    "feedback_missing": humanize(feedback.get("missing")) if feedback else "",
+                    "feedback_improve": humanize(feedback.get("improve")) if feedback else "",
                     "summary": humanize(outcome.get("summary")),
                 }
             )

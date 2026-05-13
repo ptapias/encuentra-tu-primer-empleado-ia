@@ -38,7 +38,9 @@ def static_page_check() -> dict:
         "analiza tu negocio como lo haría un consultor",
         "Por qué esta va primero",
         "Cómo funcionaría en la práctica",
-        "¿Qué mejorarías de este diagnóstico?",
+        "Ayúdanos a mejorar este diagnóstico",
+        "Qué echaste en falta",
+        "Utilidad del diagnóstico",
     ]
     forbidden = ["Descargar JSON", "informe potente"]
     missing = [item for item in required if item not in html]

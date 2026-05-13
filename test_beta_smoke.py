@@ -74,6 +74,7 @@ def main():
     expect("¿Dónde se te escapa tiempo, dinero o clientes?" in public_html, "falta el gancho principal en la página pública")
     expect("Por qué esta va primero" in public_html, "el informe no incluye explicación de prioridad")
     expect("Cómo funcionaría en la práctica" in public_html, "el informe no incluye flujo práctico")
+    expect("Qué echaste en falta" in public_html and "Utilidad del diagnóstico" in public_html, "falta feedback estructurado al final")
     expect("/PRIVACY_BETA.html" in public_html, "la página pública no enlaza a la privacidad HTML")
     expect("Descargar JSON" not in public_html and "informe potente" not in public_html.lower(), "la página pública contiene textos internos")
     checks.append({"check": "public_page", "ok": True})
@@ -134,6 +135,24 @@ def main():
     else:
         expect(update_without_auth == 200 and lead_update.get("lead", {}).get("status") == "send_resource", "la edición de lead no responde en entorno sin auth")
     checks.append({"check": "lead_update", "auth_required": bool(auth), "status_without_auth": update_without_auth})
+
+    feedback_payload = {
+        "lead_id": session["lead_id"],
+        "feedback": {
+            "rating": 4,
+            "liked": "Prioridad clara",
+            "missing": "Costes estimados",
+            "improve": "Más ejemplos por sector",
+            "text": "Prioridad clara\n\nCostes estimados\n\nMás ejemplos por sector",
+        },
+    }
+    status, feedback_saved = request(args.base, "/api/feedback", payload=feedback_payload)
+    expect(status == 200 and feedback_saved.get("ok"), "no se puede guardar feedback estructurado")
+    lead_auth = auth if auth else None
+    status, lead_detail = request(args.base, f"/api/lead?id={session['lead_id']}", auth=lead_auth)
+    saved_feedback = lead_detail.get("lead", {}).get("feedback", {})
+    expect(saved_feedback.get("rating") == 4 and saved_feedback.get("missing") == "Costes estimados", "el feedback estructurado no queda guardado en CRM")
+    checks.append({"check": "structured_feedback", "ok": True})
 
     try:
         status, legacy_crm = request(args.base, "/crm", payload={"event": "smoke_legacy_crm", "lead_id": session["lead_id"]})
