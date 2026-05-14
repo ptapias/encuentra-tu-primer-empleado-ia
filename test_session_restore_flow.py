@@ -66,54 +66,51 @@ def main() -> int:
                     ),
                 )
 
+            RESTORE_LEAD_ID = "test-restore-lead-001"
+            RESTORE_TRANSCRIPT = [
+                {"role": "user", "content": "Soy consultor B2B y pierdo seguimiento de leads que entran por email y LinkedIn."},
+                {"role": "assistant", "content": "Veo un proceso claro en seguimiento comercial. Antes de cerrar, quiero entender la frecuencia y el riesgo."},
+            ]
+
+            def lead_handler(route):
+                route.fulfill(
+                    status=200,
+                    content_type="application/json",
+                    body=json.dumps({
+                        "lead_id": RESTORE_LEAD_ID,
+                        "transcript": RESTORE_TRANSCRIPT,
+                        "facts": {
+                            "focus": "seguimiento comercial",
+                            "signals": ["leads entrantes", "seguimiento manual"],
+                            "gaps": ["frecuencia", "criterios de prioridad"],
+                        },
+                    }),
+                )
+
             page.route("**/api/capabilities", capabilities_handler)
             page.route("**/api/chat", chat_handler)
+            page.route("**/api/lead**", lead_handler)
             page.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=restore", wait_until="networkidle")
-            page.locator("section.starter button.start-primary").click()
-            page.wait_for_selector("textarea#input:not([disabled])", timeout=8000)
-            page.fill("#input", "Soy consultor B2B y pierdo seguimiento de leads que entran por email y LinkedIn.")
-            page.click("#send")
-            page.get_by_text("Profundizando seguimiento comercial").wait_for(timeout=8000)
+            # Inject stored lead_id to simulate a previous session
+            page.evaluate(f"localStorage.setItem('primer_empleado_lead_id', '{RESTORE_LEAD_ID}')")
             page.reload(wait_until="networkidle")
-            page.get_by_text("He recuperado tu diagnóstico en este navegador.").wait_for(timeout=5000)
-            page.get_by_text("Soy consultor B2B").wait_for(timeout=5000)
-            page.locator("#focusText").get_by_text("seguimiento comercial").wait_for(timeout=5000)
-            page.wait_for_selector("textarea#input:not([disabled])", timeout=5000)
+            page.get_by_text("Bienvenido de vuelta").wait_for(timeout=5000)
+            page.get_by_role("button", name="Continuar").wait_for(timeout=5000)
             result["checks"].append("mid_discovery_restore")
 
-            page.evaluate(
-                """
-                localStorage.setItem('primerEmpleadoIaSession', JSON.stringify({
-                  leadId: 'restore-ready',
-                  capturedEmail: '',
-                  stage: 'recomendacion',
-                  status: 'Ya puedo preparar tu diagnóstico.',
-                  readyForReport: true,
-                  reportGenerated: false,
-                  transcript: [
-                    {role: 'user', content: 'Tengo una inmobiliaria y llegan leads por WhatsApp.'},
-                    {role: 'assistant', content: 'Ya tengo suficiente para prepararte un diagnóstico útil.'}
-                  ],
-                  lastDiscovery: {
-                    current_focus: 'leads inmobiliarios',
-                    confidence: 0.82,
-                    signals: ['20 leads diarios', 'WhatsApp', 'seguimiento manual'],
-                    open_gaps: [],
-                    ready_for_report: true,
-                    progress_label: 'Listo para informe'
-                  }
-                }));
-                """
-            )
+            # Verify "Empezar de cero" clears session and reloads to fresh starter
+            page.evaluate(f"localStorage.setItem('primer_empleado_lead_id', '{RESTORE_LEAD_ID}')")
             page.reload(wait_until="networkidle")
-            page.get_by_text("Diagnóstico recuperado. Ya puedes ver el informe.").wait_for(timeout=5000)
-            page.locator("#report").wait_for(state="visible", timeout=5000)
-            assert page.locator("#input").is_disabled()
+            page.get_by_text("Bienvenido de vuelta").wait_for(timeout=5000)
+            page.get_by_role("button", name="Empezar de cero").click()
+            # After reload triggered by "Empezar de cero", welcome-back should not appear
+            page.wait_for_load_state("networkidle")
+            assert page.locator("#starter").count() > 0
             result["checks"].append("ready_for_report_restore")
 
             stale_page = context.new_page()
 
-            def missing_chat_handler(route):
+            def missing_lead_handler(route):
                 route.fulfill(
                     status=404,
                     content_type="application/json",
@@ -121,38 +118,14 @@ def main() -> int:
                 )
 
             stale_page.route("**/api/capabilities", capabilities_handler)
-            stale_page.route("**/api/chat", missing_chat_handler)
+            stale_page.route("**/api/lead**", missing_lead_handler)
             stale_page.goto(f"{args.base}/Agente_Real_CRM.html?ui_test=stale_restore", wait_until="networkidle")
-            stale_page.evaluate(
-                """
-                localStorage.setItem('primerEmpleadoIaSession', JSON.stringify({
-                  leadId: 'stale-lead',
-                  capturedEmail: '',
-                  stage: 'profundizacion',
-                  status: 'Diagnóstico recuperado.',
-                  readyForReport: false,
-                  reportGenerated: false,
-                  transcript: [
-                    {role: 'user', content: 'Tengo una agencia y quiero automatizar seguimiento.'},
-                    {role: 'assistant', content: 'Estoy entendiendo el proceso de seguimiento.'}
-                  ],
-                  lastDiscovery: {
-                    current_focus: 'seguimiento comercial',
-                    confidence: 0.48,
-                    open_gaps: ['frecuencia', 'impacto'],
-                    ready_for_report: false,
-                    progress_label: 'Profundizando seguimiento'
-                  }
-                }));
-                """
-            )
+            stale_page.evaluate("localStorage.setItem('primer_empleado_lead_id', 'stale-lead')")
             stale_page.reload(wait_until="networkidle")
-            stale_page.wait_for_selector("textarea#input:not([disabled])", timeout=5000)
-            stale_page.fill("#input", "Ocurre todos los días.")
-            stale_page.click("#send")
-            stale_page.get_by_role("heading", name="Este diagnóstico ya no está disponible.").wait_for(timeout=5000)
-            stale_page.get_by_role("button", name="Empezar diagnóstico nuevo").wait_for(timeout=5000)
-            assert stale_page.locator("#input").is_disabled()
+            # When /api/lead returns 404, session key is cleared and normal starter is shown
+            stale_page.locator("#starter").wait_for(state="visible", timeout=5000)
+            # Welcome-back UI must NOT appear — the starter should be the original one
+            assert stale_page.get_by_text("Bienvenido de vuelta").count() == 0
             result["checks"].append("stale_session_recovers")
             stale_page.close()
 

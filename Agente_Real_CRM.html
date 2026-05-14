@@ -880,12 +880,90 @@
     window.setSaveStatus = setSaveStatus;
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 9 — SESSION RESTORE
+       tryRestoreSession(), renderWelcomeBack()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const SESSION_STORAGE_KEY = "primer_empleado_lead_id";
+
+    async function tryRestoreSession() {
+      const stored = (typeof localStorage !== "undefined") ? localStorage.getItem(SESSION_STORAGE_KEY) : null;
+      if (!stored) return false;
+      try {
+        const res = await fetch(`/api/lead?id=${encodeURIComponent(stored)}`, { method: "GET" });
+        if (!res.ok) {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+          return false;
+        }
+        const lead = await res.json();
+        const transcript = Array.isArray(lead && lead.transcript) ? lead.transcript : [];
+        if (transcript.length === 0) return false;
+        const lastAgent = [...transcript].reverse().find(m => m.role === "assistant");
+        SESSION.lead_id = lead.lead_id || lead.id || stored;
+        renderWelcomeBack(lead, lastAgent, transcript);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function renderWelcomeBack(lead, lastAgent, transcript) {
+      const main = document.getElementById("mainStage");
+      if (!main) return;
+      const text = (lastAgent && lastAgent.content) ? lastAgent.content : "";
+      const safeText = text.replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+      main.innerHTML = `
+        <section class="starter" id="starter">
+          <div class="eyebrow">Bienvenido de vuelta</div>
+          <p class="hero-lead">Seguíamos en:</p>
+          <div class="turn" data-role="agent"${text.length <= 120 ? ' data-short="true"' : ''}>
+            <span class="label">Agente</span>
+            <div class="body">${safeText}</div>
+          </div>
+          <div style="display: flex; gap: var(--gap-2); margin-top: var(--gap-3);">
+            <button type="button" class="cta-primary" id="continueSession">Continuar <span class="arrow">→</span></button>
+            <button type="button" class="sample-link" id="resetSession">Empezar de cero</button>
+          </div>
+        </section>
+      `;
+      requestAnimationFrame(() => main.querySelector(".starter").classList.add("is-revealed"));
+      document.getElementById("continueSession").addEventListener("click", () => {
+        enterChat();
+        // Re-render del transcript completo (sin separadores duplicados)
+        transcript.forEach(m => appendTurn(m.role === "assistant" ? "agent" : "user", m.content || ""));
+        // Re-poblar sidebar con facts persistidos si vienen del lead (review note de Task 5)
+        const facts = (lead && lead.facts) || {};
+        updateSidebarFromTurn({
+          focus: facts.focus_current || facts.focus || facts.focus_summary,
+          signals: facts.signals || facts.evidence || [],
+          gaps: facts.gaps || facts.missing || [],
+          phase: typeof facts.phase === "number" ? facts.phase : undefined,
+        });
+        if (typeof facts.phase === "number") setPhase(facts.phase);
+      });
+      document.getElementById("resetSession").addEventListener("click", () => {
+        try { localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+        location.reload();
+      });
+    }
+
+    window.tryRestoreSession = tryRestoreSession;
+    window.renderWelcomeBack = renderWelcomeBack;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        TASK 3 — STARTER REVEAL
        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-    requestAnimationFrame(() => {
-      const starter = document.getElementById("starter");
-      if (starter) starter.classList.add("is-revealed");
-    });
+
+    /* === BOOT === */
+    (async () => {
+      const restored = await tryRestoreSession();
+      if (!restored) {
+        requestAnimationFrame(() => {
+          const starter = document.getElementById("starter");
+          if (starter) starter.classList.add("is-revealed");
+        });
+      }
+    })();
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        TASK 4 — CHAT SURFACE
@@ -1051,6 +1129,7 @@
           const res = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
           const data = await res.json();
           SESSION.lead_id = data.lead_id;
+          try { localStorage.setItem(SESSION_STORAGE_KEY, data.lead_id); } catch (e) {}
           enterChat();
           // Si el backend devuelve un primer mensaje del agente, renderizarlo
           if (data.greeting) appendTurn("agent", data.greeting);
