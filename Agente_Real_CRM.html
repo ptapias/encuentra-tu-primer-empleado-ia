@@ -499,6 +499,7 @@
     }
     .composer-grid textarea::placeholder { color: var(--ink-muted); font-style: italic; }
     .composer-grid textarea:focus { outline: none; }
+    .composer-grid textarea:focus-visible { outline: 2px solid var(--cyan-2); outline-offset: 2px; }
     .composer-grid .icon-btn {
       width: 44px; height: 44px;
       display: inline-flex; align-items: center; justify-content: center;
@@ -688,6 +689,7 @@
       background: transparent; border: none; color: var(--ink); font: inherit; font-size: var(--t-body);
     }
     .turn.queue .notify-form input:focus { outline: none; }
+    .turn.queue .notify-form input:focus-visible { outline: 2px solid var(--cyan-2); outline-offset: 2px; }
     .turn.queue .notify-form button {
       background: var(--cyan); color: var(--bg-deep); border: none;
       font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em;
@@ -781,6 +783,7 @@
       padding: 8px 0;
     }
     .gate-card .field input:focus { outline: none; border-bottom: 1px solid var(--cyan); }
+    .gate-card .field input:focus-visible { outline: 2px solid var(--cyan-2); outline-offset: 2px; border-bottom-color: var(--cyan); }
     .gate-card .field.is-error input { border-bottom-color: var(--park); }
     .gate-card .trust {
       color: var(--proceed);
@@ -933,6 +936,34 @@
       margin: 0; color: var(--ink);
     }
     .report-timeline .stop p { font-size: 14px; color: var(--ink-muted); margin: 0; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 12 — ACCESIBILIDAD TRANSVERSAL
+       Audit 2026-05-14: focus rings restituidos en textarea / inputs
+       con outline suprimido. Tap targets ≥ 44px en móvil para
+       report-sticky actions, feedback pills y sample-link.
+       aria-live (×3) ✓  prefers-reduced-motion ✓  contrast AA ✓
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* Tap targets mínimos en mobile para elementos con padding reducido */
+    @media (max-width: 800px) {
+      .report-sticky .actions button {
+        min-height: 44px;
+        padding: 10px 14px;
+      }
+      .report-sticky .feedback .pill {
+        min-height: 44px;
+        padding: 10px 14px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .sample-link {
+        padding: 10px 0;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+    }
 
     @media print {
       .report-sticky { display: none !important; }
