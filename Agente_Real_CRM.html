@@ -822,6 +822,114 @@
       color: var(--ink-soft); line-height: 1.5; margin: 0;
     }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 11 — INFORME EDITORIAL INLINE
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .report {
+      display: grid; gap: var(--gap-4);
+      padding-top: var(--gap-3);
+    }
+    .report-sticky {
+      position: sticky; top: 0; z-index: 5;
+      background: var(--bg);
+      padding: var(--gap-2) 0;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: var(--gap-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+    }
+    .report-sticky .read-time { color: var(--ink-faint); }
+    .report-sticky .index { display: flex; gap: var(--gap-2); flex-wrap: wrap; color: var(--ink-muted); }
+    .report-sticky .index a {
+      color: inherit; text-decoration: none; cursor: pointer;
+    }
+    .report-sticky .index a[data-active="true"] { color: var(--cyan-2); }
+    .report-sticky .actions { display: flex; gap: var(--gap-2); }
+    .report-sticky .actions button {
+      background: transparent; border: 1px solid var(--rule-strong);
+      color: var(--ink-soft); padding: 6px 10px;
+      font: inherit; font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; cursor: pointer;
+    }
+    .report-sticky .actions button:hover { color: var(--cyan-2); border-color: var(--cyan); }
+    .report-sticky .feedback { display: flex; gap: 6px; }
+    .report-sticky .feedback .pill {
+      border: 1px solid var(--rule-strong); padding: 4px 10px;
+      font-size: 11px; letter-spacing: 0.18em; cursor: pointer;
+      background: transparent; color: var(--ink-soft);
+    }
+    .report-sticky .feedback .pill[data-selected="true"] {
+      background: var(--cyan); color: var(--bg-deep); border-color: var(--cyan);
+    }
+
+    .report-section {
+      display: grid; gap: var(--gap-2);
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 500ms var(--ease), transform 500ms var(--ease);
+    }
+    .report-section.is-visible { opacity: 1; transform: none; }
+    .report-section .num {
+      font-family: var(--font-mono); font-size: 12px;
+      letter-spacing: 0.22em; color: var(--cyan-2);
+    }
+    .report-section h2 {
+      font-family: var(--font-display); font-size: var(--t-h2);
+      line-height: 1.05; letter-spacing: -0.02em;
+      color: var(--ink); margin: 0;
+    }
+    .report-section h3 {
+      font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 28px);
+      margin: 0; color: var(--ink);
+    }
+    .report-section p { color: var(--ink-soft); line-height: 1.5; margin: 0; }
+    .report-section ul {
+      padding-left: 20px; color: var(--ink-soft);
+      line-height: 1.5; margin: 0;
+    }
+    .report-section ul li { margin-bottom: 6px; }
+
+    .report-lanes {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap-2);
+    }
+    .report-lane {
+      border: 1px solid var(--rule); padding: var(--gap-2);
+      display: grid; gap: var(--gap-1);
+    }
+    .report-lane.proceed { border-color: var(--proceed); }
+    .report-lane.refine  { border-color: var(--refine); }
+    .report-lane.park    { border-color: var(--park); }
+    .report-lane h3 { font-size: clamp(20px, 2vw, 24px); }
+    .report-lane.proceed h3 { color: var(--proceed); }
+    .report-lane.refine  h3 { color: var(--refine); }
+    .report-lane.park    h3 { color: var(--park); }
+    @media (max-width: 800px) { .report-lanes { grid-template-columns: 1fr; } }
+
+    .report-timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--gap-2);
+      border-top: 1px solid var(--rule-strong);
+      padding-top: var(--gap-2);
+    }
+    .report-timeline .stop { display: grid; gap: 6px; }
+    .report-timeline .stop .num { color: var(--ink-muted); }
+    .report-timeline .stop h4 {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 1.8vw, 22px);
+      margin: 0; color: var(--ink);
+    }
+    .report-timeline .stop p { font-size: 14px; color: var(--ink-muted); margin: 0; }
+
+    @media print {
+      .report-sticky { display: none !important; }
+      .report-section { opacity: 1 !important; transform: none !important; page-break-inside: avoid; }
+    }
+
   </style>
 </head>
 <body>
@@ -1152,6 +1260,143 @@
     window.maybeShowEmailGate = maybeShowEmailGate;
     window.requestReport = requestReport;
     window.escapeHtml = escapeHtml;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 11 — INFORME EDITORIAL INLINE
+       renderReportInline(), renderSection()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const REPORT_READING_WPM = 200;
+
+    function renderReportInline(report) {
+      if (!report) return;
+      setPhase(4);
+      const main = document.getElementById("mainStage");
+      if (!main) return;
+      // Estimación de lectura
+      const text = JSON.stringify(report);
+      const wordCount = text.split(/\s+/).filter(Boolean).length;
+      const minutes = Math.max(2, Math.round(wordCount / REPORT_READING_WPM));
+      // Definición de secciones (mapeo backend → componentes)
+      const sections = [
+        { num: "01", label: "Resumen",  title: "Resumen de acción",        body: report.summary || report.headline || "" },
+        { num: "02", label: "Por qué",  title: "Lo que he entendido",      body: report.business_snapshot || "" },
+        { num: "03", label: "Razón",    title: "Por qué empezar aquí",     body: report.recommendation_reason || "" },
+        { num: "04", label: "Señales",  title: "Señales detectadas",       list: report.evidence_summary || [] },
+        { num: "05", label: "Lanes",    title: "Oportunidades prioritarias", lanes: report.opportunities || [] },
+        { num: "06", label: "No aún",   title: "No automatizar todavía",   list: report.do_not_automate_yet || [] },
+        { num: "07", label: "Plan 7d",  title: "Plan de 7 días",           timeline: report.seven_day_plan || [] },
+        { num: "08", label: "Plan 30d", title: "Plan de 30 días",          timeline: report.thirty_day_plan || [] },
+        { num: "09", label: "Próximo",  title: "Siguiente paso recomendado", body: (report.cta && report.cta.message) || "" },
+      ];
+      const indexHtml = sections.map(s => `<a data-target="sec-${s.num}">${escapeHtml(s.label)}</a>`).join(" · ");
+      main.innerHTML = `
+        <header class="report-sticky">
+          <div class="read-time">LECTURA · ${minutes} MIN</div>
+          <nav class="index" aria-label="Índice del informe">${indexHtml}</nav>
+          <div class="actions">
+            <button id="copyLinkBtn" type="button">Copiar enlace privado</button>
+            <button id="printBtn" type="button" aria-label="Imprimir o guardar como PDF">⌘P</button>
+          </div>
+          <div class="feedback" role="group" aria-label="Feedback del informe">
+            <button class="pill" data-feedback="util">Útil</button>
+            <button class="pill" data-feedback="regular">Regular</button>
+            <button class="pill" data-feedback="poco">Poco útil</button>
+          </div>
+        </header>
+        <section class="report" id="reportRoot">
+          ${sections.map(s => renderSection(s)).join("")}
+        </section>
+      `;
+      // IntersectionObserver para reveal + active index
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-visible");
+            const id = en.target.id;
+            document.querySelectorAll(".report-sticky .index a").forEach(a => {
+              a.dataset.active = a.dataset.target === id ? "true" : "false";
+            });
+          }
+        });
+      }, { threshold: 0.2, rootMargin: "0px 0px -20% 0px" });
+      document.querySelectorAll(".report-section").forEach(s => obs.observe(s));
+      // Index click → scroll suave
+      document.querySelectorAll(".report-sticky .index a").forEach(a => {
+        a.addEventListener("click", () => {
+          const target = document.getElementById(a.dataset.target);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+      // Copy private link
+      document.getElementById("copyLinkBtn").addEventListener("click", async (e) => {
+        const token = report.private_token || report.token || "";
+        const url = `${location.origin}/r/${SESSION.lead_id}/${token}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          e.target.textContent = "Enlace copiado ✓";
+        } catch (err) {
+          e.target.textContent = "Copia manual: " + url;
+        }
+        setTimeout(() => { e.target.textContent = "Copiar enlace privado"; }, 2400);
+      });
+      document.getElementById("printBtn").addEventListener("click", () => window.print());
+      // Feedback
+      document.querySelectorAll(".report-sticky .feedback .pill").forEach(pill => {
+        pill.addEventListener("click", async () => {
+          document.querySelectorAll(".report-sticky .feedback .pill").forEach(p => p.dataset.selected = "false");
+          pill.dataset.selected = "true";
+          try {
+            await fetch("/api/feedback", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ lead_id: SESSION.lead_id, feedback: pill.dataset.feedback }),
+            });
+          } catch (e) { /* silenciar — el feedback no es crítico */ }
+        });
+      });
+    }
+
+    function renderSection(s) {
+      let body = "";
+      if (s.body) body = `<p>${escapeHtml(s.body)}</p>`;
+      if (Array.isArray(s.list) && s.list.length) {
+        body = `<ul>${s.list.map(it => `<li>${escapeHtml(typeof it === "string" ? it : (it.text || it.label || JSON.stringify(it)))}</li>`).join("")}</ul>`;
+      }
+      if (Array.isArray(s.lanes) && s.lanes.length) {
+        const buckets = { proceed: [], refine: [], park: [] };
+        s.lanes.forEach(o => {
+          const verdict = String(o.verdict || o.bucket || "").toUpperCase();
+          const cls = verdict === "PROCEED" ? "proceed" : verdict === "REFINE" ? "refine" : "park";
+          buckets[cls].push(o);
+        });
+        body = `<div class="report-lanes">
+          ${["proceed","refine","park"].map(k => `
+            <article class="report-lane ${k}">
+              <h3>${k.toUpperCase()}</h3>
+              ${buckets[k].length ? buckets[k].map(o => `<p>${escapeHtml(o.title || o.name || "")}</p>`).join("") : `<p class="muted">—</p>`}
+            </article>
+          `).join("")}
+        </div>`;
+      }
+      if (Array.isArray(s.timeline) && s.timeline.length) {
+        body = `<div class="report-timeline">${s.timeline.map((t, i) => `
+          <div class="stop">
+            <span class="num">DÍA ${i+1}</span>
+            <h4>${escapeHtml(typeof t === "string" ? t : (t.title || t.label || ""))}</h4>
+            ${typeof t === "object" && t.detail ? `<p>${escapeHtml(t.detail)}</p>` : ""}
+          </div>
+        `).join("")}</div>`;
+      }
+      return `<section class="report-section" id="sec-${s.num}">
+        <span class="num">${s.num} / ${escapeHtml(s.label)}</span>
+        <h2>${escapeHtml(s.title)}</h2>
+        ${body}
+      </section>`;
+    }
+
+    window.renderReportInline = renderReportInline;
+    window.renderSection = renderSection;
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        TASK 3 — STARTER REVEAL
