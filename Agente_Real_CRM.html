@@ -744,6 +744,84 @@
     }
     .field-error[data-state="error"] { color: var(--park); }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 10 — EMAIL GATE + PREVIEW PARCIAL
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .gate-card {
+      border: 1px solid var(--rule-strong);
+      background: var(--bg-elev);
+      padding: var(--gap-3);
+      display: grid; gap: var(--gap-2);
+      margin-top: var(--gap-3);
+    }
+    .gate-card .gate-title {
+      font-family: var(--font-display);
+      font-size: var(--t-h2);
+      line-height: 1.1; letter-spacing: -0.02em;
+      color: var(--ink); margin: 0;
+      text-wrap: balance;
+    }
+    .gate-card .gate-lead { font-style: italic; color: var(--ink-soft); margin: 0; }
+    .gate-card .field { display: grid; gap: 6px; }
+    .gate-card .field label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .gate-card .field input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed var(--rule);
+      color: var(--ink);
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.2vw, 24px);
+      padding: 8px 0;
+    }
+    .gate-card .field input:focus { outline: none; border-bottom: 1px solid var(--cyan); }
+    .gate-card .field.is-error input { border-bottom-color: var(--park); }
+    .gate-card .trust {
+      color: var(--proceed);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .gate-card details { color: var(--ink-muted); font-size: 13px; }
+    .gate-card details summary {
+      cursor: pointer;
+      font-family: var(--font-mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .gate-card details p { margin-top: 8px; line-height: 1.4; }
+
+    /* Preview parcial inline en chat */
+    .report-preview {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: var(--gap-3) 0;
+      margin: var(--gap-3) 0;
+      display: grid; gap: var(--gap-3);
+    }
+    .report-preview .section { display: grid; gap: 8px; }
+    .report-preview .section .num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: var(--cyan-2);
+    }
+    .report-preview .section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 3vw, 36px);
+      color: var(--ink); margin: 0; line-height: 1.1; letter-spacing: -0.02em;
+    }
+    .report-preview .section p {
+      color: var(--ink-soft); line-height: 1.5; margin: 0;
+    }
+
   </style>
 </head>
 <body>
@@ -951,6 +1029,128 @@
     window.renderWelcomeBack = renderWelcomeBack;
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 10 — EMAIL GATE + PREVIEW PARCIAL
+       maybeShowEmailGate(), requestReport()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+    }
+
+    function maybeShowEmailGate(data) {
+      if (!data || !data.ready_for_report) return false;
+      setPhase(3);
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return false;
+      const preview = data.report_preview || data.report || null;
+      if (preview) {
+        const node = document.createElement("section");
+        node.className = "report-preview";
+        const summary = preview.headline || preview.summary || "Aquí está tu primer empleado IA recomendado.";
+        const reason = preview.recommendation_reason || preview.reason || "";
+        node.innerHTML = `
+          <div class="section">
+            <span class="num">01 / Resumen de acción</span>
+            <h2>${escapeHtml(summary)}</h2>
+          </div>
+          ${reason ? `<div class="section">
+            <span class="num">03 / Por qué empezar aquí</span>
+            <p>${escapeHtml(reason)}</p>
+          </div>` : ""}
+        `;
+        scroll.appendChild(node);
+      }
+      const gate = document.createElement("section");
+      gate.className = "gate-card";
+      gate.id = "emailGate";
+      gate.innerHTML = `
+        <div class="eyebrow">El agente tiene una recomendación</div>
+        <h2 class="gate-title">He convertido tu caso en un primer empleado IA viable.</h2>
+        <p class="gate-lead">— Dime a qué email te lo envío y te abro el informe completo. Una sola vez. Sin newsletter automática.</p>
+        <div class="field" id="emailField">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" autocomplete="email" placeholder="tu@email.com" aria-label="Email" />
+          <div class="field-error" id="emailFieldError"></div>
+        </div>
+        <button class="cta-primary" id="emailSubmit" type="button">Recibir informe completo <span class="arrow">→</span></button>
+        <div class="trust">— Una sola vez. Sin newsletter automática.</div>
+        <details><summary>¿Por qué pido el email?</summary><p>Para entregarte el informe completo y, si quieres, escribirte una vez con la siguiente acción. No te suscribo a ninguna lista. Lee la política de privacidad.</p></details>
+      `;
+      scroll.appendChild(gate);
+      scroll.scrollTop = scroll.scrollHeight;
+      // Bloquear composer / sendBtn — el flujo cambia a "rellena el email"
+      const composer = document.getElementById("composer");
+      const sendBtn = document.getElementById("sendBtn");
+      if (composer) composer.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+      // Wiring del input + submit
+      const input = document.getElementById("emailInput");
+      const errorEl = document.getElementById("emailFieldError");
+      const fieldEl = document.getElementById("emailField");
+      input.addEventListener("blur", () => {
+        const v = input.value.trim();
+        if (!v) {
+          fieldEl.classList.remove("is-error");
+          errorEl.textContent = "";
+          errorEl.removeAttribute("data-state");
+          return;
+        }
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        fieldEl.classList.toggle("is-error", !valid);
+        errorEl.textContent = valid ? "" : "Ese email no parece válido.";
+        if (!valid) errorEl.dataset.state = "error";
+        else errorEl.removeAttribute("data-state");
+      });
+      document.getElementById("emailSubmit").addEventListener("click", () => requestReport(input.value.trim()));
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          requestReport(input.value.trim());
+        }
+      });
+      input.focus();
+      return true;
+    }
+
+    async function requestReport(email) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        const fieldEl = document.getElementById("emailField");
+        const errorEl = document.getElementById("emailFieldError");
+        if (fieldEl) fieldEl.classList.add("is-error");
+        if (errorEl) { errorEl.textContent = "Ese email no parece válido."; errorEl.dataset.state = "error"; }
+        return;
+      }
+      setSaveStatus("syncing", "GENERANDO INFORME ▍");
+      const submitBtn = document.getElementById("emailSubmit");
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = `Generando ▍`; }
+      try {
+        const res = await fetch("/api/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lead_id: SESSION.lead_id, email }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "report_failed");
+        // renderReportInline está implementado en Task 11. Por ahora, fallback defensivo:
+        if (typeof renderReportInline === "function") {
+          renderReportInline(data);
+        } else {
+          // Stub: dejamos un mensaje en la card
+          const gate = document.getElementById("emailGate");
+          if (gate) gate.innerHTML = `<div class="eyebrow">Informe generado</div><p class="body">Se ha enviado a ${escapeHtml(email)}. (renderReportInline pendiente de Task 11)</p>`;
+        }
+        setSaveStatus("syncing", "INFORME ENVIADO");
+      } catch (e) {
+        setSaveStatus("reconnect", "REINTENTANDO ▍");
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = `Recibir informe completo <span class="arrow">→</span>`; }
+      }
+    }
+
+    window.maybeShowEmailGate = maybeShowEmailGate;
+    window.requestReport = requestReport;
+    window.escapeHtml = escapeHtml;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        TASK 3 — STARTER REVEAL
        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
@@ -1069,6 +1269,8 @@
         });
         if (typeof facts.phase === "number") setPhase(facts.phase);
         setSaveStatus("syncing", "GUARDADO HACE 0s");
+        // Email gate cuando el backend lo pide (Task 10)
+        maybeShowEmailGate(data);
       } catch (e) {
         dismissWaitingTurn();
         flagNetReconnecting();
