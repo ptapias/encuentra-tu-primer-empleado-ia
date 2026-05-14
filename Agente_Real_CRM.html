@@ -658,6 +658,42 @@
       font-style: italic;
     }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 7 — QUEUE CARD
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .turn.queue {
+      border: 1px solid var(--refine);
+      background: var(--bg-elev);
+      padding: 22px;
+      display: grid; gap: 14px;
+      max-width: 80%;
+    }
+    .turn.queue .label { color: var(--refine); }
+    .turn.queue .pos {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      color: var(--ink-soft);
+    }
+    .turn.queue .pos b { color: var(--refine); margin-right: 6px; font-weight: 500; }
+    .turn.queue .copy { color: var(--ink-soft); font-size: var(--t-body); line-height: 1.4; }
+    .turn.queue .notify-form {
+      display: grid; grid-template-columns: 1fr auto; gap: var(--gap-1);
+      border: 1px solid var(--rule);
+      padding: 12px;
+      background: var(--bg-warm);
+    }
+    .turn.queue .notify-form input {
+      background: transparent; border: none; color: var(--ink); font: inherit; font-size: var(--t-body);
+    }
+    .turn.queue .notify-form input:focus { outline: none; }
+    .turn.queue .notify-form button {
+      background: var(--cyan); color: var(--bg-deep); border: none;
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em;
+      text-transform: uppercase; padding: 8px 14px; cursor: pointer;
+    }
+
   </style>
 </head>
 <body>
@@ -887,6 +923,10 @@
         const data = await res.json().catch(() => ({}));
         const elapsed = (performance.now() - startTs) / 1000;
         dismissWaitingTurn(elapsed);
+        if (res.status === 429 && typeof data.queue_position === "number") {
+          showQueueTurn(data.queue_position, data.eta_seconds || 30, text, opts);
+          return;
+        }
         if (res.status === 429) {
           appendTurn("agent", data.error || "Estoy con otra sesión. Vuelvo en unos segundos.");
           return;
@@ -1141,6 +1181,60 @@
 
     window.showWaitingTurn = showWaitingTurn;
     window.dismissWaitingTurn = dismissWaitingTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 7 — QUEUE CARD
+       showQueueTurn(), retryAfterQueue()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const QUEUE_RETRY_CAP_MS = 30000;
+
+    function showQueueTurn(position, etaSeconds, pendingText, sendOpts) {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return;
+      const turn = document.createElement("div");
+      turn.className = "turn queue";
+      turn.dataset.role = "agent";
+      turn.id = "queueTurn";
+      const minutes = Math.max(1, Math.round((etaSeconds || 60) / 60));
+      turn.innerHTML = `
+        <span class="label">Agente — en cola</span>
+        <div class="pos"><b>Posición ${position || 1}</b>· espera estimada ~${minutes} min</div>
+        <p class="copy">No te muevas: sigo tu sesión sin que tengas que recargar.</p>
+        <form class="notify-form" id="notifyForm">
+          <input type="email" placeholder="Avísame por email cuando esté libre" aria-label="Email para aviso" />
+          <button type="submit">Avisar</button>
+        </form>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      // Auto-retry con cap
+      if (pendingText) {
+        setTimeout(() => retryAfterQueue(pendingText, sendOpts), Math.min((etaSeconds || 30) * 1000, QUEUE_RETRY_CAP_MS));
+      }
+      document.getElementById("notifyForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = e.target.querySelector("input").value.trim();
+        if (!email) return;
+        const r = await fetch("/api/notify-when-free", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lead_id: SESSION.lead_id, email }),
+        });
+        if (r.ok) {
+          e.target.innerHTML = `<span class="copy" style="color: var(--proceed);">Te aviso en cuanto el agente esté libre. Puedes cerrar esta pestaña.</span>`;
+        }
+      });
+    }
+
+    async function retryAfterQueue(text, opts) {
+      const queueTurn = document.getElementById("queueTurn");
+      if (queueTurn) queueTurn.remove();
+      sendMessage(text, opts);
+    }
+
+    window.showQueueTurn = showQueueTurn;
+    window.retryAfterQueue = retryAfterQueue;
   </script>
 </body>
 
