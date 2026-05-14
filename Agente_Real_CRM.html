@@ -1006,8 +1006,15 @@
         dismissWaitingTurn();
         flagNetReconnecting();
       } finally {
-        if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`; }
-        if (composer) { composer.disabled = false; composer.focus(); }
+        // Restaurar el botón ENVIAR siempre. El composer / sendBtn pueden estar
+        // bloqueados por una card de rate-limit aún viva en el DOM (showRateLimitTurn
+        // gestiona su propio re-enable con el countdown). En ese caso, no tocar.
+        if (sendBtn) sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`;
+        const rateActive = document.querySelector(".turn.rate");
+        if (!rateActive) {
+          if (sendBtn) sendBtn.disabled = false;
+          if (composer) { composer.disabled = false; composer.focus(); }
+        }
       }
     }
 
@@ -1330,7 +1337,7 @@
         <p class="copy">No te entrego un diagnóstico mediocre. Cuando vuelva, te aviso yo mismo — o puedes leer un informe de muestra mientras tanto.</p>
         <div class="actions">
           <a href="#" id="aiNotifyMe">Avisarme cuando vuelva →</a>
-          <a href="#" id="aiSampleLink" target="_blank" rel="noopener">Ver muestra →</a>
+          <a href="/r/sample" id="aiSampleLink" target="_blank" rel="noopener">Ver muestra →</a>
         </div>
       `;
       scroll.appendChild(turn);
@@ -1340,13 +1347,12 @@
         // Reusa el card de cola en modo "solo notificar" (posición 0 = no en cola)
         showQueueTurn(0, 60, null, null);
       });
+      // El enlace de muestra ya lleva href="/r/sample" desde el render — sin handler
+      // adicional. Si la ruta no existe, el navegador mostrará un 404; tarea futura
+      // hosteará un informe de muestra real.
       const sampleEl = document.getElementById("aiSampleLink");
       if (sampleEl) {
-        sampleEl.addEventListener("click", (e) => {
-          // Si la ruta /r/sample no existe, el navegador mostrará un 404 — esperado mientras
-          // no haya muestra publicada. Tarea futura podría hostear una.
-          sampleEl.href = "/r/sample";
-        });
+        // intencionalmente vacío; el href está en el markup
       }
     }
 
