@@ -1039,6 +1039,9 @@
 
     function maybeShowEmailGate(data) {
       if (!data || !data.ready_for_report) return false;
+      // Idempotencia: si el gate ya está montado (p.ej., el backend repitió
+      // ready_for_report en un turno posterior), no duplicar la card.
+      if (document.getElementById("emailGate")) return false;
       setPhase(3);
       const scroll = document.getElementById("chatScroll");
       if (!scroll) return false;
