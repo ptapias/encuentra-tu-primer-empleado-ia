@@ -954,17 +954,6 @@
        TASK 3 — STARTER REVEAL
        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-    /* === BOOT === */
-    (async () => {
-      const restored = await tryRestoreSession();
-      if (!restored) {
-        requestAnimationFrame(() => {
-          const starter = document.getElementById("starter");
-          if (starter) starter.classList.add("is-revealed");
-        });
-      }
-    })();
-
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        TASK 4 — CHAT SURFACE
        enterChat(), appendTurn(), sendMessage(), rewindToTurn()
@@ -1470,6 +1459,22 @@
     window.flagNetOk = flagNetOk;
     window.showAiDownCard = showAiDownCard;
     window.showRateLimitTurn = showRateLimitTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       BOOT — debe ir al final para garantizar que TODAS las variables
+       (SESSION en particular, declarada con `let` y por tanto sin hoisting
+       de inicialización) estén ya inicializadas cuando un fetch mockeado
+       resuelva en el mismo microtask checkpoint del test harness.
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    (async () => {
+      const restored = await tryRestoreSession();
+      if (!restored) {
+        requestAnimationFrame(() => {
+          const starter = document.getElementById("starter");
+          if (starter) starter.classList.add("is-revealed");
+        });
+      }
+    })();
   </script>
 </body>
 
