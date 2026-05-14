@@ -4,2302 +4,1982 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Encuentra Tu Primer Empleado IA - Agente Real</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <style>
+    /* anti-flash: dark canvas desde frame 1 */
+    body { background: #06081A; color: #F4EFE3; margin: 0; font-family: "IBM Plex Sans", system-ui, sans-serif; }
+  </style>
   <style>
     :root {
-      --bg: #f6f3ea;
-      --ink: #171717;
-      --muted: #62645f;
-      --line: #d8d1c2;
-      --panel: #fffdf8;
-      --agent: #ffffff;
-      --user: #173f32;
-      --accent: #1f7a5b;
-      --accent-dark: #11513b;
-      --blue: #345995;
-      --soft: #e8f3ed;
-      --warn: #8b4b10;
-      --danger: #8b2f21;
+      /* === SUPERFICIES === */
+      --bg-deep:  #06081A;
+      --bg:       #0A0E26;
+      --bg-warm:  #0E1331;
+      --bg-elev:  #15214B;   /* IA al Día brand navy */
+      --bg-card:  #161E45;   /* card surface, slightly elevated */
+
+      /* === TINTA === */
+      --ink:        #F4EFE3;
+      --ink-soft:   #D9D3C2;
+      --ink-muted:  #75747E;  /* IA al Día brand grey */
+      --ink-faint:  #555C82;
+
+      /* === REGLAS === */
+      --rule:        rgba(160, 170, 210, 0.14);
+      --rule-strong: rgba(160, 170, 210, 0.28);
+      --rule-warm:   rgba(147, 133, 130, 0.20);  /* IA al Día brand taupe */
+      --rule-cyan:   rgba(4, 151, 225, 0.45);
+
+      /* === ACENTO + STATUS === */
+      --cyan:      #0497E1;  /* IA al Día brand cyan */
+      --cyan-deep: #048BCD;  /* IA al Día brand cyan deep */
+      --cyan-2:    #38C0FF;
+      --cyan-ink:  #7CD7FF;
+      --proceed:   #5EE39A;
+      --refine:    #F4C141;
+      --park:      #F08484;
+
+      /* === ESCALA TIPOGRÁFICA FLUIDA === */
+      --t-mega:    clamp(56px, 9vw, 132px);
+      --t-cover:   clamp(48px, 8vw, 96px);
+      --t-title:   clamp(40px, 6vw, 72px);
+      --t-h2:      clamp(32px, 4.5vw, 48px);
+      --t-sub:     clamp(22px, 2.6vw, 32px);
+      --t-lead:    clamp(18px, 2.2vw, 22px);
+      --t-body:    clamp(15px, 1.6vw, 18px);
+      --t-small:   clamp(13px, 1.4vw, 15px);
+      --t-eyebrow: clamp(11px, 1vw, 13px);
+
+      /* === SPACING === */
+      --pad-x:      clamp(20px, 4vw, 64px);
+      --pad-y:      clamp(20px, 3vw, 48px);
+      --gap-1:      8px;
+      --gap-2:      16px;
+      --gap-3:      24px;
+      --gap-4:      40px;
+      --gap-5:      64px;
+
+      /* === FAMILIAS === */
+      --font-display: "Libre Baskerville", "Source Serif 4", Georgia, serif;
+      --font-sans:    "IBM Plex Sans", system-ui, sans-serif;
+      --font-mono:    "IBM Plex Mono", ui-monospace, monospace;
+
+      /* === EASING === */
+      --ease:        cubic-bezier(0.2, 0.8, 0.2, 1);
+      --duration-1:  200ms;
+      --duration-2:  320ms;
+      --duration-3:  500ms;
     }
+
     * { box-sizing: border-box; }
+
+    html, body {
+      background: var(--bg-deep);
+      color: var(--ink);
+      margin: 0;
+    }
+
     body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      line-height: 1.45;
+      font-family: var(--font-sans);
+      font-size: var(--t-body);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .shell {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: minmax(320px, 390px) 1fr;
-    }
-    aside {
-      padding: 32px;
-      border-right: 1px solid var(--line);
-      background: #faf8f1;
-      display: grid;
-      align-content: start;
-      gap: 18px;
-    }
+
+    /* Tipografía editorial reusable. Nota: .body es una utility class para texto
+       de cuerpo; no confundir con el selector del elemento <body> declarado arriba. */
     .eyebrow {
-      color: var(--accent-dark);
-      font-size: 13px;
-      font-weight: 900;
+      font-family: var(--font-mono);
+      font-size: var(--t-eyebrow);
+      letter-spacing: 0.28em;
       text-transform: uppercase;
+      color: var(--cyan-2);
+      font-weight: 500;
     }
-    h1 {
-      font-size: clamp(34px, 4vw, 54px);
-      line-height: .98;
+    .eyebrow.muted { color: var(--ink-muted); }
+
+    .display {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      color: var(--ink);
       margin: 0;
-      letter-spacing: 0;
+      text-wrap: balance;
     }
+
     .lead {
-      font-size: 17px;
-      color: #383a36;
+      font-size: var(--t-lead);
+      font-style: italic;
+      line-height: 1.3;
+      color: var(--ink-soft);
       margin: 0;
+      text-wrap: balance;
     }
-    .privacy-note {
-      color: var(--muted);
-      font-size: 13px;
-      margin: 0;
+
+    .body { font-size: var(--t-body); color: var(--ink-soft); margin: 0; }
+    .mono  { font-family: var(--font-mono); }
+    .small { font-size: var(--t-small); color: var(--ink-muted); }
+    .muted { color: var(--ink-muted); }
+    .faint { color: var(--ink-faint); }
+
+    /* Focus universal */
+    :where(button, a, input, textarea, [tabindex]):focus-visible {
+      outline: 2px solid var(--cyan-2);
+      outline-offset: 2px;
     }
-    .privacy-note a {
-      color: var(--accent-dark);
-      font-weight: 800;
-      text-decoration: none;
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
-    .panel {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      border-radius: 8px;
-      padding: 14px;
-    }
-    .panel h2 {
-      font-size: 16px;
-      margin: 0 0 10px;
-    }
-    .field {
-      display: grid;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-    label {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 800;
-    }
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 8px;
-      padding: 11px 12px;
-      font: inherit;
-      color: var(--ink);
-    }
-    button {
-      border: 0;
-      background: var(--accent);
-      color: white;
-      min-height: 44px;
-      padding: 0 15px;
-      border-radius: 8px;
-      font-weight: 900;
-      cursor: pointer;
-      transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
-    }
-    button:hover {
-      background: var(--accent-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 8px 18px rgba(31,122,91,.14);
-    }
-    button.secondary {
-      background: transparent;
-      color: var(--ink);
-      border: 1px solid var(--line);
-    }
-    button.icon {
-      width: 48px;
-      padding: 0;
-      display: inline-grid;
-      place-items: center;
-    }
-    button.icon svg {
-      width: 21px;
-      height: 21px;
-    }
-    button.listening {
-      background: var(--danger);
-      position: relative;
-      animation: pulseMic 1.05s ease-in-out infinite;
-    }
-    button.listening::after {
-      content: "";
-      position: absolute;
-      inset: -5px;
-      border: 2px solid rgba(139,47,33,.28);
-      border-radius: 10px;
-      animation: ringMic 1.05s ease-out infinite;
-    }
-    main {
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 2 — EDITORIAL SHELL COMPONENTS
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* === SHELL === */
+    .shell {
+      min-height: 100dvh;
       display: grid;
       grid-template-rows: auto 1fr auto;
+    }
+
+    .shell-body {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) 1fr;
+      min-height: 0;
+    }
+
+    @media (max-width: 800px) {
+      .shell-body { grid-template-columns: 1fr; }
+    }
+
+    /* === TOP FRAME === */
+    .topframe {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: var(--gap-3);
+      padding: var(--gap-2) var(--pad-x);
+      border-bottom: 1px solid var(--rule);
+      background: var(--bg-deep);
+    }
+    .topframe .brand,
+    .topframe .save-status {
+      font-family: var(--font-mono);
+      font-size: var(--t-eyebrow);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .topframe .save-status { justify-self: end; opacity: 0.6; transition: opacity var(--duration-2) var(--ease); }
+    .topframe .save-status[data-state="syncing"] { color: var(--cyan); opacity: 1; }
+    .topframe .save-status[data-state="reconnect"] { color: var(--cyan-2); opacity: 1; }
+
+    /* === PROGRESS-LINE 4 FASES === */
+    .phase-line {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      align-items: center;
+      gap: var(--gap-1);
+      /* 4 nodos × ~60px min — evita que la línea colapse en desktop estrecho */
+      min-width: 240px;
+    }
+    .phase-line .node {
+      display: flex; align-items: center; gap: var(--gap-1);
+      font-family: var(--font-mono);
+      font-size: var(--t-eyebrow);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .phase-line .node[data-state="done"] { color: var(--ink-muted); }
+    .phase-line .node[data-state="active"] { color: var(--cyan-2); }
+    .phase-line .node::before {
+      content: "";
+      width: 6px; height: 6px;
+      border: 1px solid currentColor;
+      background: transparent;
+    }
+    .phase-line .node[data-state="active"]::before { background: var(--cyan-2); }
+    .phase-line .node[data-state="done"]::before { background: var(--ink-muted); }
+    .phase-line .conn {
+      height: 1px; background: var(--rule-strong); width: 100%;
+    }
+    .phase-line .conn[data-state="done"] { background: var(--cyan); }
+
+    @media (max-width: 800px) {
+      .phase-line .node span { display: none; }
+    }
+
+    /* === FOOTER === */
+    .footframe {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: var(--gap-2) var(--pad-x);
+      border-top: 1px solid var(--rule);
+      background: var(--bg-deep);
+    }
+    .footframe .counter,
+    .footframe .mark {
+      font-family: var(--font-mono);
+      font-size: var(--t-small);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .footframe .counter::before {
+      content: "";
+      display: inline-block; width: 24px; height: 1px;
+      background: var(--rule-strong);
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+    .footframe .mark .slash { color: var(--cyan-2); margin-left: 6px; }
+
+    /* === ASIDE / MAIN === */
+    aside.sidebar {
+      padding: var(--pad-y) var(--pad-x);
+      border-right: 1px solid var(--rule);
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      gap: var(--gap-3);
       min-width: 0;
     }
-    .topbar {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--line);
-      display: grid;
-      gap: 8px;
-      background: rgba(250,248,241,.86);
-      backdrop-filter: blur(10px);
+    main {
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      min-width: 0;
+      padding: var(--pad-y) var(--pad-x);
     }
-    .toprow {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
+
+    @media (max-width: 800px) {
+      aside.sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: var(--gap-3);
+      }
+      /* En el starter (sin is-chat-mode), el hero del main debe quedar above the fold
+         en mobile. La sidebar de contexto se mueve debajo. En chat, la sidebar es
+         bottom sheet fija (gestionado en su propia regla más abajo). */
+      .shell-body > aside.sidebar:not(.is-chat-mode) {
+        order: 2;
+        border-bottom: none;
+        border-top: 1px solid var(--rule);
+        padding-top: var(--gap-3);
+        padding-bottom: var(--pad-y);
+      }
     }
-    .stage {
-      display: inline-flex;
-      align-items: center;
-      min-height: 30px;
-      padding: 0 10px;
-      border-radius: 999px;
-      background: var(--soft);
-      color: var(--accent-dark);
-      font-size: 13px;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-    .status {
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .progress {
-      height: 8px;
-      border-radius: 999px;
-      background: #e3ddcf;
-      overflow: hidden;
-    }
-    .progress span {
-      display: block;
-      height: 100%;
-      width: 8%;
-      border-radius: 999px;
-      background: var(--accent);
-      transition: width .25s ease;
-    }
-    .chat {
-      padding: 28px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      background:
-        linear-gradient(180deg, rgba(255,253,248,.62), rgba(246,243,234,.96)),
-        linear-gradient(90deg, rgba(216,209,194,.22) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(216,209,194,.18) 1px, transparent 1px);
-      background-size: auto, 32px 32px, 32px 32px;
-    }
-    .message {
-      display: grid;
-      gap: 6px;
-      max-width: 820px;
-    }
-    .message.agent { align-self: flex-start; }
-    .message.user { align-self: flex-end; }
-    .bubble {
-      border-radius: 8px;
-      padding: 14px 15px;
-      white-space: pre-wrap;
-    }
-    .agent .bubble {
-      background: var(--agent);
-      border: 1px solid var(--line);
-    }
-    .user .bubble {
-      background: var(--user);
-      color: white;
-    }
-    .meta {
-      font-size: 12px;
-      color: var(--muted);
-      padding: 0 4px;
-    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 3 — STARTER (fase 01)
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* === STARTER === */
     .starter {
-      width: min(980px, 100%);
-      margin: auto;
       display: grid;
-      gap: 16px;
-    }
-    .starter-hero {
+      gap: var(--gap-4);
+      align-content: start;
       position: relative;
       overflow: hidden;
-      background:
-        linear-gradient(135deg, rgba(255,253,248,.96) 0%, rgba(255,253,248,.90) 54%, rgba(232,243,237,.94) 100%);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: clamp(24px, 4vw, 48px);
-      display: grid;
-      gap: 20px;
-      box-shadow: 0 24px 70px rgba(23,23,23,.09);
     }
-    .starter-hero::before {
-      content: "";
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: min(42%, 360px);
-      height: 100%;
-      border-left: 1px solid rgba(31,122,91,.14);
-      background:
-        linear-gradient(135deg, rgba(31,122,91,.13) 0 1px, transparent 1px 18px),
-        linear-gradient(45deg, rgba(52,89,149,.10) 0 1px, transparent 1px 22px);
-      background-size: 20px 20px, 24px 24px;
-      opacity: .55;
-      pointer-events: none;
-    }
-    .starter-hero > * {
-      position: relative;
-      z-index: 1;
-    }
-    .starter-kicker {
-      width: fit-content;
-      color: var(--accent-dark);
-      background: #e8f3ed;
-      border: 1px solid #cfe1d8;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 13px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .starter h2 {
+
+    .starter .hero-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: var(--t-cover);
+      line-height: 0.98;
+      letter-spacing: -0.025em;
+      color: var(--ink);
       margin: 0;
-      max-width: 760px;
-      font-size: clamp(38px, 5vw, 72px);
-      line-height: .95;
-      letter-spacing: 0;
+      text-wrap: balance;
     }
-    .starter-copy {
-      margin: 0;
-      max-width: 700px;
-      color: #363832;
-      font-size: clamp(18px, 2vw, 23px);
-    }
-    .diagnostic-preview {
-      max-width: 880px;
-      border: 1px solid rgba(23,23,23,.12);
-      background: #171717;
-      color: #fffdf8;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 20px 54px rgba(23,23,23,.16);
-    }
-    .diagnostic-preview-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      min-height: 42px;
-      padding: 0 14px;
-      border-bottom: 1px solid rgba(255,253,248,.12);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      color: rgba(255,253,248,.72);
-    }
-    .diagnostic-preview-head strong {
-      color: #fffdf8;
-      font-size: 13px;
-    }
-    .diagnostic-preview-body {
-      position: relative;
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 1px;
-      background: rgba(255,253,248,.10);
-    }
-    .diagnostic-preview-body::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(110, 231, 183, .92), transparent);
-      animation: scanLine 2.8s ease-in-out infinite;
-    }
-    .preview-dialogue, .preview-map {
-      background: #171717;
-      padding: 15px;
-      display: grid;
-      gap: 10px;
-    }
-    .preview-turn {
-      display: grid;
-      gap: 4px;
-    }
-    .preview-turn span {
-      color: rgba(255,253,248,.54);
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .preview-turn p {
-      margin: 0;
-      color: rgba(255,253,248,.86);
-      font-size: 14px;
-    }
-    .preview-turn.agent p {
-      color: #d7f7e8;
-    }
-    .preview-map-row {
-      display: grid;
-      grid-template-columns: 76px 1fr;
-      gap: 9px;
-      padding: 9px 0;
-      border-top: 1px solid rgba(255,253,248,.10);
-    }
-    .preview-map-row:first-child {
-      border-top: 0;
-      padding-top: 0;
-    }
-    .preview-map-row span {
-      color: #6ee7b7;
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .preview-map-row strong {
-      display: block;
-      color: #fffdf8;
-      font-size: 14px;
-    }
-    .preview-map-row p {
-      margin: 2px 0 0;
-      color: rgba(255,253,248,.62);
-      font-size: 12px;
-    }
-    .starter-proof {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-      gap: 18px;
-      align-items: stretch;
-    }
-    .starter-prompt {
-      border: 1px solid #cfd9d3;
-      background: rgba(238,246,241,.92);
-      border-radius: 8px;
-      padding: 18px;
-      display: grid;
-      gap: 8px;
-      max-width: 780px;
-    }
-    .starter-prompt strong {
-      display: block;
-      font-size: 17px;
-    }
-    .starter-prompt p {
-      color: #375046;
+    .starter .hero-lead {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: var(--t-lead);
+      color: var(--ink-soft);
+      line-height: 1.3;
+      max-width: 64ch;
       margin: 0;
     }
-    .live-map {
-      border: 1px solid rgba(23,23,23,.12);
-      background: rgba(255,253,248,.84);
-      border-radius: 8px;
-      padding: 14px;
-      display: grid;
-      gap: 11px;
-      box-shadow: 0 14px 34px rgba(23,23,23,.08);
-    }
-    .live-map-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
+
+    /* CTA editorial cápsula */
+    .cta-primary {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 16px 28px;
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan-2);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background var(--duration-2) var(--ease), color var(--duration-2) var(--ease), transform var(--duration-2) var(--ease);
     }
-    .live-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 0 rgba(31,122,91,.35);
-      animation: pulseDot 1.4s ease-in-out infinite;
-    }
-    .map-row {
-      display: grid;
-      grid-template-columns: 82px 1fr;
-      gap: 10px;
-      align-items: start;
-      padding-top: 10px;
-      border-top: 1px solid rgba(216,209,194,.85);
-    }
-    .map-row:first-of-type {
-      border-top: 0;
-      padding-top: 0;
-    }
-    .map-row span {
-      color: var(--accent-dark);
+    .cta-primary:hover { background: var(--cyan); color: var(--bg-deep); }
+    .cta-primary:active { background: var(--cyan-deep); transform: translateY(1px); }
+    .cta-primary .arrow { font-size: 16px; }
+
+    .micro-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
       font-size: 12px;
-      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-left: var(--gap-2);
+      vertical-align: middle;
     }
-    .map-row strong {
-      display: block;
-      color: #171717;
-      font-size: 14px;
-    }
-    .map-row p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .starter-signal {
-      display: grid;
-      gap: 8px;
-      max-width: 760px;
-    }
-    .signal-line {
-      display: grid;
-      grid-template-columns: 34px 1fr;
-      gap: 10px;
-      align-items: start;
-      color: #3d433d;
-    }
-    .signal-line span {
-      width: 26px;
-      height: 26px;
-      display: inline-grid;
-      place-items: center;
-      border-radius: 999px;
-      background: #171717;
-      color: white;
+    .micro-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); display: inline-block; }
+
+    .sample-link {
+      display: inline-block;
+      font-family: var(--font-mono);
       font-size: 12px;
-      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      text-decoration: underline;
+      text-decoration-color: var(--rule-strong);
+      text-underline-offset: 4px;
+      cursor: pointer;
+      background: none; border: none;
+      padding: 0; margin-top: var(--gap-1);
     }
-    .signal-line strong {
-      display: block;
-      color: #171717;
-      font-size: 15px;
-    }
-    .signal-line p {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .starter-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .starter-pill {
-      min-height: 32px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: #42453f;
-      border-radius: 999px;
-      padding: 0 10px;
-      font-size: 13px;
-      font-weight: 800;
-    }
-    .starter-pill svg {
-      width: 15px;
-      height: 15px;
-      color: var(--accent-dark);
-    }
-    .starter-start {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .start-primary {
-      min-height: 52px;
-      padding: 0 20px;
-      background: #171717;
-      color: #fff;
-    }
-    .start-primary:hover {
-      background: #30322f;
-      box-shadow: 0 12px 24px rgba(23,23,23,.16);
-    }
-    .process-strip {
+    .sample-link:hover { color: var(--cyan-2); text-decoration-color: var(--cyan-2); }
+
+    .hr-strong { height: 1px; background: var(--rule-strong); width: 0; transition: width 400ms var(--ease) 1000ms; }
+    .starter.is-revealed .hr-strong { width: 100%; }
+
+    /* Promise line: 3 nodos horizontales */
+    .promise-line {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--line);
+      gap: var(--gap-4);
     }
-    .process-card {
-      background: rgba(255,253,248,.88);
-      padding: 13px;
-      display: grid;
-      gap: 4px;
-      min-height: 96px;
+    .promise {
+      display: grid; gap: var(--gap-1);
     }
-    .process-card span {
-      color: var(--accent-dark);
+    .promise .num {
+      font-family: var(--font-mono);
       font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--cyan-2);
     }
-    .process-card strong {
-      font-size: 15px;
-    }
-    .process-card p {
+    .promise h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(20px, 2.4vw, 28px);
+      letter-spacing: -0.015em;
+      color: var(--ink);
       margin: 0;
-      color: var(--muted);
-      font-size: 13px;
     }
-    .typing .bubble::after {
+    .promise p {
+      font-size: var(--t-small);
+      color: var(--ink-muted);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    @media (max-width: 800px) {
+      .promise-line { grid-template-columns: 1fr; gap: var(--gap-3); }
+    }
+
+    /* Slash motif ambient */
+    .slash-motif {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+      opacity: 0; transition: opacity 400ms var(--ease) 1300ms;
+    }
+    .starter.is-revealed .slash-motif { opacity: 0.5; }
+    .slash-motif::before {
       content: "";
-      display: inline-block;
-      width: 7px;
-      height: 1.1em;
-      margin-left: 2px;
-      background: var(--accent);
-      vertical-align: -2px;
-      animation: caretBlink .85s steps(2, start) infinite;
+      position: absolute;
+      width: 240%; height: 1px;
+      background: var(--rule-cyan);
+      top: 50%; left: -70%;
+      transform: rotate(-22deg);
     }
-    .email-gate {
-      background: #f7fbf8;
-      border: 1px solid #cfe1d8;
-      border-radius: 8px;
-      padding: 16px;
-      display: grid;
-      gap: 12px;
+
+    /* Reveal-on-load helper (cada hijo lleva transition-delay inline) */
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity var(--duration-3) var(--ease), transform var(--duration-3) var(--ease); }
+    .starter.is-revealed .reveal { opacity: 1; transform: none; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 4 — CHAT SURFACE
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .chat-stage {
+      display: flex; flex-direction: column;
+      flex: 1; min-height: 0;
+      gap: var(--gap-3);
     }
-    .email-gate h3 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: 0;
+    .chat-scroll {
+      flex: 1; min-height: 0;
+      overflow-y: auto;
+      display: flex; flex-direction: column;
+      gap: var(--gap-3);
+      padding-right: 8px;
+      scroll-behavior: smooth;
     }
-    .email-gate p { margin: 0; color: #3a4f46; }
-    .email-gate-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
+    .chat-scroll::-webkit-scrollbar { width: 8px; }
+    .chat-scroll::-webkit-scrollbar-thumb { background: var(--rule-strong); }
+
+    .turn {
+      display: grid; gap: 6px;
+      max-width: 70%;
+      position: relative;
     }
-    .consent-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      color: #3a4f46;
-      font-size: 13px;
-      line-height: 1.35;
+    .turn[data-role="agent"] { justify-self: start; }
+    .turn[data-role="user"]  { justify-self: end; text-align: right; }
+    .turn .label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
     }
-    .consent-row input {
-      margin-top: 2px;
-      width: 16px;
-      height: 16px;
-      flex: 0 0 auto;
+    .turn[data-role="user"] .label { color: var(--ink-faint); }
+    .turn .body {
+      font-size: var(--t-body);
+      color: var(--ink-soft);
+      line-height: 1.5;
     }
-    .consent-row a {
-      color: var(--accent-dark);
-      font-weight: 900;
-      text-decoration: none;
+    .turn[data-role="agent"][data-short="true"] .body {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 1.9vw, 19px);
+      color: var(--ink);
+      line-height: 1.3;
     }
-    .email-error {
-      min-height: 18px;
-      color: var(--danger);
-      font-size: 13px;
-      font-weight: 800;
+    .turn-separator {
+      height: 1px; background: var(--rule);
+      width: 32px; margin: 0 auto;
     }
-    .composer {
-      padding: 16px 20px 20px;
-      border-top: 1px solid var(--line);
-      background: #faf8f1;
+
+    .turn .edit-handle {
+      position: absolute; top: 0; right: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border: 1px solid var(--rule-strong);
+      padding: 4px 10px;
+      background: var(--bg-elev);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity var(--duration-2) var(--ease), color var(--duration-2) var(--ease);
     }
-    .composer[hidden] {
-      display: none;
+    .turn[data-role="user"]:hover .edit-handle,
+    .turn[data-role="user"][data-edit-visible="true"] .edit-handle { opacity: 1; }
+    .turn .edit-handle:hover { color: var(--cyan-2); border-color: var(--cyan); }
+
+    .composer-wrap {
+      border: 1px solid var(--rule);
+      background: var(--bg-elev);
+      padding: var(--gap-2);
+      display: grid; gap: var(--gap-1);
     }
     .composer-grid {
       display: grid;
       grid-template-columns: 1fr auto auto;
-      gap: 10px;
+      gap: var(--gap-2);
       align-items: end;
     }
-    .composer textarea {
-      min-height: 58px;
-      max-height: 180px;
-      resize: vertical;
+    .composer-grid textarea {
+      width: 100%; resize: none;
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      font: inherit;
+      font-size: var(--t-body);
+      min-height: 56px;
+      max-height: 200px;
+      padding: 8px 0;
     }
-    .composer-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .mic-status, .crm-status {
-      font-size: 13px;
-      color: var(--muted);
-      min-height: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .mic-status.active, .crm-status.ok {
-      color: var(--accent-dark);
-      font-weight: 900;
-    }
-    .mic-status.error, .crm-status.error {
-      color: var(--danger);
-      font-weight: 900;
-    }
-    .mic-status.loading::before, .thinking::before {
-      content: "";
-      width: 14px;
-      height: 14px;
-      border: 2px solid #c9d7cf;
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    .thinking {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--accent-dark);
-      font-weight: 900;
-    }
-    .mic-status.active::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulseDot 1s ease-in-out infinite;
-    }
-    .report {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: clamp(18px, 3vw, 28px);
-      display: grid;
-      gap: 16px;
-    }
-    .report h2, .report h3 {
-      margin: 0;
-      letter-spacing: 0;
-    }
-    .report h2 { font-size: 28px; }
-    .report h3 { font-size: 19px; }
-    .report p { margin: 0; }
-    .report-hero {
-      border: 1px solid #cfe1d8;
-      background: linear-gradient(135deg, #f7fbf8, #fffdf8);
-      border-radius: 8px;
-      padding: 18px;
-      display: grid;
-      gap: 10px;
-    }
-    .report-hero h2 {
-      font-size: clamp(30px, 4vw, 46px);
-      line-height: 1;
-    }
-    .report-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .report-actions button {
-      width: fit-content;
-    }
-    .report-action-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--line);
-    }
-    .report-action-item {
-      background: #fbfaf6;
-      padding: 14px;
-      display: grid;
-      gap: 5px;
-      min-height: 112px;
-    }
-    .report-action-item span {
-      color: var(--accent-dark);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .report-action-item strong {
-      display: block;
-      font-size: 16px;
-    }
-    .report-action-item p {
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .next-step-card {
-      border: 1px solid #cfe1d8;
-      background: #fffdf8;
-      border-radius: 8px;
-      padding: 16px;
-      display: grid;
-      gap: 10px;
-    }
-    .next-step-card h3 {
-      margin: 0;
-    }
-    .next-step-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .intent-saved {
-      color: var(--accent-dark);
-      font-size: 13px;
-      font-weight: 900;
-      min-height: 18px;
-    }
-    .feedback-box {
-      border: 1px solid #cfe1d8;
-      background: #f7fbf8;
-      border-radius: 8px;
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-    }
-    .feedback-box h3 {
-      margin: 0;
-    }
-    .feedback-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .feedback-grid .field:last-child {
-      grid-column: 1 / -1;
-    }
-    .rating-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .rating-row label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid var(--line);
-      background: #fff;
-      border-radius: 999px;
-      padding: 8px 10px;
+    .composer-grid textarea::placeholder { color: var(--ink-muted); font-style: italic; }
+    .composer-grid textarea:focus { outline: none; }
+    .composer-grid textarea:focus-visible { outline: 2px solid var(--cyan-2); outline-offset: 2px; }
+    .composer-grid .icon-btn {
+      width: 44px; height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid var(--rule-strong);
+      color: var(--ink-soft);
       cursor: pointer;
     }
-    .feedback-saved {
-      color: var(--accent-dark);
-      font-size: 13px;
-      font-weight: 900;
-      min-height: 18px;
-    }
-    .report-label {
-      width: fit-content;
-      color: var(--accent-dark);
-      background: #e8f3ed;
-      border-radius: 999px;
-      padding: 5px 9px;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .score-grid, .opportunity-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    .decision-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .decision-card {
-      border: 1px solid var(--line);
-      background: #fbfaf6;
-      border-radius: 8px;
-      padding: 13px;
-      display: grid;
-      gap: 9px;
-    }
-    .decision-card span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .priority-lane {
-      display: grid;
-      grid-template-columns: 84px 1fr;
-      gap: 10px;
-      align-items: center;
-    }
-    .priority-rank {
-      min-height: 58px;
-      border: 1px solid #cfe1d8;
-      background: #e8f3ed;
-      color: var(--accent-dark);
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      font-size: 24px;
-      font-weight: 900;
-    }
-    .decision-why {
-      color: #343832;
-      margin: 0;
-    }
-    .workflow-preview {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    .workflow-step {
-      border: 1px solid var(--line);
-      background: #fffdf8;
-      border-radius: 8px;
-      padding: 10px;
-      min-height: 86px;
-      display: grid;
-      align-content: start;
-      gap: 4px;
-    }
-    .workflow-step span {
-      color: var(--accent-dark);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .score-card, .opportunity {
-      border: 1px solid var(--line);
-      background: #fbfaf6;
-      border-radius: 8px;
-      padding: 12px;
-    }
-    .score-card strong {
-      display: block;
-      font-size: 24px;
-    }
-    .diagnosis-card {
-      border: 1px solid var(--line);
-      background: #fbfaf6;
-      border-radius: 8px;
-      padding: 13px;
-      display: grid;
-      gap: 5px;
-    }
-    .diagnosis-card span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .section-list {
-      margin: 0;
-      padding-left: 18px;
-      display: grid;
-      gap: 5px;
-    }
-    .section-list li { margin: 0; }
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .mini-card {
-      border: 1px solid var(--line);
-      background: #fffdf8;
-      border-radius: 8px;
-      padding: 11px;
-    }
-    .mini-card span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-    .badge {
-      display: inline-flex;
-      width: fit-content;
-      border-radius: 999px;
-      padding: 4px 9px;
-      background: var(--soft);
-      color: var(--accent-dark);
-      font-size: 12px;
-      font-weight: 900;
-    }
-    .bars { display: grid; gap: 7px; margin-top: 10px; }
-    .bar-row {
-      display: grid;
-      grid-template-columns: 92px 1fr 34px;
-      gap: 8px;
-      align-items: center;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .rail {
-      height: 8px;
-      background: #e6dfd2;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 999px;
-    }
-    .fill.penalty { background: #b65b35; }
-    .priority-map {
-      border: 1px solid var(--line);
-      background: #fffdf8;
-      border-radius: 8px;
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-    }
-    .priority-map-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: end;
-    }
-    .priority-map-head span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .priority-map-head strong {
-      font-size: 18px;
-    }
-    .priority-map-canvas {
-      position: relative;
-      min-height: 260px;
-      border-left: 2px solid #6d746b;
-      border-bottom: 2px solid #6d746b;
-      background:
-        linear-gradient(90deg, rgba(31, 122, 91, .08) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(31, 122, 91, .08) 1px, transparent 1px);
-      background-size: 25% 25%;
-      overflow: hidden;
-    }
-    .priority-zone {
-      position: absolute;
-      inset: 0 0 50% 50%;
-      background: rgba(31, 122, 91, .08);
-      border-left: 1px dashed rgba(31, 122, 91, .35);
-      border-bottom: 1px dashed rgba(31, 122, 91, .35);
-    }
-    .priority-dot {
-      position: absolute;
-      width: 34px;
-      height: 34px;
-      border-radius: 999px;
-      border: 3px solid #fff;
-      background: var(--accent);
-      color: #fff;
-      display: grid;
-      place-items: center;
-      font-weight: 900;
-      box-shadow: 0 12px 24px rgba(0,0,0,.18);
-      transform: translate(-50%, 50%);
-    }
-    .priority-dot.low {
-      background: #b65b35;
-    }
-    .priority-label {
-      position: absolute;
-      max-width: 190px;
-      transform: translate(18px, 14px);
-      color: #343832;
-      background: rgba(255, 253, 248, .92);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 6px 8px;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1.25;
-    }
-    .axis-label {
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-    }
-    .axis-y {
-      position: absolute;
-      left: 8px;
-      top: 8px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-    }
-    .lead-list {
-      display: grid;
-      gap: 8px;
-      max-height: 260px;
-      overflow: auto;
-    }
-    .lead-item {
-      border-top: 1px solid var(--line);
-      padding-top: 8px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .lead-item strong { color: var(--ink); display: block; }
-    .discovery-panel {
-      display: none;
-      gap: 10px;
-    }
-    .discovery-panel.active {
-      display: grid;
-    }
-    .discovery-card {
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
-      display: grid;
-      gap: 5px;
-    }
-    .discovery-card span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .discovery-card strong {
-      font-size: 15px;
-    }
-    .discovery-list {
-      display: grid;
-      gap: 6px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-    .discovery-list li {
-      color: #3e423c;
-      font-size: 13px;
-      line-height: 1.35;
-    }
-    .candidate-list {
-      display: grid;
-      gap: 8px;
-    }
-    .candidate-empty {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-    }
-    .candidate-item {
-      border: 1px solid #d8e4dc;
-      background: #fbfffc;
-      border-radius: 8px;
-      padding: 9px;
-      display: grid;
-      gap: 6px;
-    }
-    .candidate-head {
-      display: flex;
-      align-items: start;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .candidate-head strong {
-      font-size: 13px;
-      line-height: 1.25;
-    }
-    .candidate-score {
-      flex: 0 0 auto;
-      border-radius: 999px;
-      background: var(--soft);
-      color: var(--accent-dark);
-      padding: 3px 7px;
+    .composer-grid .icon-btn[data-recording="true"] { background: var(--cyan); color: var(--bg-deep); border-color: var(--cyan); }
+    .composer-grid .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .composer-grid .send-btn { padding: 10px 22px; }
+    .composer-hint {
+      font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
     }
-    .candidate-item p {
-      margin: 0;
-      color: #3f4741;
-      font-size: 12px;
-      line-height: 1.35;
+
+    @media (max-width: 800px) {
+      .turn { max-width: 90%; }
     }
-    .candidate-evidence {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 5 — SIDEBAR DE CHAT
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .sidebar-chat {
+      display: grid; gap: var(--gap-3);
     }
-    .confidence-meter {
-      height: 8px;
-      background: #e6dfd2;
-      border-radius: 999px;
-      overflow: hidden;
+    .sidebar-chat .block {
+      display: grid; gap: var(--gap-1);
     }
-    .confidence-meter span {
-      display: block;
-      height: 100%;
-      width: 0;
-      background: var(--accent);
-      border-radius: 999px;
-      transition: width .25s ease;
+    .sidebar-chat .block-value {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 1.8vw, 22px);
+      color: var(--ink);
+      line-height: 1.3;
     }
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
+    .sidebar-chat .block-list {
+      list-style: none; padding: 0; margin: 0;
+      display: grid; gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink-soft);
+      line-height: 1.4;
     }
-    @keyframes pulseMic {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.04); }
+    .sidebar-chat .block-list.warn li { color: var(--refine); }
+    .sidebar-chat .block-list li { padding-left: 14px; position: relative; }
+    .sidebar-chat .block-list li::before {
+      content: "·"; position: absolute; left: 0; color: var(--cyan-2);
     }
-    @keyframes ringMic {
-      0% { opacity: .8; transform: scale(.96); }
-      100% { opacity: 0; transform: scale(1.18); }
+
+    /* Mini phase line vertical (4 fases — espejo del top frame) */
+    .sidebar-chat .vline {
+      display: grid; gap: 6px;
+      border-left: 1px solid var(--rule);
+      padding-left: var(--gap-2);
+      margin-top: var(--gap-1);
     }
-    @keyframes pulseDot {
-      0% { box-shadow: 0 0 0 0 rgba(31,122,91,.45); }
-      70% { box-shadow: 0 0 0 8px rgba(31,122,91,0); }
-      100% { box-shadow: 0 0 0 0 rgba(31,122,91,0); }
+    .sidebar-chat .vline .vstep {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      position: relative;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes scanLine {
-      0%, 100% { transform: translateY(0); opacity: .2; }
-      45% { transform: translateY(176px); opacity: .88; }
-      55% { transform: translateY(176px); opacity: .44; }
+    .sidebar-chat .vline .vstep::before {
+      content: ""; position: absolute; left: -19px; top: 6px;
+      width: 6px; height: 6px;
+      border: 1px solid currentColor;
     }
-    @keyframes caretBlink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
+    .sidebar-chat .vline .vstep[data-state="active"] {
+      color: var(--cyan-2);
     }
-    @media (max-width: 980px) {
-      .shell {
-        display: flex;
-        flex-direction: column;
+    .sidebar-chat .vline .vstep[data-state="active"]::before { background: var(--cyan-2); }
+    .sidebar-chat .vline .vstep[data-state="done"] { color: var(--ink-muted); }
+    .sidebar-chat .vline .vstep[data-state="done"]::before { background: var(--ink-muted); }
+
+    /* Slide-in subtle entre turnos */
+    .sidebar-chat .block.is-updated { animation: sb-update 250ms var(--ease); }
+    @keyframes sb-update {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* === MOBILE BOTTOM SHEET (≤800px) === */
+    @media (max-width: 800px) {
+      aside.sidebar.is-chat-mode {
+        position: fixed; left: 0; right: 0; bottom: 0;
+        max-height: 60dvh;
+        background: var(--bg-elev);
+        border-top: 1px solid var(--rule-strong);
+        border-right: none;
+        padding: var(--gap-2) var(--pad-x);
+        transform: translateY(calc(100% - 60px));
+        transition: transform var(--duration-3) var(--ease);
+        z-index: 10;
+        overflow-y: auto;
       }
-      main { order: 1; }
-      aside { order: 2; }
-      aside { border-right: 0; border-bottom: 1px solid var(--line); }
-      aside > .panel:first-of-type { display: none; }
-      .composer-grid, .score-grid, .opportunity-grid, .decision-grid, .workflow-preview, .mini-grid, .email-gate-row, .process-strip, .feedback-grid, .starter-proof, .diagnostic-preview-body, .report-action-strip { grid-template-columns: 1fr; }
-      .priority-map-canvas { min-height: 300px; }
-      .priority-label { max-width: 150px; }
+      aside.sidebar.is-chat-mode[data-open="true"] { transform: none; }
+      aside.sidebar.is-chat-mode .sheet-handle {
+        display: flex; justify-content: space-between; align-items: center;
+        cursor: pointer; padding: 8px 0;
+        font-family: var(--font-mono);
+        font-size: 11px; letter-spacing: 0.22em;
+        text-transform: uppercase; color: var(--ink-soft);
+      }
+      aside.sidebar.is-chat-mode .sheet-handle::before {
+        content: "▴"; color: var(--cyan-2); margin-right: 8px;
+      }
+      aside.sidebar.is-chat-mode[data-open="true"] .sheet-handle::before { content: "▾"; }
     }
+    @media (min-width: 801px) {
+      aside.sidebar .sheet-handle { display: none; }
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 6 — WAITING STATE
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .turn.waiting {
+      border: 1px solid var(--rule);
+      background: var(--bg-elev);
+      padding: 18px 22px;
+      max-width: 70%;
+      display: grid; gap: 10px;
+    }
+    .turn.waiting .label { color: var(--cyan-2); }
+    .turn.waiting .cursor {
+      display: inline-block; width: 8px; height: 16px;
+      background: var(--cyan-2); margin-left: 6px;
+      vertical-align: middle;
+      animation: cursor-blink 1.2s infinite;
+    }
+    @keyframes cursor-blink { 50% { opacity: 0; } }
+
+    .wait-bar {
+      height: 1px; background: var(--rule-strong); position: relative; overflow: hidden;
+    }
+    .wait-bar > i {
+      display: block; height: 100%;
+      background: var(--cyan);
+      width: 0%;
+      transition: width 600ms ease-out;
+    }
+    .wait-eta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--ink-muted);
+    }
+    .wait-extended {
+      font-size: var(--t-small);
+      color: var(--ink-muted);
+      font-style: italic;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 7 — QUEUE CARD
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .turn.queue {
+      border: 1px solid var(--refine);
+      background: var(--bg-elev);
+      padding: 22px;
+      display: grid; gap: 14px;
+      max-width: 80%;
+    }
+    .turn.queue .label { color: var(--refine); }
+    .turn.queue .pos {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      color: var(--ink-soft);
+    }
+    .turn.queue .pos b { color: var(--refine); margin-right: 6px; font-weight: 500; }
+    .turn.queue .copy { color: var(--ink-soft); font-size: var(--t-body); line-height: 1.4; }
+    .turn.queue .notify-form {
+      display: grid; grid-template-columns: 1fr auto; gap: var(--gap-1);
+      border: 1px solid var(--rule);
+      padding: 12px;
+      background: var(--bg-warm);
+    }
+    .turn.queue .notify-form input {
+      background: transparent; border: none; color: var(--ink); font: inherit; font-size: var(--t-body);
+    }
+    .turn.queue .notify-form input:focus { outline: none; }
+    .turn.queue .notify-form input:focus-visible { outline: 2px solid var(--cyan-2); outline-offset: 2px; }
+    .turn.queue .notify-form button {
+      background: var(--cyan); color: var(--bg-deep); border: none;
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em;
+      text-transform: uppercase; padding: 8px 14px; cursor: pointer;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 8 — ERROR STATES
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .turn.error-ai {
+      border: 1px solid var(--park);
+      background: var(--bg-elev);
+      padding: 22px;
+      display: grid; gap: 14px;
+      max-width: 80%;
+    }
+    .turn.error-ai .label { color: var(--park); }
+    .turn.error-ai .copy { color: var(--ink-soft); font-size: var(--t-body); line-height: 1.4; }
+    .turn.error-ai .actions { display: flex; gap: var(--gap-2); margin-top: var(--gap-1); }
+    .turn.error-ai .actions a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+    .turn.error-ai .actions a:hover { color: var(--cyan-2); }
+
+    .turn.rate {
+      border: 1px solid var(--refine);
+      background: var(--bg-elev);
+      padding: 18px 22px;
+      display: grid; gap: 8px;
+      max-width: 70%;
+    }
+    .turn.rate .label { color: var(--refine); }
+    .turn.rate .copy { color: var(--ink-soft); font-size: var(--t-body); line-height: 1.4; }
+    .turn.rate .countdown {
+      font-family: var(--font-mono);
+      color: var(--refine);
+      font-size: 14px;
+      letter-spacing: 0.2em;
+    }
+
+    /* Email field — usado por Task 10 también */
+    .field-error {
+      color: var(--ink-muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    .field-error[data-state="error"] { color: var(--park); }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 10 — EMAIL GATE + PREVIEW PARCIAL
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .gate-card {
+      border: 1px solid var(--rule-strong);
+      background: var(--bg-elev);
+      padding: var(--gap-3);
+      display: grid; gap: var(--gap-2);
+      margin-top: var(--gap-3);
+    }
+    .gate-card .gate-title {
+      font-family: var(--font-display);
+      font-size: var(--t-h2);
+      line-height: 1.1; letter-spacing: -0.02em;
+      color: var(--ink); margin: 0;
+      text-wrap: balance;
+    }
+    .gate-card .gate-lead { font-style: italic; color: var(--ink-soft); margin: 0; }
+    .gate-card .field { display: grid; gap: 6px; }
+    .gate-card .field label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .gate-card .field input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed var(--rule);
+      color: var(--ink);
+      font-family: var(--font-display);
+      font-size: clamp(20px, 2.2vw, 24px);
+      padding: 8px 0;
+    }
+    .gate-card .field input:focus { outline: none; border-bottom: 1px solid var(--cyan); }
+    .gate-card .field input:focus-visible { outline: 2px solid var(--cyan-2); outline-offset: 2px; border-bottom-color: var(--cyan); }
+    .gate-card .field.is-error input { border-bottom-color: var(--park); }
+    .gate-card .trust {
+      color: var(--proceed);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .gate-card details { color: var(--ink-muted); font-size: 13px; }
+    .gate-card details summary {
+      cursor: pointer;
+      font-family: var(--font-mono);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .gate-card details p { margin-top: 8px; line-height: 1.4; }
+
+    /* Preview parcial inline en chat */
+    .report-preview {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: var(--gap-3) 0;
+      margin: var(--gap-3) 0;
+      display: grid; gap: var(--gap-3);
+    }
+    .report-preview .section { display: grid; gap: 8px; }
+    .report-preview .section .num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: var(--cyan-2);
+    }
+    .report-preview .section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 3vw, 36px);
+      color: var(--ink); margin: 0; line-height: 1.1; letter-spacing: -0.02em;
+    }
+    .report-preview .section p {
+      color: var(--ink-soft); line-height: 1.5; margin: 0;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 11 — INFORME EDITORIAL INLINE
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .report {
+      display: grid; gap: var(--gap-4);
+      padding-top: var(--gap-3);
+    }
+    .report-sticky {
+      position: sticky; top: 0; z-index: 5;
+      background: var(--bg);
+      padding: var(--gap-2) 0;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      /* 4 hijos: read-time | index | actions | feedback */
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: var(--gap-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+    }
+    @media (max-width: 800px) {
+      .report-sticky {
+        grid-template-columns: 1fr;
+        gap: var(--gap-1);
+      }
+      .report-sticky .index { order: 3; }
+      .report-sticky .actions, .report-sticky .feedback { justify-content: flex-start; }
+    }
+    .report-sticky .read-time { color: var(--ink-faint); }
+    .report-sticky .index { display: flex; gap: var(--gap-2); flex-wrap: wrap; color: var(--ink-muted); }
+    .report-sticky .index a {
+      color: inherit; text-decoration: none; cursor: pointer;
+    }
+    .report-sticky .index a[data-active="true"] { color: var(--cyan-2); }
+    .report-sticky .actions { display: flex; gap: var(--gap-2); }
+    .report-sticky .actions button {
+      background: transparent; border: 1px solid var(--rule-strong);
+      color: var(--ink-soft); padding: 6px 10px;
+      font: inherit; font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; cursor: pointer;
+    }
+    .report-sticky .actions button:hover { color: var(--cyan-2); border-color: var(--cyan); }
+    .report-sticky .feedback { display: flex; gap: 6px; }
+    .report-sticky .feedback .pill {
+      border: 1px solid var(--rule-strong); padding: 4px 10px;
+      font-size: 11px; letter-spacing: 0.18em; cursor: pointer;
+      background: transparent; color: var(--ink-soft);
+    }
+    .report-sticky .feedback .pill[data-selected="true"] {
+      background: var(--cyan); color: var(--bg-deep); border-color: var(--cyan);
+    }
+
+    .report-section {
+      display: grid; gap: var(--gap-2);
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 500ms var(--ease), transform 500ms var(--ease);
+    }
+    .report-section.is-visible { opacity: 1; transform: none; }
+    .report-section .num {
+      font-family: var(--font-mono); font-size: 12px;
+      letter-spacing: 0.22em; color: var(--cyan-2);
+    }
+    .report-section h2 {
+      font-family: var(--font-display); font-size: var(--t-h2);
+      line-height: 1.05; letter-spacing: -0.02em;
+      color: var(--ink); margin: 0;
+    }
+    .report-section h3 {
+      font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 28px);
+      margin: 0; color: var(--ink);
+    }
+    .report-section p { color: var(--ink-soft); line-height: 1.5; margin: 0; }
+    .report-section ul {
+      padding-left: 20px; color: var(--ink-soft);
+      line-height: 1.5; margin: 0;
+    }
+    .report-section ul li { margin-bottom: 6px; }
+
+    .report-lanes {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap-2);
+    }
+    .report-lane {
+      border: 1px solid var(--rule); padding: var(--gap-2);
+      display: grid; gap: var(--gap-1);
+    }
+    .report-lane.proceed { border-color: var(--proceed); }
+    .report-lane.refine  { border-color: var(--refine); }
+    .report-lane.park    { border-color: var(--park); }
+    .report-lane h3 { font-size: clamp(20px, 2vw, 24px); }
+    .report-lane.proceed h3 { color: var(--proceed); }
+    .report-lane.refine  h3 { color: var(--refine); }
+    .report-lane.park    h3 { color: var(--park); }
+    @media (max-width: 800px) { .report-lanes { grid-template-columns: 1fr; } }
+
+    .report-timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--gap-2);
+      border-top: 1px solid var(--rule-strong);
+      padding-top: var(--gap-2);
+    }
+    .report-timeline .stop { display: grid; gap: 6px; }
+    .report-timeline .stop .num { color: var(--ink-muted); }
+    .report-timeline .stop h4 {
+      font-family: var(--font-display);
+      font-size: clamp(18px, 1.8vw, 22px);
+      margin: 0; color: var(--ink);
+    }
+    .report-timeline .stop p { font-size: 14px; color: var(--ink-muted); margin: 0; }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 12 — ACCESIBILIDAD TRANSVERSAL
+       Audit 2026-05-14: focus rings restituidos en textarea / inputs
+       con outline suprimido. Tap targets ≥ 44px en móvil para
+       report-sticky actions, feedback pills y sample-link.
+       aria-live (×3) ✓  prefers-reduced-motion ✓  contrast AA ✓
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* Tap targets mínimos en mobile para elementos con padding reducido */
+    @media (max-width: 800px) {
+      .report-sticky .actions button {
+        min-height: 44px;
+        padding: 10px 14px;
+      }
+      .report-sticky .feedback .pill {
+        min-height: 44px;
+        padding: 10px 14px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .sample-link {
+        padding: 10px 0;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+    }
+
+    @media print {
+      .report-sticky { display: none !important; }
+      .report-section { opacity: 1 !important; transform: none !important; page-break-inside: avoid; }
+    }
+
   </style>
 </head>
 <body>
   <div class="shell">
-    <aside>
-      <div class="eyebrow">Discovery gratuito</div>
-      <h1>Encuentra tu primer empleado IA</h1>
-      <p class="lead">Una mini sesión consultiva para detectar dónde se escapa tiempo, dinero, clientes o trabajo que depende demasiado de ti.</p>
-      <div class="panel">
-        <h2>Empieza con una escena real</h2>
-        <button id="start">Empezar diagnóstico</button>
-        <button class="secondary" id="resetSession" type="button" hidden>Nuevo diagnóstico</button>
-        <div class="crm-status" id="crmStatus">Sin formulario previo. Primero entendemos qué pasa de verdad.</div>
-        <p class="privacy-note">El agente irá tirando del hilo hasta convertir tu relato en procesos, señales y prioridades. <a href="/PRIVACY_BETA.html" target="_blank" rel="noreferrer">Privacidad beta</a></p>
-      </div>
-      <div class="panel discovery-panel" id="discoveryPanel">
-        <h2>Lo que estoy entendiendo</h2>
-        <div class="discovery-card">
-          <span>Foco actual</span>
-          <strong id="focusText">Buscando el primer proceso claro</strong>
-        </div>
-        <div class="discovery-card">
-          <span>Claridad</span>
-          <div class="confidence-meter"><span id="confidenceFill"></span></div>
-        </div>
-        <div class="discovery-card">
-          <span>Señales detectadas</span>
-          <ul class="discovery-list" id="insightList">
-            <li>Aún estoy esperando contexto.</li>
+    <header class="topframe">
+      <div class="brand" id="brand">IA AL DÍA · DISCOVERY · <span id="sessionAnchor"></span></div>
+      <nav class="phase-line" id="phaseLine" aria-label="Fases de la sesión">
+        <div class="node" data-state="active" data-phase="1"><span>Contexto</span></div>
+        <div class="conn"></div>
+        <div class="node" data-phase="2"><span>Proceso</span></div>
+        <div class="conn"></div>
+        <div class="node" data-phase="3"><span>Decisión</span></div>
+        <div class="conn"></div>
+        <div class="node" data-phase="4"><span>Cierre</span></div>
+      </nav>
+      <div class="save-status" id="saveStatus" aria-live="polite"></div>
+    </header>
+
+    <div class="shell-body">
+      <aside class="sidebar" id="sidebar">
+        <div class="eyebrow">01 / Discovery</div>
+        <h1 class="display" style="font-size: var(--t-h2);">Encuentra tu primer empleado IA.</h1>
+        <p class="lead">— Una mini sesión consultiva para detectar dónde se escapa tiempo, dinero o clientes.</p>
+        <div class="hr-strong" style="width: 100%; opacity: 1;"></div>
+        <div class="aside-receivable">
+          <div class="eyebrow muted">Qué recibirás</div>
+          <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: var(--gap-2);">
+            <li><strong style="font-family: var(--font-display); font-size: var(--t-body); display: block; color: var(--ink);">Fugas detectadas</strong><span class="small">Dónde se pierde tiempo, dinero, clientes o foco.</span></li>
+            <li><strong style="font-family: var(--font-display); font-size: var(--t-body); display: block; color: var(--ink);">Primer empleado IA recomendado</strong><span class="small">Qué debería hacer, con qué datos, límites y riesgos.</span></li>
+            <li><strong style="font-family: var(--font-display); font-size: var(--t-body); display: block; color: var(--ink);">Plan de 7 días</strong><span class="small">Primeros pasos realistas sin lenguaje técnico.</span></li>
           </ul>
         </div>
-        <div class="discovery-card">
-          <span>Procesos candidatos</span>
-          <div class="candidate-list" id="candidateList">
-            <div class="candidate-empty">Aparecerán cuando el agente detecte oportunidades reales.</div>
-          </div>
-        </div>
-        <div class="discovery-card">
-          <span>Falta por aclarar</span>
-          <ul class="discovery-list" id="gapList">
-            <li>Negocio, cliente y proceso repetitivo.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>Qué recibirás</h2>
-        <div class="lead-list">
-          <div class="lead-item"><strong>Fugas detectadas</strong>Dónde se pierde tiempo, dinero, clientes o foco.</div>
-          <div class="lead-item"><strong>Primer empleado IA recomendado</strong>Qué debería hacer, con qué datos, límites y riesgos.</div>
-          <div class="lead-item"><strong>Plan de 7 días</strong>Primeros pasos realistas sin lenguaje técnico.</div>
-        </div>
-      </div>
-    </aside>
-    <main>
-      <div class="topbar">
-        <div class="toprow">
-          <div class="status" id="status">Empieza cuando quieras: el agente irá tirando del hilo.</div>
-          <div class="stage" id="stage">Contexto</div>
-        </div>
-        <div class="progress"><span id="progress"></span></div>
-      </div>
-      <div class="chat" id="chat">
+      </aside>
+      <main id="mainStage">
         <section class="starter" id="starter">
-          <div class="starter-hero">
-            <div class="starter-kicker">Discovery gratuito · 7-10 min</div>
-            <h2>¿Dónde se te escapa tiempo, dinero o clientes?</h2>
-            <p class="starter-copy">Habla con un agente que analiza tu negocio como lo haría un consultor: escucha, repregunta, detecta patrones y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
-            <div class="starter-start">
-              <button class="start-primary" type="button" onclick="startSession()">Empezar diagnóstico</button>
-              <p class="privacy-note" id="microAdvice">Consejo: usa el micro y cuenta una escena real. No hace falta que lo traigas ordenado.</p>
-            </div>
-            <div class="diagnostic-preview" aria-label="Vista previa del tipo de análisis que hará el agente">
-              <div class="diagnostic-preview-head">
-                <strong>Discovery en vivo</strong>
-                <span>No formulario · preguntas según tu caso</span>
-              </div>
-              <div class="diagnostic-preview-body">
-                <div class="preview-dialogue">
-                  <div class="preview-turn agent">
-                    <span>Agente</span>
-                    <p>Cuéntame una escena reciente donde algo se quedó parado: un email, un lead, una reserva, una tarea interna.</p>
-                  </div>
-                  <div class="preview-turn">
-                    <span>Tú</span>
-                    <p>Recibo muchos mensajes buenos, pero no sé cuáles responder ni cómo sacarles partido.</p>
-                  </div>
-                  <div class="preview-turn agent">
-                    <span>Agente</span>
-                    <p>Ahí puede haber una fuga de oportunidades. Voy a mirar volumen, criterio de respuesta, riesgo y primer paso viable.</p>
-                  </div>
-                </div>
-                <div class="preview-map">
-                  <div class="preview-map-row">
-                    <span>Fuga</span>
-                    <div><strong>Oportunidades sin seguimiento</strong><p>Mensajes que llegan, pero no se convierten en acción.</p></div>
-                  </div>
-                  <div class="preview-map-row">
-                    <span>Proceso</span>
-                    <div><strong>Clasificar, resumir y proponer respuesta</strong><p>La IA prepara; la persona aprueba.</p></div>
-                  </div>
-                  <div class="preview-map-row">
-                    <span>Informe</span>
-                    <div><strong>Primer empleado IA recomendado</strong><p>Con datos necesarios, riesgos y plan de 7 días.</p></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="starter-proof">
-              <div class="starter-prompt">
-                <strong>Empieza con una escena, no con una estrategia</strong>
-                <p>No hace falta que lo tengas ordenado. Cuenta qué vendes, a quién ayudas y una situación reciente donde algo se acumuló, se retrasó o se quedó sin responder. El agente irá convirtiendo ese relato en un mapa de procesos, señales y prioridades.</p>
-              </div>
-              <div class="live-map" aria-label="Ejemplo de mapa que construye el agente">
-                <div class="live-map-head">
-                  <span>Mapa vivo del diagnóstico</span>
-                  <span class="live-dot" aria-hidden="true"></span>
-                </div>
-                <div class="map-row">
-                  <span>Entrada</span>
-                  <div><strong>Mensajes, leads o tareas repetidas</strong><p>Qué llega cada semana y dónde se acumula.</p></div>
-                </div>
-                <div class="map-row">
-                  <span>Decisión</span>
-                  <div><strong>Qué miras antes de responder</strong><p>Reglas, contexto, datos y criterio humano.</p></div>
-                </div>
-                <div class="map-row">
-                  <span>IA viable</span>
-                  <div><strong>Borrador, clasificación o siguiente paso</strong><p>Con revisión humana cuando haya riesgo.</p></div>
-                </div>
-              </div>
-            </div>
-            <div class="starter-signal" aria-label="Qué va a analizar el agente">
-              <div class="signal-line">
-                <span>1</span>
-                <div><strong>Mapa rápido del negocio</strong><p>Qué entra, qué decides, qué respondes y qué queda pendiente.</p></div>
-              </div>
-              <div class="signal-line">
-                <span>2</span>
-                <div><strong>Oportunidades con evidencia</strong><p>No recomienda “un chatbot” por defecto: busca frecuencia, impacto, datos y riesgo.</p></div>
-              </div>
-              <div class="signal-line">
-                <span>3</span>
-                <div><strong>Primer empleado IA recomendado</strong><p>Una propuesta concreta, con límites humanos y un primer paso realista.</p></div>
-              </div>
-            </div>
-            <div class="starter-row">
-              <span class="starter-pill" id="microPill">
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="slash-motif" aria-hidden="true"></div>
+          <div class="eyebrow reveal" style="transition-delay: 120ms;">Discovery gratuito · 7-10 min</div>
+          <h2 class="hero-title reveal" style="transition-delay: 240ms;">¿Dónde se te escapa tiempo, dinero o clientes?</h2>
+          <p class="hero-lead reveal" style="transition-delay: 600ms;">— Una sesión consultiva con un agente que escucha, repregunta y separa automatizaciones útiles de ideas bonitas que todavía no toca construir.</p>
+          <div class="reveal" style="transition-delay: 800ms;">
+            <button type="button" class="cta-primary" id="startSession">
+              Empezar conversación
+              <span class="arrow" aria-hidden="true">→</span>
+            </button>
+            <span class="micro-tag" id="microTag"><span class="dot"></span>Mejor con micro</span>
+          </div>
+          <div class="reveal" style="transition-delay: 900ms;">
+            <button type="button" class="sample-link" id="sampleLink">Ver un informe de muestra (2 min) →</button>
+          </div>
+          <div class="hr-strong"></div>
+          <div class="promise-line">
+            <article class="promise reveal" style="transition-delay: 1100ms;">
+              <span class="num">01 / Cuéntame una escena</span>
+              <h3>Una situación reciente</h3>
+              <p>Donde algo se acumuló, se retrasó o se quedó sin responder.</p>
+            </article>
+            <article class="promise reveal" style="transition-delay: 1180ms;">
+              <span class="num">02 / Yo extraigo el patrón</span>
+              <h3>De relato a procesos</h3>
+              <p>Convierto tu caso en señales y procesos repetibles.</p>
+            </article>
+            <article class="promise reveal" style="transition-delay: 1260ms;">
+              <span class="num">03 / Te entrego un plan</span>
+              <h3>Empleado IA recomendado</h3>
+              <p>Riesgos, primer paso, plan de 7 y 30 días.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footframe">
+      <div class="counter" id="phaseCounter">01</div>
+      <div class="mark">IA AL DÍA<span class="slash">/</span></div>
+    </footer>
+  </div>
+
+  <script>
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 2 — SHELL HELPERS
+       setPhase, setSaveStatus y session anchor.
+       Estos helpers viven en el scope global del <script> (function
+       declarations en script clásico, no module) para que los
+       <script> de tasks futuros puedan invocarlos sin imports.
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    // Tiempo antes de que un estado "syncing" se desvanezca solo en el top frame.
+    const SAVE_STATUS_DISMISS_MS = 2200;
+
+    /* === SESSION ANCHOR === */
+    (() => {
+      const months = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+      const d = new Date();
+      const anchor = `${String(d.getDate()).padStart(2,"0")} ${months[d.getMonth()]} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      const el = document.getElementById("sessionAnchor");
+      if (el) el.textContent = anchor;
+    })();
+
+    /* === PHASE TRANSITION HELPER === */
+    function setPhase(n) {
+      const nodes = document.querySelectorAll("#phaseLine .node");
+      const conns = document.querySelectorAll("#phaseLine .conn");
+      nodes.forEach((node, i) => {
+        const idx = i + 1;
+        if (idx < n) node.dataset.state = "done";
+        else if (idx === n) node.dataset.state = "active";
+        else node.removeAttribute("data-state");  // sin data-state = futuro/idle
+      });
+      conns.forEach((conn, i) => {
+        if (i + 1 < n) conn.dataset.state = "done";
+        else conn.removeAttribute("data-state");
+      });
+      document.getElementById("phaseCounter").textContent = String(n).padStart(2, "0");
+    }
+    setPhase(1);
+
+    /* === SAVE STATUS HELPER === */
+    let _saveStatusTimer;
+    function setSaveStatus(state, message) {
+      const el = document.getElementById("saveStatus");
+      if (!el) return;
+      clearTimeout(_saveStatusTimer);
+      if (!state) { el.textContent = ""; el.removeAttribute("data-state"); return; }
+      el.dataset.state = state;
+      el.textContent = message;
+      if (state === "syncing") {
+        _saveStatusTimer = setTimeout(() => setSaveStatus(null), SAVE_STATUS_DISMISS_MS);
+      }
+    }
+
+    // Exposición explícita para uso desde tasks futuros (defensa frente a
+    // que alguien convierta este script a type="module").
+    window.setPhase = setPhase;
+    window.setSaveStatus = setSaveStatus;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 9 — SESSION RESTORE
+       tryRestoreSession(), renderWelcomeBack()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const SESSION_STORAGE_KEY = "primer_empleado_lead_id";
+
+    async function tryRestoreSession() {
+      const stored = (typeof localStorage !== "undefined") ? localStorage.getItem(SESSION_STORAGE_KEY) : null;
+      if (!stored) return false;
+      try {
+        const res = await fetch(`/api/lead?id=${encodeURIComponent(stored)}`, { method: "GET" });
+        if (!res.ok) {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+          return false;
+        }
+        const lead = await res.json();
+        const transcript = Array.isArray(lead && lead.transcript) ? lead.transcript : [];
+        if (transcript.length === 0) return false;
+        const lastAgent = [...transcript].reverse().find(m => m.role === "assistant");
+        SESSION.lead_id = lead.lead_id || lead.id || stored;
+        renderWelcomeBack(lead, lastAgent, transcript);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function renderWelcomeBack(lead, lastAgent, transcript) {
+      const main = document.getElementById("mainStage");
+      if (!main) return;
+      const text = (lastAgent && lastAgent.content) ? lastAgent.content : "";
+      const safeText = text.replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+      main.innerHTML = `
+        <section class="starter" id="starter">
+          <div class="eyebrow">Bienvenido de vuelta</div>
+          <p class="hero-lead">Seguíamos en:</p>
+          <div class="turn" data-role="agent"${text.length <= 120 ? ' data-short="true"' : ''}>
+            <span class="label">Agente</span>
+            <div class="body">${safeText}</div>
+          </div>
+          <div style="display: flex; gap: var(--gap-2); margin-top: var(--gap-3);">
+            <button type="button" class="cta-primary" id="continueSession">Continuar <span class="arrow">→</span></button>
+            <button type="button" class="sample-link" id="resetSession">Empezar de cero</button>
+          </div>
+        </section>
+      `;
+      requestAnimationFrame(() => main.querySelector(".starter").classList.add("is-revealed"));
+      document.getElementById("continueSession").addEventListener("click", () => {
+        enterChat();
+        // Re-render del transcript completo (sin separadores duplicados)
+        transcript.forEach(m => appendTurn(m.role === "assistant" ? "agent" : "user", m.content || ""));
+        // Re-poblar sidebar con facts persistidos si vienen del lead (review note de Task 5)
+        const facts = (lead && lead.facts) || {};
+        updateSidebarFromTurn({
+          focus: facts.focus_current || facts.focus || facts.focus_summary,
+          signals: facts.signals || facts.evidence || [],
+          gaps: facts.gaps || facts.missing || [],
+          phase: typeof facts.phase === "number" ? facts.phase : undefined,
+        });
+        if (typeof facts.phase === "number") setPhase(facts.phase);
+      });
+      document.getElementById("resetSession").addEventListener("click", () => {
+        try { localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+        location.reload();
+      });
+    }
+
+    window.tryRestoreSession = tryRestoreSession;
+    window.renderWelcomeBack = renderWelcomeBack;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 10 — EMAIL GATE + PREVIEW PARCIAL
+       maybeShowEmailGate(), requestReport()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+    }
+
+    function maybeShowEmailGate(data) {
+      if (!data || !data.ready_for_report) return false;
+      // Idempotencia: si el gate ya está montado (p.ej., el backend repitió
+      // ready_for_report en un turno posterior), no duplicar la card.
+      if (document.getElementById("emailGate")) return false;
+      setPhase(3);
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return false;
+      const preview = data.report_preview || data.report || null;
+      if (preview) {
+        const node = document.createElement("section");
+        node.className = "report-preview";
+        const summary = preview.headline || preview.summary || "Aquí está tu primer empleado IA recomendado.";
+        const reason = preview.recommendation_reason || preview.reason || "";
+        node.innerHTML = `
+          <div class="section">
+            <span class="num">01 / Resumen de acción</span>
+            <h2>${escapeHtml(summary)}</h2>
+          </div>
+          ${reason ? `<div class="section">
+            <span class="num">03 / Por qué empezar aquí</span>
+            <p>${escapeHtml(reason)}</p>
+          </div>` : ""}
+        `;
+        scroll.appendChild(node);
+      }
+      const gate = document.createElement("section");
+      gate.className = "gate-card";
+      gate.id = "emailGate";
+      gate.innerHTML = `
+        <div class="eyebrow">El agente tiene una recomendación</div>
+        <h2 class="gate-title">He convertido tu caso en un primer empleado IA viable.</h2>
+        <p class="gate-lead">— Dime a qué email te lo envío y te abro el informe completo. Una sola vez. Sin newsletter automática.</p>
+        <div class="field" id="emailField">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" autocomplete="email" placeholder="tu@email.com" aria-label="Email" />
+          <div class="field-error" id="emailFieldError"></div>
+        </div>
+        <button class="cta-primary" id="emailSubmit" type="button">Recibir informe completo <span class="arrow">→</span></button>
+        <div class="trust">— Una sola vez. Sin newsletter automática.</div>
+        <details><summary>¿Por qué pido el email?</summary><p>Para entregarte el informe completo y, si quieres, escribirte una vez con la siguiente acción. No te suscribo a ninguna lista. Lee la política de privacidad.</p></details>
+      `;
+      scroll.appendChild(gate);
+      scroll.scrollTop = scroll.scrollHeight;
+      // Bloquear composer / sendBtn — el flujo cambia a "rellena el email"
+      const composer = document.getElementById("composer");
+      const sendBtn = document.getElementById("sendBtn");
+      if (composer) composer.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+      // Wiring del input + submit
+      const input = document.getElementById("emailInput");
+      const errorEl = document.getElementById("emailFieldError");
+      const fieldEl = document.getElementById("emailField");
+      input.addEventListener("blur", () => {
+        const v = input.value.trim();
+        if (!v) {
+          fieldEl.classList.remove("is-error");
+          errorEl.textContent = "";
+          errorEl.removeAttribute("data-state");
+          return;
+        }
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        fieldEl.classList.toggle("is-error", !valid);
+        errorEl.textContent = valid ? "" : "Ese email no parece válido.";
+        if (!valid) errorEl.dataset.state = "error";
+        else errorEl.removeAttribute("data-state");
+      });
+      document.getElementById("emailSubmit").addEventListener("click", () => requestReport(input.value.trim()));
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          requestReport(input.value.trim());
+        }
+      });
+      input.focus();
+      return true;
+    }
+
+    async function requestReport(email) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        const fieldEl = document.getElementById("emailField");
+        const errorEl = document.getElementById("emailFieldError");
+        if (fieldEl) fieldEl.classList.add("is-error");
+        if (errorEl) { errorEl.textContent = "Ese email no parece válido."; errorEl.dataset.state = "error"; }
+        return;
+      }
+      setSaveStatus("syncing", "GENERANDO INFORME ▍");
+      const submitBtn = document.getElementById("emailSubmit");
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = `Generando ▍`; }
+      try {
+        const res = await fetch("/api/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lead_id: SESSION.lead_id, email }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "report_failed");
+        // renderReportInline está implementado en Task 11. Por ahora, fallback defensivo:
+        if (typeof renderReportInline === "function") {
+          renderReportInline(data);
+        } else {
+          // Stub: dejamos un mensaje en la card
+          const gate = document.getElementById("emailGate");
+          if (gate) gate.innerHTML = `<div class="eyebrow">Informe generado</div><p class="body">Se ha enviado a ${escapeHtml(email)}. (renderReportInline pendiente de Task 11)</p>`;
+        }
+        setSaveStatus("syncing", "INFORME ENVIADO");
+      } catch (e) {
+        setSaveStatus("reconnect", "REINTENTANDO ▍");
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = `Recibir informe completo <span class="arrow">→</span>`; }
+      }
+    }
+
+    window.maybeShowEmailGate = maybeShowEmailGate;
+    window.requestReport = requestReport;
+    window.escapeHtml = escapeHtml;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 11 — INFORME EDITORIAL INLINE
+       renderReportInline(), renderSection()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const REPORT_READING_WPM = 200;
+    let _reportObserver = null;
+
+    function renderReportInline(report) {
+      if (!report) return;
+      // Si había un observer previo (segunda llamada accidental), desconectar.
+      if (_reportObserver) { try { _reportObserver.disconnect(); } catch (e) {} _reportObserver = null; }
+      setPhase(4);
+      const main = document.getElementById("mainStage");
+      if (!main) return;
+      // Estimación de lectura
+      const text = JSON.stringify(report);
+      const wordCount = text.split(/\s+/).filter(Boolean).length;
+      const minutes = Math.max(2, Math.round(wordCount / REPORT_READING_WPM));
+      // Definición de secciones (mapeo backend → componentes)
+      const sections = [
+        { num: "01", label: "Resumen",  title: "Resumen de acción",        body: report.summary || report.headline || "" },
+        { num: "02", label: "Por qué",  title: "Lo que he entendido",      body: report.business_snapshot || "" },
+        { num: "03", label: "Razón",    title: "Por qué empezar aquí",     body: report.recommendation_reason || "" },
+        { num: "04", label: "Señales",  title: "Señales detectadas",       list: report.evidence_summary || [] },
+        { num: "05", label: "Lanes",    title: "Oportunidades prioritarias", lanes: report.opportunities || [] },
+        { num: "06", label: "No aún",   title: "No automatizar todavía",   list: report.do_not_automate_yet || [] },
+        { num: "07", label: "Plan 7d",  title: "Plan de 7 días",           timeline: report.seven_day_plan || [] },
+        { num: "08", label: "Plan 30d", title: "Plan de 30 días",          timeline: report.thirty_day_plan || [] },
+        { num: "09", label: "Próximo",  title: "Siguiente paso recomendado", body: (report.cta && report.cta.message) || "" },
+      ];
+      const indexHtml = sections.map(s => `<a data-target="sec-${s.num}">${escapeHtml(s.label)}</a>`).join(" · ");
+      main.innerHTML = `
+        <header class="report-sticky">
+          <div class="read-time">LECTURA · ${minutes} MIN</div>
+          <nav class="index" aria-label="Índice del informe">${indexHtml}</nav>
+          <div class="actions">
+            <button id="copyLinkBtn" type="button">Copiar enlace privado</button>
+            <button id="printBtn" type="button" aria-label="Imprimir o guardar como PDF">⌘P</button>
+          </div>
+          <div class="feedback" role="group" aria-label="Feedback del informe">
+            <button class="pill" data-feedback="util">Útil</button>
+            <button class="pill" data-feedback="regular">Regular</button>
+            <button class="pill" data-feedback="poco">Poco útil</button>
+          </div>
+        </header>
+        <section class="report" id="reportRoot">
+          ${sections.map(s => renderSection(s)).join("")}
+        </section>
+      `;
+      // IntersectionObserver para reveal + active index
+      _reportObserver = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-visible");
+            const id = en.target.id;
+            document.querySelectorAll(".report-sticky .index a").forEach(a => {
+              a.dataset.active = a.dataset.target === id ? "true" : "false";
+            });
+          }
+        });
+      }, { threshold: 0.2, rootMargin: "0px 0px -20% 0px" });
+      document.querySelectorAll(".report-section").forEach(s => _reportObserver.observe(s));
+      // Index click → scroll suave
+      document.querySelectorAll(".report-sticky .index a").forEach(a => {
+        a.addEventListener("click", () => {
+          const target = document.getElementById(a.dataset.target);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+      // Copy private link
+      document.getElementById("copyLinkBtn").addEventListener("click", async (e) => {
+        const token = report.private_token || report.token || "";
+        const url = `${location.origin}/r/${SESSION.lead_id}/${token}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          e.target.textContent = "Enlace copiado ✓";
+        } catch (err) {
+          e.target.textContent = "Copia manual: " + url;
+        }
+        setTimeout(() => { e.target.textContent = "Copiar enlace privado"; }, 2400);
+      });
+      document.getElementById("printBtn").addEventListener("click", () => window.print());
+      // Feedback
+      document.querySelectorAll(".report-sticky .feedback .pill").forEach(pill => {
+        pill.addEventListener("click", async () => {
+          document.querySelectorAll(".report-sticky .feedback .pill").forEach(p => p.dataset.selected = "false");
+          pill.dataset.selected = "true";
+          try {
+            await fetch("/api/feedback", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ lead_id: SESSION.lead_id, feedback: pill.dataset.feedback }),
+            });
+          } catch (e) { /* silenciar — el feedback no es crítico */ }
+        });
+      });
+    }
+
+    function renderSection(s) {
+      let body = "";
+      if (s.body) body = `<p>${escapeHtml(s.body)}</p>`;
+      if (Array.isArray(s.list) && s.list.length) {
+        body = `<ul>${s.list.map(it => `<li>${escapeHtml(typeof it === "string" ? it : (it.text || it.label || JSON.stringify(it)))}</li>`).join("")}</ul>`;
+      }
+      if (Array.isArray(s.lanes) && s.lanes.length) {
+        const buckets = { proceed: [], refine: [], park: [] };
+        s.lanes.forEach(o => {
+          const verdict = String(o.verdict || o.bucket || "").toUpperCase();
+          const cls = verdict === "PROCEED" ? "proceed" : verdict === "REFINE" ? "refine" : "park";
+          buckets[cls].push(o);
+        });
+        body = `<div class="report-lanes">
+          ${["proceed","refine","park"].map(k => `
+            <article class="report-lane ${k}">
+              <h3>${k.toUpperCase()}</h3>
+              ${buckets[k].length ? buckets[k].map(o => `<p>${escapeHtml(o.title || o.name || "")}</p>`).join("") : `<p class="muted">—</p>`}
+            </article>
+          `).join("")}
+        </div>`;
+      }
+      if (Array.isArray(s.timeline) && s.timeline.length) {
+        body = `<div class="report-timeline">${s.timeline.map((t, i) => `
+          <div class="stop">
+            <span class="num">DÍA ${i+1}</span>
+            <h4>${escapeHtml(typeof t === "string" ? t : (t.title || t.label || ""))}</h4>
+            ${typeof t === "object" && t.detail ? `<p>${escapeHtml(t.detail)}</p>` : ""}
+          </div>
+        `).join("")}</div>`;
+      }
+      return `<section class="report-section" id="sec-${s.num}">
+        <span class="num">${s.num} / ${escapeHtml(s.label)}</span>
+        <h2>${escapeHtml(s.title)}</h2>
+        ${body}
+      </section>`;
+    }
+
+    window.renderReportInline = renderReportInline;
+    window.renderSection = renderSection;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 3 — STARTER REVEAL
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 4 — CHAT SURFACE
+       enterChat(), appendTurn(), sendMessage(), rewindToTurn()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    let SESSION = { lead_id: null, transcript: [] };
+
+    function enterChat() {
+      setPhase(2);
+      const main = document.getElementById("mainStage");
+      main.innerHTML = `
+        <div class="chat-stage">
+          <div class="chat-scroll" id="chatScroll" aria-live="polite" aria-relevant="additions"></div>
+          <div class="composer-wrap">
+            <div class="composer-grid">
+              <textarea id="composer" placeholder="Cuéntame una escena reciente…" aria-label="Tu mensaje"></textarea>
+              <button class="icon-btn" id="micBtn" type="button" aria-label="Grabar con micrófono" title="Micrófono">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                   <path d="M12 19v3"></path>
                 </svg>
-                Mejor con micro
-              </span>
-              <span class="starter-pill">Preguntas adaptadas</span>
-              <span class="starter-pill">Sin formulario previo</span>
+              </button>
+              <button class="cta-primary send-btn" id="sendBtn" type="button">Enviar <span class="arrow">→</span></button>
             </div>
-            <div class="process-strip">
-              <div class="process-card">
-                <span>Detecta</span>
-                <strong>Procesos reales</strong>
-                <p>Email, leads, soporte, reservas, reporting o tareas internas.</p>
-              </div>
-              <div class="process-card">
-                <span>Prioriza</span>
-                <strong>Impacto vs facilidad</strong>
-                <p>No todo merece automatizarse: elegimos lo que tiene sentido.</p>
-              </div>
-              <div class="process-card">
-                <span>Entrega</span>
-                <strong>Una recomendación concreta</strong>
-                <p>Qué empleado IA crear, con qué datos, riesgos y primer paso.</p>
-              </div>
-            </div>
+            <div class="composer-hint" id="composerHint">⏎ enviar · ⇧⏎ línea nueva</div>
           </div>
-        </section>
-      </div>
-      <div class="composer" id="composer" hidden>
-        <div class="composer-grid">
-          <textarea id="input" placeholder="Cuando empieces, cuéntame tu negocio o dicta con el micro." disabled></textarea>
-          <button class="secondary icon" id="mic" type="button" aria-label="Micrófono" title="Micrófono" disabled>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-              <path d="M12 19v3"></path>
-            </svg>
-            <span class="sr-only">Micrófono</span>
-          </button>
-          <button id="send" disabled>Enviar</button>
         </div>
-        <div class="composer-actions">
-          <button class="secondary" id="report" disabled hidden>Generar informe</button>
-        </div>
-        <div class="mic-status" id="micStatus"></div>
-      </div>
-    </main>
-  </div>
-
-  <script>
-    const chat = document.getElementById("chat");
-    const composer = document.getElementById("composer");
-    const input = document.getElementById("input");
-    const send = document.getElementById("send");
-    const start = document.getElementById("start");
-    const resetSession = document.getElementById("resetSession");
-    const starter = document.getElementById("starter");
-    const reportBtn = document.getElementById("report");
-    const micBtn = document.getElementById("mic");
-    const crmStatus = document.getElementById("crmStatus");
-    const micStatus = document.getElementById("micStatus");
-    const microAdvice = document.getElementById("microAdvice");
-    const microPill = document.getElementById("microPill");
-    const statusEl = document.getElementById("status");
-    const stageEl = document.getElementById("stage");
-    const progress = document.getElementById("progress");
-    const discoveryPanel = document.getElementById("discoveryPanel");
-    const focusText = document.getElementById("focusText");
-    const confidenceFill = document.getElementById("confidenceFill");
-    const insightList = document.getElementById("insightList");
-    const gapList = document.getElementById("gapList");
-    const candidateList = document.getElementById("candidateList");
-    let leadId = null;
-    let transcript = [];
-    let latestReport = null;
-    let latestReportUrl = "";
-    let mediaRecorder = null;
-    let activeStream = null;
-    let audioChunks = [];
-    let listening = false;
-    let capturedEmail = "";
-    let pendingReport = false;
-    let transcriptionAvailable = true;
-    let restoringSession = false;
-    let waitTimer = null;
-    const storageKey = "primerEmpleadoIaSession";
-
-    const stagePct = {
-      contexto: 12,
-      exploracion: 28,
-      profundizacion: 48,
-      evaluacion: 68,
-      recomendacion: 82,
-      informe: 100
-    };
-    const stageLabels = {
-      contexto: "Contexto",
-      exploracion: "Explorando",
-      profundizacion: "Profundizando",
-      evaluacion: "Evaluando",
-      recomendacion: "Recomendación",
-      informe: "Informe"
-    };
-
-    function escapeHtml(text) {
-      return String(text || "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-      }[char]));
+      `;
+      renderSidebarChat({ phase: 2 });
+      document.getElementById("composer").focus();
     }
 
-    function readable(value) {
-      if (value === null || value === undefined) return "";
-      if (Array.isArray(value)) return value.join(", ");
-      if (typeof value === "object") return Object.values(value).filter(Boolean).join(" ");
-      return value;
-    }
-
-    function setStage(stage) {
-      const safeStage = stagePct[stage] ? stage : "profundizacion";
-      stageEl.textContent = stageLabels[safeStage] || "Profundizando";
-      progress.style.width = `${stagePct[safeStage] || 48}%`;
-    }
-
-    function setCrm(message, type = "") {
-      crmStatus.textContent = message;
-      crmStatus.className = `crm-status ${type}`.trim();
-    }
-
-    function setMic(message, type = "") {
-      micStatus.textContent = message;
-      micStatus.className = `mic-status ${type}`.trim();
-    }
-
-    function saveSessionState(extra = {}) {
-      if (!leadId || restoringSession) return;
-      localStorage.setItem(storageKey, JSON.stringify({
-        leadId,
-        capturedEmail,
-        latestReportUrl,
-        stage: stageEl.textContent,
-        status: statusEl.textContent,
-        transcript,
-        ...extra
-      }));
-    }
-
-    function clearSessionState() {
-      localStorage.removeItem(storageKey);
-    }
-
-    function resetCurrentSession() {
-      clearSessionState();
-      window.location.reload();
-    }
-
-    function listHtml(items, fallback) {
-      const safeItems = Array.isArray(items) && items.length ? items : [fallback];
-      return safeItems.slice(0, 4).map(item => `<li>${escapeHtml(readable(item))}</li>`).join("");
-    }
-
-    function normalizeConfidence(value) {
-      const number = Number(value || 0);
-      if (!Number.isFinite(number) || number <= 0) return 0;
-      return Math.max(0, Math.min(1, number > 1 ? number / 5 : number));
-    }
-
-    function renderCandidates(candidates = []) {
-      const safeCandidates = Array.isArray(candidates) ? candidates.filter(Boolean).slice(0, 3) : [];
-      if (!safeCandidates.length) {
-        candidateList.innerHTML = `<div class="candidate-empty">Aparecerán cuando el agente detecte oportunidades reales.</div>`;
-        return;
+    function appendTurn(role, content) {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return;
+      const isFirstOfRole = !scroll.querySelector(`.turn[data-role="${role}"]`);
+      const isShort = role === "agent" && (content || "").length <= 120;
+      if (scroll.lastElementChild && !scroll.lastElementChild.classList.contains("turn-separator")) {
+        const sep = document.createElement("div");
+        sep.className = "turn-separator";
+        scroll.appendChild(sep);
       }
-      candidateList.innerHTML = safeCandidates.map((candidate, index) => {
-        const name = readable(candidate.name || candidate.process || candidate.title) || `Proceso candidato ${index + 1}`;
-        const why = readable(candidate.why_it_matters || candidate.why || candidate.reason) || "Podría ahorrar tiempo, capturar valor o reducir trabajo manual.";
-        const evidence = readable(candidate.evidence || candidate.signal || candidate.source);
-        const confidence = Math.round(normalizeConfidence(candidate.confidence) * 100);
-        return `<div class="candidate-item">
-          <div class="candidate-head">
-            <strong>${escapeHtml(name)}</strong>
-            <span class="candidate-score">${confidence || 45}%</span>
-          </div>
-          <p>${escapeHtml(why)}</p>
-          ${evidence ? `<div class="candidate-evidence">Evidencia: ${escapeHtml(evidence)}</div>` : ""}
-        </div>`;
-      }).join("");
-    }
-
-    function updateDiscovery(result = {}) {
-      discoveryPanel.classList.add("active");
-      const confidence = normalizeConfidence(result.confidence);
-      const focus = result.current_focus || result.facts?.selected_process || "Proceso por descubrir";
-      focusText.textContent = readable(focus);
-      confidenceFill.style.width = `${Math.round(confidence * 100)}%`;
-      insightList.innerHTML = listHtml(result.live_insights, "Estoy buscando patrones en tus respuestas.");
-      renderCandidates(result.candidate_processes);
-      gapList.innerHTML = listHtml(result.open_gaps, result.ready_for_report ? "Ya tengo suficiente para preparar el diagnóstico." : "Necesito un ejemplo real para afinar.");
-      if (result.progress_label) statusEl.textContent = result.progress_label;
-    }
-
-    function addMessage(role, text, meta = "") {
-      transcript.push({ role, content: text, at: Date.now() });
-      const node = document.createElement("div");
-      node.className = `message ${role}`;
-      node.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
-      chat.appendChild(node);
-      chat.scrollTop = chat.scrollHeight;
-      saveSessionState();
-    }
-
-    function delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async function addTypingMessage(role, text, meta = "") {
-      transcript.push({ role, content: text, at: Date.now() });
-      const node = document.createElement("div");
-      node.className = `message ${role} typing`;
-      const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      const metaNode = document.createElement("div");
-      metaNode.className = "meta";
-      metaNode.textContent = meta;
-      node.appendChild(bubble);
-      if (meta) node.appendChild(metaNode);
-      chat.appendChild(node);
-      const safeText = String(text || "");
-      for (let i = 0; i < safeText.length; i += 3) {
-        bubble.textContent = safeText.slice(0, i + 3);
-        chat.scrollTop = chat.scrollHeight;
-        await delay(12);
+      const turn = document.createElement("div");
+      turn.className = "turn";
+      turn.dataset.role = role;
+      if (isShort) turn.dataset.short = "true";
+      turn.dataset.index = String(SESSION.transcript.filter(m => m.role === role).length);
+      turn.innerHTML = `
+        ${isFirstOfRole ? `<span class="label">${role === "agent" ? "Agente" : "Tú"}</span>` : ""}
+        <div class="body"></div>
+        ${role === "user" ? `<button class="edit-handle" type="button" aria-label="Reescribir esta respuesta">Reescribir</button>` : ""}
+      `;
+      turn.querySelector(".body").textContent = content || "";
+      if (role === "user") {
+        const handle = turn.querySelector(".edit-handle");
+        handle.addEventListener("click", () => rewindToTurn(parseInt(turn.dataset.index, 10)));
       }
-      bubble.textContent = safeText;
-      node.classList.remove("typing");
-      chat.scrollTop = chat.scrollHeight;
-      saveSessionState();
+      scroll.appendChild(turn);
+      SESSION.transcript.push({ role, content });
+      scroll.scrollTop = scroll.scrollHeight;
+      const hint = document.getElementById("composerHint");
+      if (hint && role === "user") hint.style.display = "none";
     }
 
-    function addHtml(role, html, meta = "") {
-      const node = document.createElement("div");
-      node.className = `message ${role}`;
-      node.innerHTML = `<div class="bubble">${html}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ""}`;
-      chat.appendChild(node);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    async function api(path, payload = null, method = "POST") {
-      const options = { method, headers: { "Content-Type": "application/json" } };
-      if (payload) options.body = JSON.stringify(payload);
-      const response = await fetch(path, options);
-      const json = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const error = new Error(json.error || "Error de servidor");
-        error.status = response.status;
-        error.payload = json;
-        throw error;
-      }
-      return json;
-    }
-
-    function startWaitStatus(messages) {
-      clearWaitStatus();
-      const started = Date.now();
-      const steps = messages || ["El agente está pensando"];
-      const render = () => {
-        const elapsed = Math.max(0, Math.floor((Date.now() - started) / 1000));
-        const index = elapsed >= 28 ? Math.min(steps.length - 1, 3)
-          : elapsed >= 16 ? Math.min(steps.length - 1, 2)
-          : elapsed >= 7 ? Math.min(steps.length - 1, 1)
-          : 0;
-        statusEl.innerHTML = `<span class="thinking">${escapeHtml(steps[index])} · ${elapsed}s</span>`;
-      };
-      render();
-      waitTimer = window.setInterval(render, 1000);
-    }
-
-    function clearWaitStatus() {
-      if (waitTimer) {
-        window.clearInterval(waitTimer);
-        waitTimer = null;
-      }
-    }
-
-    function recoverMissingDiagnostic(error) {
-      if (error.status !== 404) return false;
-      clearSessionState();
-      leadId = null;
-      capturedEmail = "";
-      pendingReport = false;
-      input.disabled = true;
-      send.disabled = true;
-      micBtn.disabled = true;
-      reportBtn.hidden = true;
-      reportBtn.disabled = true;
-      statusEl.textContent = "Este diagnóstico ya no está disponible.";
-      setCrm("La sesión anterior caducó o fue borrada. Empieza una nueva.", "error");
-      setStage("contexto");
-      addHtml("agent", `<div class="email-gate">
-        <h3>Este diagnóstico ya no está disponible.</h3>
-        <p>Puede pasar si se borró el lead del CRM, se reinició la base o el navegador recuperó una sesión antigua.</p>
-        <button onclick="resetCurrentSession()">Empezar diagnóstico nuevo</button>
-      </div>`, "Sesión caducada");
-      return true;
-    }
-
-    async function refreshCapabilities() {
+    async function sendMessage(text, opts = {}) {
+      if (!SESSION.lead_id || !text.trim()) return;
+      appendTurn("user", text);
+      showWaitingTurn();
+      const startTs = performance.now();
+      const sendBtn = document.getElementById("sendBtn");
+      const composer = document.getElementById("composer");
+      if (sendBtn) { sendBtn.disabled = true; sendBtn.innerHTML = "Enviando ▍"; }
+      if (composer) { composer.disabled = true; composer.value = ""; }
+      setSaveStatus("syncing", "GUARDANDO ▍");
       try {
-        const result = await api("/api/capabilities", null, "GET");
-        transcriptionAvailable = Boolean(result.transcription?.available);
-      } catch (error) {
-        transcriptionAvailable = false;
-      }
-      micBtn.disabled = !leadId || !transcriptionAvailable;
-      if (!transcriptionAvailable) {
-        setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
-        if (microAdvice) microAdvice.textContent = "También puedes hacerlo por texto: responde como si lo estuvieras contando en una llamada.";
-        if (microPill) microPill.hidden = true;
-      } else {
-        if (microAdvice) microAdvice.textContent = "Consejo: usa el micro y cuenta una escena real. No hace falta que lo traigas ordenado.";
-        if (microPill) microPill.hidden = false;
-      }
-    }
-
-    function collectAttribution() {
-      const params = new URLSearchParams(window.location.search);
-      const value = (...keys) => {
-        for (const key of keys) {
-          const found = params.get(key);
-          if (found) return found.slice(0, 120);
-        }
-        return "";
-      };
-      return {
-        source: value("utm_source", "source"),
-        medium: value("utm_medium", "medium"),
-        campaign: value("utm_campaign", "campaign"),
-        content: value("utm_content", "content"),
-        term: value("utm_term", "term"),
-        video: value("video", "v"),
-        ref: value("ref"),
-        landing_path: window.location.pathname,
-        landing_query: window.location.search.slice(0, 240)
-      };
-    }
-
-    async function startSession() {
-      setCrm("Preparando el diagnóstico...", "");
-      start.disabled = true;
-      let sessionStarted = false;
-      try {
-        const session = await api("/api/session", { attribution: collectAttribution() });
-        sessionStarted = true;
-        start.hidden = true;
-        resetSession.hidden = false;
-        leadId = session.lead_id;
-        transcript = [];
-        clearSessionState();
-        latestReport = null;
-        capturedEmail = "";
-        pendingReport = false;
-        composer.hidden = false;
-        input.disabled = false;
-        send.disabled = false;
-        micBtn.disabled = true;
-        reportBtn.disabled = true;
-        reportBtn.hidden = true;
-        setCrm("Diagnóstico iniciado. Estoy buscando el primer proceso claro.", "ok");
-        statusEl.textContent = "Diagnóstico iniciado. Puedes escribir o usar el micro.";
-        setStage("contexto");
-        updateDiscovery({
-          confidence: 0.08,
-          current_focus: "Entender tu negocio",
-          live_insights: ["Todavía no hay proceso candidato: necesito contexto inicial."],
-          candidate_processes: [],
-          open_gaps: ["Qué vendes", "Quién es tu cliente", "Dónde se repite trabajo manual"],
-          progress_label: "Entendiendo el negocio"
+        const body = { lead_id: SESSION.lead_id, message: text };
+        if (opts.rewindTo !== undefined) body.rewind_to_turn = opts.rewindTo;
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
         });
-        chat.innerHTML = "";
-        input.placeholder = "Háblame en bruto: negocio, cliente y una escena reciente donde se escapó tiempo, dinero o clientes.";
-        await addTypingMessage("agent", "Voy a hacerte de consultor durante unos minutos para encontrar el primer proceso que merezca automatizarse.\n\nNo necesito que lo expliques perfecto. Para empezar, háblame en bruto: qué vendes, a quién ayudas, cómo te llegan clientes o solicitudes y cuál fue la última escena donde sentiste que se escapaba tiempo, dinero, clientes o foco.\n\nPuede ser un email sin responder, un WhatsApp, una reserva, un lead, una tarea interna o algo que depende demasiado de ti. Si puedes, dicta 45-60 segundos con el micro como si estuviéramos en una llamada.", "Agente diagnóstico");
-        await refreshCapabilities();
-        saveSessionState();
-        input.focus();
-      } catch (error) {
-        setCrm(error.message, "error");
-      } finally {
-        start.disabled = sessionStarted;
-      }
-    }
-
-    async function sendMessage() {
-      const text = input.value.trim();
-      if (!leadId || !text) return;
-      addMessage("user", text, "Tú");
-      input.value = "";
-      send.disabled = true;
-      startWaitStatus([
-        "El agente está leyendo tu respuesta y extrayendo señales",
-        "Buscando dónde se escapa tiempo, dinero o clientes",
-        "Comparando procesos candidatos",
-        "Sigue trabajando; Codex puede tardar un poco"
-      ]);
-      try {
-        const result = await api("/api/chat", { lead_id: leadId, email: capturedEmail, message: text });
-        clearWaitStatus();
-        await addTypingMessage("agent", result.reply, "Agente diagnóstico");
-        setStage(result.stage);
-        updateDiscovery(result);
-        saveSessionState({ lastDiscovery: result });
-        if (result.ready_for_report) {
-          statusEl.textContent = "Ya puedo preparar tu diagnóstico.";
-          reportBtn.textContent = "Generar informe";
-          reportBtn.hidden = false;
-          reportBtn.disabled = false;
-          reportBtn.classList.remove("secondary");
-          send.disabled = true;
-          input.disabled = true;
-          micBtn.disabled = true;
-          await addTypingMessage("agent", "Ya tengo suficiente para prepararte un diagnóstico útil. Puedo pasar de la conversación al informe.", "Cierre de discovery");
-          saveSessionState({ readyForReport: true });
-        }
-      } catch (error) {
-        clearWaitStatus();
-        if (recoverMissingDiagnostic(error)) return;
-        await addTypingMessage("agent", `Ahora mismo no puedo continuar con garantías.\n\n${error.message}\n\nTu respuesta no se ha perdido: puedes intentarlo de nuevo en unos segundos.`, "Agente diagnóstico");
-        statusEl.textContent = "El agente necesita reintentar.";
-        setCrm("Respuesta no generada. Puedes reintentar.", "error");
-      } finally {
-        if (!leadId) return;
-        if (!reportBtn.hidden) return;
-        send.disabled = false;
-      }
-    }
-
-    async function generateReport() {
-      if (!leadId) return;
-      if (!capturedEmail) {
-        pendingReport = true;
-        showEmailGate();
-        return;
-      }
-      await runReport();
-    }
-
-    async function runReport() {
-      reportBtn.disabled = true;
-      startWaitStatus([
-        "Generando diagnóstico",
-        "Priorizando impacto frente a factibilidad",
-        "Preparando matriz e informe",
-        "Sigue trabajando; el informe tarda más que una respuesta"
-      ]);
-      try {
-        const result = await api("/api/report", { lead_id: leadId });
-        clearWaitStatus();
-        latestReport = result.report;
-        latestReportUrl = result.report_url || latestReport.public_report_url || "";
-        addHtml("agent", reportHtml(latestReport), "Informe");
-        setStage("informe");
-        statusEl.textContent = "Diagnóstico generado.";
-        setCrm("Diagnóstico listo.", "ok");
-        saveSessionState({ reportGenerated: true });
-      } catch (error) {
-        clearWaitStatus();
-        if (recoverMissingDiagnostic(error)) return;
-        if (error.status === 409) {
-          const missing = Array.isArray(error.payload?.missing) ? error.payload.missing : [];
-          const missingText = missing.length ? `\n\nPara afinarlo necesito: ${missing.join(", ")}.` : "";
-          await addTypingMessage("agent", `Todavía no quiero darte un informe flojo.${missingText}\n\nSigamos un poco más: cuéntame un ejemplo real reciente del proceso, qué ocurrió, qué decidiste y qué resultado te habría gustado obtener.`, "Agente diagnóstico");
-          statusEl.textContent = "Necesito un poco más de evidencia.";
-          setCrm("Falta algo de discovery antes del informe.", "");
-          setStage("profundizacion");
-          reportBtn.hidden = true;
-          reportBtn.disabled = true;
-          input.disabled = false;
-          send.disabled = false;
-          micBtn.disabled = !transcriptionAvailable;
-          saveSessionState({ readyForReport: false });
-          input.focus();
+        const data = await res.json().catch(() => ({}));
+        const elapsed = (performance.now() - startTs) / 1000;
+        dismissWaitingTurn(elapsed);
+        if (res.status === 429 && typeof data.queue_position === "number") {
+          showQueueTurn(data.queue_position, data.eta_seconds || 30, text, opts);
           return;
         }
-        await addTypingMessage("agent", `No he podido generar el informe con garantías.\n\n${error.message}\n\nPuedes volver a intentarlo en unos segundos.`, "Agente diagnóstico");
-        statusEl.textContent = "Informe pendiente de reintento.";
-        setCrm("Informe no generado. Reintenta en unos segundos.", "error");
-      } finally {
-        if (!leadId) return;
-        reportBtn.disabled = false;
-      }
-    }
-
-    function showEmailGate() {
-      const html = `<div class="email-gate">
-        <h3>Ya tengo suficiente para preparar tu informe.</h3>
-        <p>Déjanos tu email y generamos el diagnóstico completo: oportunidades, primer empleado IA recomendado, riesgos y plan de 7 días.</p>
-        <p>Usaremos tu email y esta conversación para guardar el diagnóstico, hacer seguimiento si encaja y mejorar la beta. No vendemos tus datos.</p>
-        <div class="email-gate-row">
-          <input id="finalEmail" type="email" placeholder="persona@empresa.com" autocomplete="email">
-          <button onclick="captureEmailAndReport()">Generar informe</button>
-        </div>
-        <label class="consent-row">
-          <input id="finalConsent" type="checkbox">
-          <span>Acepto que se use mi email y esta conversación para generar el informe, guardar el diagnóstico y mejorar la beta. <a href="/PRIVACY_BETA.html" target="_blank" rel="noopener">Ver privacidad</a>.</span>
-        </label>
-        <div class="email-error" id="emailError"></div>
-      </div>`;
-      addHtml("agent", html, "Entrega del informe");
-      statusEl.textContent = "Solo falta el email para preparar el informe.";
-      setCrm("Último paso para preparar el informe.", "");
-      document.getElementById("finalEmail")?.focus();
-    }
-
-    async function captureEmailAndReport() {
-      const field = document.getElementById("finalEmail");
-      const consent = document.getElementById("finalConsent");
-      const error = document.getElementById("emailError");
-      const value = field?.value.trim() || "";
-      if (!field?.checkValidity() || !value) {
-        if (error) error.textContent = "Introduce un email válido.";
-        field?.focus();
-        return;
-      }
-      if (!consent?.checked) {
-        if (error) error.textContent = "Acepta el uso de datos para generar y guardar el diagnóstico.";
-        consent?.focus();
-        return;
-      }
-      try {
-        if (error) error.textContent = "";
-        await api("/api/email", { lead_id: leadId, email: value, consent: true, privacy_version: "beta-2026-05" });
-        capturedEmail = value;
-        saveSessionState();
-        setCrm("Perfecto. Preparando informe...", "ok");
-        if (pendingReport) {
-          pendingReport = false;
-          await runReport();
+        if (res.status === 429) {
+          // Rate limit clásico (sin queue_position) → countdown card
+          showRateLimitTurn(RATE_LIMIT_LOCK_SECONDS);
+          return;
         }
-      } catch (err) {
-        if (recoverMissingDiagnostic(err)) return;
-        if (error) error.textContent = err.message;
-      }
-    }
-
-    function reportHtml(report) {
-      const mainOpportunity = (report.opportunities || [])[0] || {};
-      const score = value => Number.isFinite(Number(value)) ? Number(value) : 0;
-      const composite = score(mainOpportunity.composite_score);
-      const scoreText = composite ? `${composite.toFixed(1)}/5` : "En revisión";
-      const triageText = mainOpportunity.triage || "Prioridad por validar";
-      const ctaSegment = report.cta?.segment || "resource";
-      const ctaLabel = {
-        cohort: "Me interesa hacerlo acompañado",
-        implementation_call: "Quiero hablar de implementarlo",
-        premium_service: "Quiero que me ayudéis a montarlo",
-        newsletter: "Quiero más recursos como este",
-        resource: "Quiero el recurso recomendado",
-        not_ready: "Quiero ordenar el proceso primero"
-      }[ctaSegment] || "Me interesa este siguiente paso";
-      const ctaSegmentLiteral = JSON.stringify(ctaSegment);
-      const safeScore = value => Math.max(1, Math.min(5, Number(value || 1)));
-      const mapDots = (report.opportunities || []).slice(0, 3).map((opp, index) => {
-        const impact = safeScore(opp.impact_score);
-        const feasibility = safeScore(opp.feasibility_score);
-        const x = ((feasibility - 1) / 4) * 88 + 6;
-        const y = ((impact - 1) / 4) * 82 + 8;
-        const low = score(opp.data_sensitivity_score) >= 4 || score(opp.composite_score) < 2.5;
-        return `<div class="priority-dot ${low ? "low" : ""}" style="left:${x}%; bottom:${y}%">${index + 1}</div>
-          <div class="priority-label" style="left:${x}%; bottom:${y}%">#${index + 1} ${escapeHtml(opp.name || opp.ai_employee || "Oportunidad")}</div>`;
-      }).join("");
-      const workflowSteps = [
-        ["Entrada", "Recibe emails, mensajes, leads o tareas repetitivas."],
-        ["Clasifica", "Ordena por intención, urgencia, tipo de caso y siguiente acción."],
-        ["Prepara", "Redacta borradores, resúmenes, tareas o propuestas de respuesta."],
-        ["Revisión", "Deja lo sensible preparado para que una persona apruebe."]
-      ];
-      const opportunities = (report.opportunities || []).map(opp => {
-        const pct = value => Math.max(0, Math.min(100, Number(value || 0) * 20));
-        const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-        return `<div class="opportunity">
-          <span class="badge">${escapeHtml(opp.triage)}</span>
-          <h3>${escapeHtml(opp.name)}</h3>
-          <p>${escapeHtml(opp.problem)}</p>
-          <p><strong>Empleado IA:</strong> ${escapeHtml(opp.ai_employee)}</p>
-          <p><strong>Qué haría:</strong></p>
-          ${list(opp.what_it_would_do)}
-          <div class="bars">
-            <div class="bar-row"><span>Impacto</span><div class="rail"><div class="fill" style="width:${pct(opp.impact_score)}%"></div></div><strong>${opp.impact_score}/5</strong></div>
-            <div class="bar-row"><span>Factibilidad</span><div class="rail"><div class="fill" style="width:${pct(opp.feasibility_score)}%"></div></div><strong>${opp.feasibility_score}/5</strong></div>
-            <div class="bar-row"><span>Escalabilidad</span><div class="rail"><div class="fill" style="width:${pct(opp.scalability_score)}%"></div></div><strong>${opp.scalability_score}/5</strong></div>
-            <div class="bar-row"><span>Sensibilidad</span><div class="rail"><div class="fill penalty" style="width:${pct(opp.data_sensitivity_score)}%"></div></div><strong>${opp.data_sensitivity_score}/5</strong></div>
-          </div>
-          <div class="mini-grid">
-            <div class="mini-card"><span>Proceso actual</span>${escapeHtml(opp.current_process)}</div>
-            <div class="mini-card"><span>Datos necesarios</span>${escapeHtml((opp.data_needed || []).join(", "))}</div>
-            <div class="mini-card"><span>Herramientas</span>${escapeHtml((opp.tools || []).join(", ") || "Por definir")}</div>
-            <div class="mini-card"><span>Riesgos</span>${escapeHtml((opp.risks || []).join(", "))}</div>
-          </div>
-          <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
-        </div>`;
-      }).join("");
-      const list = items => `<ul class="section-list">${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-      return `<div class="report">
-        <div class="report-hero">
-          <span class="report-label">Diagnóstico generado</span>
-          <h2>Tu primer empleado IA debería ser: ${escapeHtml(report.recommended_employee)}</h2>
-          <p>${escapeHtml(report.summary)}</p>
-          <div class="report-actions">
-            <button class="secondary" type="button" onclick="printLatestReport()">Guardar PDF</button>
-            ${report.public_report_url ? `<button class="secondary" type="button" onclick="copyReportLink()">Copiar enlace privado</button>` : ""}
-          </div>
-        </div>
-        <div class="report-action-strip" aria-label="Resumen de acción del diagnóstico">
-          <div class="report-action-item">
-            <span>Fuga principal</span>
-            <strong>${escapeHtml(mainOpportunity.name || "Proceso prioritario")}</strong>
-            <p>${escapeHtml(mainOpportunity.problem || report.recommendation_reason || "Área con potencial de automatización.")}</p>
-          </div>
-          <div class="report-action-item">
-            <span>Empleado IA recomendado</span>
-            <strong>${escapeHtml(mainOpportunity.ai_employee || report.recommended_employee)}</strong>
-            <p>${escapeHtml((mainOpportunity.what_it_would_do || []).slice(0, 2).join(", ") || "Preparar trabajo repetitivo con revisión humana.")}</p>
-          </div>
-          <div class="report-action-item">
-            <span>Primer paso</span>
-            <strong>Empezar pequeño</strong>
-            <p>${escapeHtml(mainOpportunity.first_step || (report.seven_day_plan || [])[0] || "Reunir ejemplos reales y validar una primera versión supervisada.")}</p>
-          </div>
-        </div>
-        <div class="mini-grid">
-          <div class="diagnosis-card"><span>Lo que he entendido</span>${escapeHtml(report.business_snapshot)}</div>
-          <div class="diagnosis-card"><span>Por qué empezar aquí</span>${escapeHtml(report.recommendation_reason)}</div>
-        </div>
-        ${report.evidence_summary?.length ? `<h3>Señales detectadas</h3>${list(report.evidence_summary)}` : ""}
-        <div class="score-grid">
-          <div class="score-card"><strong>${escapeHtml(readable(report.readiness) || "En revisión")}</strong><span>Preparación</span></div>
-          <div class="score-card"><strong>${escapeHtml((report.opportunities || []).length || "1")}</strong><span>Oportunidades</span></div>
-          <div class="score-card"><strong>${escapeHtml(scoreText)}</strong><span>Prioridad inicial</span></div>
-        </div>
-        <div class="decision-grid">
-          <div class="decision-card">
-            <span>Por qué esta va primero</span>
-            <div class="priority-lane">
-              <div class="priority-rank">#1</div>
-              <p class="decision-why">${escapeHtml(report.recommendation_reason || mainOpportunity.problem || "Es la opción con mejor equilibrio entre impacto, claridad del proceso y riesgo controlable.")}</p>
-            </div>
-            <span class="badge">${escapeHtml(triageText)}</span>
-          </div>
-          <div class="decision-card">
-            <span>Cómo funcionaría en la práctica</span>
-            <div class="workflow-preview">
-              ${workflowSteps.map(([label, text]) => `<div class="workflow-step"><span>${escapeHtml(label)}</span>${escapeHtml(text)}</div>`).join("")}
-            </div>
-          </div>
-        </div>
-        <div class="priority-map">
-          <div class="priority-map-head">
-            <div>
-              <span>Matriz de priorización</span>
-              <strong>Impacto frente a factibilidad</strong>
-            </div>
-            <span>Arriba derecha = empezar antes</span>
-          </div>
-          <div class="priority-map-canvas" aria-label="Matriz de priorización impacto factibilidad">
-            <div class="priority-zone"></div>
-            <div class="axis-y">Más impacto</div>
-            ${mapDots}
-          </div>
-          <div class="axis-label"><span>Menos factible</span><span>Más factible</span></div>
-        </div>
-        <h3>Oportunidades prioritarias</h3>
-        <div class="opportunity-grid">${opportunities}</div>
-        <h3>No automatizar todavía</h3>
-        ${list(report.do_not_automate_yet)}
-        <h3>Plan de 7 días</h3>
-        ${list(report.seven_day_plan)}
-        <h3>Plan de 30 días</h3>
-        ${list(report.thirty_day_plan)}
-        <div class="next-step-card">
-          <h3>Siguiente paso</h3>
-          <p>${escapeHtml(report.cta?.message || "")}</p>
-          <div class="next-step-actions">
-            <button type="button" onclick='saveCtaInterest(${escapeHtml(ctaSegmentLiteral)})'>${escapeHtml(ctaLabel)}</button>
-            <span class="intent-saved" id="intentSaved"></span>
-          </div>
-        </div>
-        <div class="feedback-box">
-          <h3>Ayúdanos a mejorar este diagnóstico</h3>
-          <p>Esto nos ayuda a saber si el agente está entendiendo negocios reales o si se queda corto.</p>
-          <div class="field">
-            <label>Utilidad del diagnóstico</label>
-            <div class="rating-row" role="radiogroup" aria-label="Utilidad del diagnóstico">
-              ${[1,2,3,4,5].map(value => `<label><input type="radio" name="feedbackRating" value="${value}"> ${value}</label>`).join("")}
-            </div>
-          </div>
-          <div class="feedback-grid">
-            <div class="field">
-              <label>Qué te dio más claridad</label>
-              <textarea id="feedbackLiked" placeholder="Ej: entender por dónde empezar, ver riesgos, ordenar prioridades..."></textarea>
-            </div>
-            <div class="field">
-              <label>Qué echaste en falta</label>
-              <textarea id="feedbackMissing" placeholder="Ej: más detalle técnico, ejemplos de herramientas, costes, pasos..."></textarea>
-            </div>
-            <div class="field">
-              <label>Qué cambiarías para que fuese más útil</label>
-              <textarea id="feedbackImprove" placeholder="Cuéntanos una mejora concreta del proceso, preguntas o informe."></textarea>
-            </div>
-          </div>
-          <button onclick="saveFeedback()">Guardar feedback</button>
-          <div class="feedback-saved" id="feedbackSaved"></div>
-        </div>
-      </div>`;
-    }
-
-    function printableReportHtml(report) {
-      const list = items => `<ul>${(items || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-      const opportunities = (report.opportunities || []).map(opp => `<section>
-        <h2>${escapeHtml(opp.name)}</h2>
-        <p><strong>Proceso actual:</strong> ${escapeHtml(opp.current_process)}</p>
-        <p><strong>Problema:</strong> ${escapeHtml(opp.problem)}</p>
-        <p><strong>Empleado IA:</strong> ${escapeHtml(opp.ai_employee)}</p>
-        <p><strong>Qué haría:</strong></p>
-        ${list(opp.what_it_would_do)}
-        <p><strong>Datos necesarios:</strong> ${escapeHtml((opp.data_needed || []).join(", "))}</p>
-        <p><strong>Riesgos:</strong> ${escapeHtml((opp.risks || []).join(", "))}</p>
-        <p><strong>Primer paso:</strong> ${escapeHtml(opp.first_step)}</p>
-      </section>`).join("");
-      return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Diagnóstico - Tu Primer Empleado IA</title>
-        <style>
-          body { font-family: Inter, Arial, sans-serif; color: #171717; line-height: 1.45; margin: 32px; }
-          h1 { font-size: 34px; line-height: 1; margin-bottom: 8px; }
-          h2 { font-size: 21px; margin-top: 24px; }
-          section { break-inside: avoid; border-top: 1px solid #d7dfd8; padding-top: 12px; margin-top: 16px; }
-          .muted { color: #62645f; }
-          @page { margin: 18mm; }
-        </style></head><body>
-        <p class="muted">Encuentra Tu Primer Empleado IA</p>
-        <h1>${escapeHtml(report.recommended_employee)}</h1>
-        <p>${escapeHtml(report.summary)}</p>
-        <section><h2>Resumen de acción</h2>
-          <p><strong>Fuga principal:</strong> ${escapeHtml((report.opportunities || [])[0]?.name || "Proceso prioritario")}</p>
-          <p><strong>Empleado IA recomendado:</strong> ${escapeHtml((report.opportunities || [])[0]?.ai_employee || report.recommended_employee)}</p>
-          <p><strong>Primer paso:</strong> ${escapeHtml((report.opportunities || [])[0]?.first_step || (report.seven_day_plan || [])[0] || "Reunir ejemplos reales y validar una primera versión supervisada.")}</p>
-        </section>
-        <section><h2>Lo que he entendido</h2><p>${escapeHtml(report.business_snapshot)}</p></section>
-        <section><h2>Por qué empezar aquí</h2><p>${escapeHtml(report.recommendation_reason)}</p></section>
-        ${report.evidence_summary?.length ? `<section><h2>Señales detectadas</h2>${list(report.evidence_summary)}</section>` : ""}
-        <section><h2>Oportunidades prioritarias</h2>${opportunities}</section>
-        <section><h2>No automatizar todavía</h2>${list(report.do_not_automate_yet)}</section>
-        <section><h2>Plan de 7 días</h2>${list(report.seven_day_plan)}</section>
-        <section><h2>Plan de 30 días</h2>${list(report.thirty_day_plan)}</section>
-        <section><h2>Siguiente paso recomendado</h2><p>${escapeHtml(report.cta?.message || "")}</p></section>
-        </body></html>`;
-    }
-
-    function printLatestReport() {
-      if (!latestReport) {
-        setCrm("Primero genera el diagnóstico.", "error");
-        return;
-      }
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        setCrm("No he podido abrir la ventana de impresión. Revisa el bloqueador de ventanas.", "error");
-        return;
-      }
-      printWindow.document.write(printableReportHtml(latestReport));
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-
-    async function copyReportLink() {
-      const url = latestReportUrl || latestReport?.public_report_url || "";
-      if (!url) {
-        setCrm("Primero genera el diagnóstico.", "error");
-        return;
-      }
-      const absoluteUrl = new URL(url, window.location.origin).toString();
-      try {
-        await navigator.clipboard.writeText(absoluteUrl);
-        setCrm("Enlace privado copiado.", "ok");
-      } catch (error) {
-        window.prompt("Copia este enlace privado del informe:", absoluteUrl);
-      }
-    }
-
-    async function saveFeedback() {
-      const selectedRating = document.querySelector("input[name='feedbackRating']:checked");
-      const feedback = {
-        rating: selectedRating ? Number(selectedRating.value) : null,
-        liked: document.getElementById("feedbackLiked")?.value.trim() || "",
-        missing: document.getElementById("feedbackMissing")?.value.trim() || "",
-        improve: document.getElementById("feedbackImprove")?.value.trim() || "",
-      };
-      feedback.text = [feedback.liked, feedback.missing, feedback.improve].filter(Boolean).join("\n\n");
-      await api("/api/feedback", { lead_id: leadId, feedback });
-      setCrm("Feedback recibido. Gracias.", "ok");
-      const saved = document.getElementById("feedbackSaved");
-      if (saved) saved.textContent = "Feedback guardado. Gracias.";
-    }
-
-    async function saveCtaInterest(segment) {
-      const saved = document.getElementById("intentSaved");
-      try {
-        await api("/api/cta", { lead_id: leadId, segment, source: "report_next_step" });
-        if (saved) saved.textContent = "Interés guardado. Lo tendremos en cuenta para el siguiente paso.";
-        setCrm("Interés en siguiente paso guardado.", "ok");
-      } catch (error) {
-        if (saved) saved.textContent = error.message;
-      }
-    }
-
-    function restoreSession() {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      let saved;
-      try {
-        saved = JSON.parse(raw);
-      } catch (error) {
-        clearSessionState();
-        return;
-      }
-      if (!saved?.leadId || !Array.isArray(saved.transcript)) return;
-      start.hidden = true;
-      start.disabled = true;
-      resetSession.hidden = false;
-      composer.hidden = false;
-      leadId = saved.leadId;
-      capturedEmail = saved.capturedEmail || "";
-      latestReportUrl = saved.latestReportUrl || "";
-      transcript = [];
-      chat.innerHTML = "";
-      starter?.remove();
-      const readyForReport = Boolean(saved.readyForReport || saved.stage === "recomendacion" || saved.stage === "informe");
-      input.disabled = readyForReport;
-      send.disabled = readyForReport;
-      micBtn.disabled = readyForReport || !transcriptionAvailable;
-      reportBtn.hidden = !readyForReport || saved.reportGenerated;
-      reportBtn.disabled = reportBtn.hidden;
-      setStage(saved.stage || "contexto");
-      statusEl.textContent = saved.status || "Diagnóstico recuperado.";
-      setCrm("He recuperado tu diagnóstico en este navegador.", "ok");
-      restoringSession = true;
-      saved.transcript.forEach(item => addMessage(item.role, item.content, item.role === "user" ? "Tú" : "Agente diagnóstico"));
-      restoringSession = false;
-      if (saved.lastDiscovery) updateDiscovery(saved.lastDiscovery);
-      if (readyForReport && !saved.reportGenerated) {
-        setCrm("Diagnóstico recuperado. Ya puedes ver el informe.", "ok");
-      }
-      saveSessionState(saved);
-      refreshCapabilities();
-    }
-
-    function micIcon() {
-      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg><span class="sr-only">Micrófono</span>`;
-    }
-
-    function stopIcon() {
-      return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg><span class="sr-only">Parar grabación</span>`;
-    }
-
-    function supportedAudioMimeType() {
-      const options = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
-      return options.find(type => MediaRecorder.isTypeSupported?.(type)) || "";
-    }
-
-    async function startRecording() {
-      if (!transcriptionAvailable) {
-        setMic("El micro no está disponible en este entorno. Puedes escribir la respuesta.", "error");
-        return;
-      }
-      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-        setMic("Tu navegador no permite grabar aquí. Puedes escribir la respuesta.", "error");
-        return;
-      }
-      try {
-        activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioChunks = [];
-        const mimeType = supportedAudioMimeType();
-        mediaRecorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
-        mediaRecorder.ondataavailable = event => {
-          if (event.data?.size) audioChunks.push(event.data);
-        };
-        mediaRecorder.onstop = transcribeRecording;
-        mediaRecorder.start();
-        listening = true;
-        micBtn.classList.add("listening");
-        micBtn.innerHTML = stopIcon();
-        setMic("Grabando... pulsa el cuadrado para transcribir.", "active");
-      } catch (error) {
-        activeStream?.getTracks().forEach(track => track.stop());
-        activeStream = null;
-        mediaRecorder = null;
-        setMic("No he podido activar el micro. Revisa permisos o escribe tu respuesta.", "error");
-      }
-    }
-
-    async function stopRecording() {
-      if (!mediaRecorder || mediaRecorder.state === "inactive") return;
-      setMic("Procesando audio...", "loading");
-      mediaRecorder.stop();
-      activeStream?.getTracks().forEach(track => track.stop());
-    }
-
-    async function transcribeRecording() {
-      listening = false;
-      micBtn.classList.remove("listening");
-      micBtn.innerHTML = micIcon();
-      try {
-        const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || "audio/webm" });
-        setMic("Transcribiendo audio...", "loading");
-        const response = await fetch("/transcribe", { method: "POST", headers: { "Content-Type": blob.type }, body: blob });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "No se pudo transcribir");
-        input.value = `${input.value.trim()} ${(result.text || "").trim()}`.trim();
-        setMic("Transcripción añadida. Revisa y envía.", "active");
-      } catch (error) {
-        setMic(`Fallo de transcripción: ${error.message}`, "error");
+        if (res.status === 502 || res.status === 503) {
+          showAiDownCard();
+          return;
+        }
+        if (!res.ok) {
+          appendTurn("agent", "No te entrego una respuesta mediocre. Lo retomamos en un momento.");
+          return;
+        }
+        appendTurn("agent", data.reply || "");
+        flagNetOk();
+        // Refresh del sidebar entre turnos (single coherent update)
+        const facts = data.facts || {};
+        updateSidebarFromTurn({
+          focus: facts.focus_current || facts.focus || facts.focus_summary,
+          signals: facts.signals || facts.evidence || [],
+          gaps: facts.gaps || facts.missing || [],
+          phase: typeof facts.phase === "number" ? facts.phase : undefined,
+        });
+        if (typeof facts.phase === "number") setPhase(facts.phase);
+        setSaveStatus("syncing", "GUARDADO HACE 0s");
+        // Email gate cuando el backend lo pide (Task 10)
+        maybeShowEmailGate(data);
+      } catch (e) {
+        dismissWaitingTurn();
+        flagNetReconnecting();
       } finally {
-        audioChunks = [];
-        activeStream = null;
-        mediaRecorder = null;
+        // Restaurar el botón ENVIAR siempre. El composer / sendBtn pueden estar
+        // bloqueados deliberadamente por: (a) card de rate-limit viva, (b) email-gate
+        // activo. En esos casos el owner correspondiente gestiona su propio re-enable
+        // (countdown del rate-limit / submit del informe). Aquí no tocamos.
+        if (sendBtn) sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`;
+        const composerLocked = document.querySelector(".turn.rate, .gate-card");
+        if (!composerLocked) {
+          if (sendBtn) sendBtn.disabled = false;
+          if (composer) { composer.disabled = false; composer.focus(); }
+        }
       }
     }
 
-    start.addEventListener("click", startSession);
-    resetSession.addEventListener("click", resetCurrentSession);
-    send.addEventListener("click", sendMessage);
-    reportBtn.addEventListener("click", generateReport);
-    micBtn.addEventListener("click", async () => {
-      if (listening) await stopRecording();
-      else await startRecording();
+    function rewindToTurn(index) {
+      const composer = document.getElementById("composer");
+      const scroll = document.getElementById("chatScroll");
+      const userTurns = scroll.querySelectorAll(`.turn[data-role="user"]`);
+      const target = userTurns[index];
+      if (!target) return;
+      if (composer) composer.value = target.querySelector(".body").textContent;
+      let node = target;
+      if (node.previousElementSibling && node.previousElementSibling.classList.contains("turn-separator")) {
+        node = node.previousElementSibling;
+      }
+      while (node && node.nextElementSibling) node.nextElementSibling.remove();
+      node.remove();
+      // Truncar SESSION.transcript en sitio para que coincida con el estado del DOM
+      // (el backend lo truncará también al recibir rewind_to_turn en el próximo send,
+      // pero el cliente debe quedar consistente desde ya, no entre llamadas).
+      const userIndices = SESSION.transcript
+        .map((m, i) => (m.role === "user" ? i : -1))
+        .filter(i => i >= 0);
+      if (index < userIndices.length) {
+        SESSION.transcript.length = userIndices[index];
+      }
+      SESSION.pendingRewindTo = index;
+      if (composer) composer.focus();
+    }
+
+    /* CTA del starter conecta con enterChat() */
+    document.addEventListener("click", async (e) => {
+      if (e.target && (e.target.id === "startSession" || e.target.closest("#startSession"))) {
+        try {
+          const res = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+          const data = await res.json();
+          SESSION.lead_id = data.lead_id;
+          try { localStorage.setItem(SESSION_STORAGE_KEY, data.lead_id); } catch (e) {}
+          enterChat();
+          // Si el backend devuelve un primer mensaje del agente, renderizarlo
+          if (data.greeting) appendTurn("agent", data.greeting);
+          if (Array.isArray(data.transcript) && data.transcript.length > 0) {
+            data.transcript.forEach(m => appendTurn(m.role === "assistant" ? "agent" : "user", m.content));
+          }
+        } catch (err) {
+          console.error("session start failed", err);
+        }
+      }
     });
-    input.addEventListener("keydown", event => {
-      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) sendMessage();
+
+    /* Envío del composer */
+    document.addEventListener("keydown", (e) => {
+      if (e.target && e.target.id === "composer" && e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const text = e.target.value.trim();
+        if (!text) return;
+        const opts = SESSION.pendingRewindTo !== undefined ? { rewindTo: SESSION.pendingRewindTo } : {};
+        delete SESSION.pendingRewindTo;
+        sendMessage(text, opts);
+      }
     });
-    restoreSession();
-    refreshCapabilities();
+    document.addEventListener("click", (e) => {
+      if (e.target && (e.target.id === "sendBtn" || e.target.closest("#sendBtn"))) {
+        const text = document.getElementById("composer").value.trim();
+        if (!text) return;
+        const opts = SESSION.pendingRewindTo !== undefined ? { rewindTo: SESSION.pendingRewindTo } : {};
+        delete SESSION.pendingRewindTo;
+        sendMessage(text, opts);
+      }
+    });
+
+    // Exposición a window. Convención: SESSION es un objeto namespace estable,
+    // jamás reasignar (solo mutar sus propiedades) para que window.SESSION no
+    // se desincronice del módulo cuando tasks futuras lean estado.
+    window.SESSION = SESSION;
+    window.enterChat = enterChat;
+    window.appendTurn = appendTurn;
+    window.sendMessage = sendMessage;
+    window.rewindToTurn = rewindToTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 5 — SIDEBAR DE CHAT
+       renderSidebarChat(), updateSidebarFromTurn()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    function renderSidebarChat(state = {}) {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar) return;
+      const phases = ["Contexto","Proceso","Decisión","Cierre"];
+      const activePhase = state.phase || 2;
+      const phasesHtml = phases.map((p, i) => {
+        const idx = i + 1;
+        let s = "";
+        if (idx < activePhase) s = "done";
+        else if (idx === activePhase) s = "active";
+        return `<div class="vstep" data-state="${s}">${p}</div>`;
+      }).join("");
+      const focoText = state.foco || "Buscando el primer proceso claro";
+      const signalsHtml = (state.signals || ["Aún esperando contexto."]).map(s => `<li>${s}</li>`).join("");
+      const nextHtml = (state.next || ["Negocio, cliente y proceso repetitivo."]).map(s => `<li>${s}</li>`).join("");
+      sidebar.classList.add("is-chat-mode");
+      sidebar.innerHTML = `
+        <div class="sheet-handle" id="sheetHandle">
+          <span>Lo que estoy entendiendo</span>
+          <span class="block-value" style="font-size: 14px; color: var(--cyan-2);">${focoText.slice(0, 40)}</span>
+        </div>
+        <div class="sidebar-chat">
+          <div class="block">
+            <div class="eyebrow muted">02 / Discovery en vivo</div>
+          </div>
+          <div class="block">
+            <div class="eyebrow muted">Foco</div>
+            <div class="block-value" id="sbFoco" aria-live="polite">${focoText}</div>
+          </div>
+          <div class="vline" id="sbVline">${phasesHtml}</div>
+          <div class="block">
+            <div class="eyebrow muted">Señales</div>
+            <ul class="block-list" id="sbSignals">${signalsHtml}</ul>
+          </div>
+          <div class="block">
+            <div class="eyebrow muted">Próximo</div>
+            <ul class="block-list warn" id="sbNext">${nextHtml}</ul>
+          </div>
+        </div>
+      `;
+      const handle = document.getElementById("sheetHandle");
+      if (handle) handle.addEventListener("click", () => {
+        sidebar.dataset.open = sidebar.dataset.open === "true" ? "false" : "true";
+      });
+    }
+
+    function updateSidebarFromTurn(facts = {}) {
+      const focoEl = document.getElementById("sbFoco");
+      if (focoEl && typeof facts.focus === "string") {
+        focoEl.textContent = facts.focus;
+        focoEl.parentElement.classList.add("is-updated");
+        setTimeout(() => focoEl.parentElement.classList.remove("is-updated"), 260);
+      }
+      const sigEl = document.getElementById("sbSignals");
+      if (sigEl && Array.isArray(facts.signals)) {
+        sigEl.innerHTML = facts.signals.map(s => `<li>${typeof s === "string" ? s : (s.text || s.label || JSON.stringify(s))}</li>`).join("");
+        sigEl.parentElement.classList.add("is-updated");
+        setTimeout(() => sigEl.parentElement.classList.remove("is-updated"), 260);
+      }
+      const nextEl = document.getElementById("sbNext");
+      if (nextEl && Array.isArray(facts.gaps)) {
+        nextEl.innerHTML = facts.gaps.map(s => `<li>${typeof s === "string" ? s : (s.text || s.label || JSON.stringify(s))}</li>`).join("");
+        nextEl.parentElement.classList.add("is-updated");
+        setTimeout(() => nextEl.parentElement.classList.remove("is-updated"), 260);
+      }
+      if (typeof facts.phase === "number") {
+        const steps = document.querySelectorAll("#sbVline .vstep");
+        steps.forEach((s, i) => {
+          const idx = i + 1;
+          if (idx < facts.phase) s.dataset.state = "done";
+          else if (idx === facts.phase) s.dataset.state = "active";
+          else s.removeAttribute("data-state");
+        });
+      }
+    }
+
+    window.renderSidebarChat = renderSidebarChat;
+    window.updateSidebarFromTurn = updateSidebarFromTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 6 — WAITING STATE
+       showWaitingTurn(), dismissWaitingTurn()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const ETA_HISTORY = [];
+    const WAIT_DEFAULT_ETA_S = 10;
+    const WAIT_EXTENDED_THRESHOLD_MS = 25000;
+    const WAIT_ASYMPTOTE_PCT = 90;
+    let _waitTimers = [];
+
+    function showWaitingTurn() {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return null;
+      if (scroll.lastElementChild && !scroll.lastElementChild.classList.contains("turn-separator")) {
+        const sep = document.createElement("div");
+        sep.className = "turn-separator";
+        scroll.appendChild(sep);
+      }
+      const eta = ETA_HISTORY.length
+        ? Math.round(ETA_HISTORY.reduce((a, b) => a + b, 0) / ETA_HISTORY.length)
+        : WAIT_DEFAULT_ETA_S;
+      const turn = document.createElement("div");
+      turn.className = "turn waiting";
+      turn.id = "waitingTurn";
+      turn.dataset.role = "agent";
+      turn.innerHTML = `
+        <span class="label">Agente <span class="cursor"></span></span>
+        <div class="wait-bar"><i></i></div>
+        <div class="wait-eta">respondiendo · ~${eta}s</div>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      // Asintótico hacia 90% en el ETA
+      const fill = turn.querySelector(".wait-bar > i");
+      let pct = 0;
+      const tick = setInterval(() => {
+        pct = pct + (WAIT_ASYMPTOTE_PCT - pct) * 0.08;
+        fill.style.width = `${Math.min(pct, WAIT_ASYMPTOTE_PCT)}%`;
+      }, 600);
+      // Mensaje extendido a 25s
+      const extendedTimer = setTimeout(() => {
+        const note = document.createElement("div");
+        note.className = "wait-extended";
+        note.textContent = "Está pensando una buena pregunta. Aguanta un momento.";
+        turn.appendChild(note);
+      }, WAIT_EXTENDED_THRESHOLD_MS);
+      _waitTimers.push(tick, extendedTimer);
+      return turn;
+    }
+
+    function dismissWaitingTurn(elapsedSeconds) {
+      const turn = document.getElementById("waitingTurn");
+      _waitTimers.forEach(id => { try { clearInterval(id); } catch (e) {} try { clearTimeout(id); } catch (e) {} });
+      _waitTimers = [];
+      if (!turn) return;
+      const fill = turn.querySelector(".wait-bar > i");
+      if (fill) fill.style.width = "100%";
+      setTimeout(() => turn.remove(), 200);
+      if (typeof elapsedSeconds === "number" && elapsedSeconds > 0) {
+        ETA_HISTORY.push(elapsedSeconds);
+        if (ETA_HISTORY.length > 3) ETA_HISTORY.shift();
+      }
+    }
+
+    window.showWaitingTurn = showWaitingTurn;
+    window.dismissWaitingTurn = dismissWaitingTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 7 — QUEUE CARD
+       showQueueTurn(), retryAfterQueue()
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const QUEUE_RETRY_CAP_MS = 30000;
+
+    function showQueueTurn(position, etaSeconds, pendingText, sendOpts) {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return;
+      const turn = document.createElement("div");
+      turn.className = "turn queue";
+      turn.dataset.role = "agent";
+      turn.id = "queueTurn";
+      const minutes = Math.max(1, Math.round((etaSeconds || 60) / 60));
+      turn.innerHTML = `
+        <span class="label">Agente — en cola</span>
+        <div class="pos"><b>Posición ${position || 1}</b>· espera estimada ~${minutes} min</div>
+        <p class="copy">No te muevas: sigo tu sesión sin que tengas que recargar.</p>
+        <form class="notify-form" id="notifyForm">
+          <input type="email" placeholder="Avísame por email cuando esté libre" aria-label="Email para aviso" />
+          <button type="submit">Avisar</button>
+        </form>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      // Auto-retry con cap
+      if (pendingText) {
+        setTimeout(() => retryAfterQueue(pendingText, sendOpts), Math.min((etaSeconds || 30) * 1000, QUEUE_RETRY_CAP_MS));
+      }
+      document.getElementById("notifyForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = e.target.querySelector("input").value.trim();
+        if (!email) return;
+        const r = await fetch("/api/notify-when-free", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lead_id: SESSION.lead_id, email }),
+        });
+        if (r.ok) {
+          e.target.innerHTML = `<span class="copy" style="color: var(--proceed);">Te aviso en cuanto el agente esté libre. Puedes cerrar esta pestaña.</span>`;
+        }
+      });
+    }
+
+    async function retryAfterQueue(text, opts) {
+      const queueTurn = document.getElementById("queueTurn");
+      if (queueTurn) queueTurn.remove();
+      sendMessage(text, opts);
+    }
+
+    window.showQueueTurn = showQueueTurn;
+    window.retryAfterQueue = retryAfterQueue;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 8 — ERROR STATES
+       flagNetReconnecting, flagNetOk, showAiDownCard, showRateLimitTurn
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const NET_FAILURE_ESCALATE_AT = 3;
+    const NET_FAILURE_ESCALATE_AFTER_MS = 9000;
+    const RATE_LIMIT_LOCK_SECONDS = 30;
+    let _netRetryCount = 0;
+    let _netRetryTimer = null;
+
+    function flagNetReconnecting() {
+      _netRetryCount++;
+      setSaveStatus("reconnect", "RECONECTANDO ▍");
+      clearTimeout(_netRetryTimer);
+      _netRetryTimer = setTimeout(() => {
+        if (_netRetryCount >= NET_FAILURE_ESCALATE_AT) showAiDownCard();
+        else setSaveStatus(null);
+      }, NET_FAILURE_ESCALATE_AFTER_MS);
+    }
+
+    function flagNetOk() {
+      _netRetryCount = 0;
+      clearTimeout(_netRetryTimer);
+      setSaveStatus(null);
+    }
+
+    function showAiDownCard() {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll || scroll.querySelector(".turn.error-ai")) return;
+      const turn = document.createElement("div");
+      turn.className = "turn error-ai";
+      turn.dataset.role = "agent";
+      turn.innerHTML = `
+        <span class="label">El agente no está disponible ahora</span>
+        <p class="copy">No te entrego un diagnóstico mediocre. Cuando vuelva, te aviso yo mismo — o puedes leer un informe de muestra mientras tanto.</p>
+        <div class="actions">
+          <a href="#" id="aiNotifyMe">Avisarme cuando vuelva →</a>
+          <a href="/r/sample" id="aiSampleLink" target="_blank" rel="noopener">Ver muestra →</a>
+        </div>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      document.getElementById("aiNotifyMe").addEventListener("click", (e) => {
+        e.preventDefault();
+        // Reusa el card de cola en modo "solo notificar" (posición 0 = no en cola)
+        showQueueTurn(0, 60, null, null);
+      });
+      // El enlace de muestra ya lleva href="/r/sample" desde el render — sin handler
+      // adicional. Si la ruta no existe, el navegador mostrará un 404; tarea futura
+      // hosteará un informe de muestra real.
+      const sampleEl = document.getElementById("aiSampleLink");
+      if (sampleEl) {
+        // intencionalmente vacío; el href está en el markup
+      }
+    }
+
+    function showRateLimitTurn(seconds) {
+      seconds = typeof seconds === "number" ? seconds : RATE_LIMIT_LOCK_SECONDS;
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return;
+      const turn = document.createElement("div");
+      turn.className = "turn rate";
+      turn.dataset.role = "agent";
+      turn.innerHTML = `
+        <span class="label">Pausa breve</span>
+        <p class="copy">Estás yendo muy rápido. Sigo en <span class="countdown">${seconds}s</span>.</p>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      const countdown = turn.querySelector(".countdown");
+      let remaining = seconds;
+      const composer = document.getElementById("composer");
+      const sendBtn = document.getElementById("sendBtn");
+      if (composer) composer.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+      const interval = setInterval(() => {
+        remaining--;
+        if (countdown) countdown.textContent = `${remaining}s`;
+        if (remaining <= 0) {
+          clearInterval(interval);
+          turn.remove();
+          if (composer) { composer.disabled = false; composer.focus(); }
+          if (sendBtn) sendBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    window.flagNetReconnecting = flagNetReconnecting;
+    window.flagNetOk = flagNetOk;
+    window.showAiDownCard = showAiDownCard;
+    window.showRateLimitTurn = showRateLimitTurn;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       BOOT — debe ir al final para garantizar que TODAS las variables
+       (SESSION en particular, declarada con `let` y por tanto sin hoisting
+       de inicialización) estén ya inicializadas cuando un fetch mockeado
+       resuelva en el mismo microtask checkpoint del test harness.
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    (async () => {
+      const restored = await tryRestoreSession();
+      if (!restored) {
+        requestAnimationFrame(() => {
+          const starter = document.getElementById("starter");
+          if (starter) starter.classList.add("is-revealed");
+        });
+      }
+    })();
   </script>
 </body>
+
 </html>

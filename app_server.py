@@ -47,6 +47,11 @@ CRM_WEBHOOK_TIMEOUT = max(1.0, float(os.environ.get("CRM_WEBHOOK_TIMEOUT", "5"))
 APP_VERSION = os.environ.get("APP_VERSION", "").strip()
 RATE_BUCKETS: dict[str, list[int]] = {}
 AI_SEMAPHORE = threading.BoundedSemaphore(MAX_AI_CONCURRENCY)
+# Cuenta de peticiones esperando el semáforo de IA (incluye la que tiene el slot).
+_AI_QUEUE_DEPTH = 0
+_AI_QUEUE_LOCK = threading.Lock()
+_AI_TURN_DURATIONS: list[float] = []  # rolling de últimas 5 duraciones (segundos)
+_AI_TURN_DURATIONS_MAX = 5
 PUBLIC_STATIC_FILES = {"/Agente_Real_CRM.html", "/PRIVACY_BETA.html"}
 ADMIN_STATIC_FILES = {"/CRM_Dashboard.html"}
 
@@ -72,7 +77,10 @@ STARTUP_APP_VERSION = APP_VERSION or git_head_short() or "unknown"
 
 
 class AiBusyError(RuntimeError):
-    pass
+    def __init__(self, message="agent_busy", queue_position: int = 1, eta_seconds: int = 15):
+        super().__init__(message)
+        self.queue_position = queue_position
+        self.eta_seconds = eta_seconds
 
 
 class RequestBodyError(ValueError):
@@ -895,21 +903,40 @@ Responde solo con JSON. Debe incluir:
 
 
 def call_ai(instructions: str, input_text: str) -> dict:
+    global _AI_QUEUE_DEPTH
     if AI_PROVIDER == "fallback":
         raise RuntimeError("AI_PROVIDER=fallback")
-    acquired = AI_SEMAPHORE.acquire(timeout=AI_QUEUE_WAIT_SECONDS)
-    if not acquired:
-        raise AiBusyError("El agente está atendiendo otro diagnóstico. Espera unos segundos y vuelve a intentarlo.")
+    with _AI_QUEUE_LOCK:
+        _AI_QUEUE_DEPTH += 1
+        my_position = _AI_QUEUE_DEPTH
     try:
-        if AI_PROVIDER == "codex":
+        acquired = AI_SEMAPHORE.acquire(timeout=AI_QUEUE_WAIT_SECONDS)
+        if not acquired:
+            avg = (sum(_AI_TURN_DURATIONS) / len(_AI_TURN_DURATIONS)) if _AI_TURN_DURATIONS else 12.0
+            raise AiBusyError(
+                "El agente está atendiendo otro diagnóstico. Espera unos segundos y vuelve a intentarlo.",
+                queue_position=my_position,
+                eta_seconds=int(avg * my_position),
+            )
+        start = time.monotonic()
+        try:
+            if AI_PROVIDER == "codex":
+                return call_codex_cli(instructions, input_text)
+            if AI_PROVIDER == "openai":
+                return call_openai(instructions, input_text)
+            if os.environ.get("OPENAI_API_KEY"):
+                return call_openai(instructions, input_text)
             return call_codex_cli(instructions, input_text)
-        if AI_PROVIDER == "openai":
-            return call_openai(instructions, input_text)
-        if os.environ.get("OPENAI_API_KEY"):
-            return call_openai(instructions, input_text)
-        return call_codex_cli(instructions, input_text)
+        finally:
+            dur = time.monotonic() - start
+            with _AI_QUEUE_LOCK:
+                _AI_TURN_DURATIONS.append(dur)
+                if len(_AI_TURN_DURATIONS) > _AI_TURN_DURATIONS_MAX:
+                    _AI_TURN_DURATIONS.pop(0)
+            AI_SEMAPHORE.release()
     finally:
-        AI_SEMAPHORE.release()
+        with _AI_QUEUE_LOCK:
+            _AI_QUEUE_DEPTH -= 1
 
 
 def should_fallback() -> bool:
@@ -1469,6 +1496,7 @@ class Handler(SimpleHTTPRequestHandler):
             "/api/report": self._handle_report,
             "/api/cta": self._handle_cta_interest,
             "/api/feedback": self._handle_feedback,
+            "/api/notify-when-free": self._handle_notify_when_free,
             "/api/lead/update": self._handle_update_lead_admin,
             "/api/lead/delete": self._handle_delete_lead_admin,
             "/crm": self._handle_crm,
@@ -1573,6 +1601,15 @@ class Handler(SimpleHTTPRequestHandler):
         lead = self._load_lead_or_404(lead_id)
         if not lead:
             return
+        rewind_to = payload.get("rewind_to_turn")
+        if isinstance(rewind_to, int) and rewind_to >= 0:
+            # Descartar desde el user turn de índice rewind_to en adelante;
+            # conservar sólo los turnos anteriores (0..rewind_to-1 inclusive)
+            user_indices = [i for i, m in enumerate(lead["transcript"]) if m.get("role") == "user"]
+            if rewind_to < len(user_indices):
+                cutoff = user_indices[rewind_to]  # posición del turno a descartar (exclusive)
+                lead["transcript"] = lead["transcript"][:cutoff]
+                insert_event(lead_id, "session_rewind", {"to_turn": rewind_to, "kept_messages": len(lead["transcript"])})
         user_turns = len([m for m in lead["transcript"] if m.get("role") == "user"])
         if user_turns >= MAX_USER_TURNS:
             self._json({"error": "Ya hay suficiente información. Genera el informe para cerrar el diagnóstico."}, 400)
@@ -1585,7 +1622,7 @@ class Handler(SimpleHTTPRequestHandler):
             result = call_ai(AGENT_INSTRUCTIONS, prompt)
         except AiBusyError as exc:
             insert_event(lead_id, "ai_busy", {"stage": "chat", "error": str(exc), "elapsed_seconds": round(time.monotonic() - started_at, 2)})
-            self._json({"error": str(exc)}, 429)
+            self._json({"error": str(exc), "queue_position": exc.queue_position, "eta_seconds": exc.eta_seconds}, 429)
             return
         except Exception as exc:
             if not should_fallback():
@@ -1640,7 +1677,7 @@ class Handler(SimpleHTTPRequestHandler):
             report = call_ai(REPORT_INSTRUCTIONS, prompt)
         except AiBusyError as exc:
             insert_event(lead_id, "ai_busy", {"stage": "report", "error": str(exc), "elapsed_seconds": round(time.monotonic() - started_at, 2)})
-            self._json({"error": str(exc)}, 429)
+            self._json({"error": str(exc), "queue_position": exc.queue_position, "eta_seconds": exc.eta_seconds}, 429)
             return
         except Exception as exc:
             if not should_fallback():
@@ -1743,6 +1780,23 @@ class Handler(SimpleHTTPRequestHandler):
         update_lead(lead_id, feedback=feedback, status="feedback_saved")
         insert_event(lead_id, "feedback_saved", feedback)
         send_crm_webhook("feedback_saved", lead_id, {"email": lead["email"], "feedback": feedback})
+        self._json({"ok": True})
+
+    def _handle_notify_when_free(self):
+        payload = read_json(self)
+        lead_id = payload.get("lead_id")
+        email = (payload.get("email") or "").strip().lower()
+        if not lead_id or not email or not valid_email(email):
+            self._json({"error": "Email inválido o lead_id ausente."}, 400)
+            return
+        lead = self._load_lead_or_404(lead_id)
+        if not lead:
+            return
+        insert_event(lead_id, "notify_when_free", {"email": email, "registered_at": now()})
+        try:
+            send_crm_webhook("notify_when_free", lead_id, {"lead_id": lead_id, "email": email})
+        except Exception:
+            pass
         self._json({"ok": True})
 
     def _handle_update_lead_admin(self):
