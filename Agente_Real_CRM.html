@@ -1276,11 +1276,12 @@
         flagNetReconnecting();
       } finally {
         // Restaurar el botón ENVIAR siempre. El composer / sendBtn pueden estar
-        // bloqueados por una card de rate-limit aún viva en el DOM (showRateLimitTurn
-        // gestiona su propio re-enable con el countdown). En ese caso, no tocar.
+        // bloqueados deliberadamente por: (a) card de rate-limit viva, (b) email-gate
+        // activo. En esos casos el owner correspondiente gestiona su propio re-enable
+        // (countdown del rate-limit / submit del informe). Aquí no tocamos.
         if (sendBtn) sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`;
-        const rateActive = document.querySelector(".turn.rate");
-        if (!rateActive) {
+        const composerLocked = document.querySelector(".turn.rate, .gate-card");
+        if (!composerLocked) {
           if (sendBtn) sendBtn.disabled = false;
           if (composer) { composer.disabled = false; composer.focus(); }
         }
