@@ -836,12 +836,21 @@
       padding: var(--gap-2) 0;
       border-bottom: 1px solid var(--rule);
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      /* 4 hijos: read-time | index | actions | feedback */
+      grid-template-columns: auto 1fr auto auto;
       align-items: center;
       gap: var(--gap-2);
       font-family: var(--font-mono);
       font-size: 12px;
       letter-spacing: 0.18em;
+    }
+    @media (max-width: 800px) {
+      .report-sticky {
+        grid-template-columns: 1fr;
+        gap: var(--gap-1);
+      }
+      .report-sticky .index { order: 3; }
+      .report-sticky .actions, .report-sticky .feedback { justify-content: flex-start; }
     }
     .report-sticky .read-time { color: var(--ink-faint); }
     .report-sticky .index { display: flex; gap: var(--gap-2); flex-wrap: wrap; color: var(--ink-muted); }
@@ -1267,9 +1276,12 @@
        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
     const REPORT_READING_WPM = 200;
+    let _reportObserver = null;
 
     function renderReportInline(report) {
       if (!report) return;
+      // Si había un observer previo (segunda llamada accidental), desconectar.
+      if (_reportObserver) { try { _reportObserver.disconnect(); } catch (e) {} _reportObserver = null; }
       setPhase(4);
       const main = document.getElementById("mainStage");
       if (!main) return;
@@ -1309,7 +1321,7 @@
         </section>
       `;
       // IntersectionObserver para reveal + active index
-      const obs = new IntersectionObserver((entries) => {
+      _reportObserver = new IntersectionObserver((entries) => {
         entries.forEach(en => {
           if (en.isIntersecting) {
             en.target.classList.add("is-visible");
@@ -1320,7 +1332,7 @@
           }
         });
       }, { threshold: 0.2, rootMargin: "0px 0px -20% 0px" });
-      document.querySelectorAll(".report-section").forEach(s => obs.observe(s));
+      document.querySelectorAll(".report-section").forEach(s => _reportObserver.observe(s));
       // Index click → scroll suave
       document.querySelectorAll(".report-sticky .index a").forEach(a => {
         a.addEventListener("click", () => {
