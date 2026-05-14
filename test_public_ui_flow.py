@@ -81,7 +81,7 @@ def main() -> int:
             mobile_context.close()
 
             page.get_by_role("button", name="Empezar conversación").click()
-            page.wait_for_selector("textarea#input:not([disabled])", timeout=8000)
+            page.wait_for_selector("textarea#composer:not([disabled])", timeout=8000)
             page.get_by_text("Voy a hacerte de consultor durante unos minutos").wait_for(timeout=8000)
             page.get_by_text("última escena donde sentiste que se escapaba tiempo").wait_for(timeout=8000)
             assert_true(page.locator("#starter").count() == 0, "El bloque inicial debe desaparecer al arrancar")
@@ -125,8 +125,8 @@ def main() -> int:
                 )
 
             page.route("**/api/chat", chat_handler)
-            page.fill("#input", "Tengo una newsletter y recibo 10 o 15 emails al día que no sé cómo aprovechar.")
-            page.click("#send")
+            page.fill("#composer", "Tengo una newsletter y recibo 10 o 15 emails al día que no sé cómo aprovechar.")
+            page.click("#sendBtn")
             page.get_by_text("El agente está leyendo tu respuesta y extrayendo señales").wait_for(timeout=5000)
             page.get_by_text("Explorando email con valor comercial").wait_for(timeout=8000)
             page.get_by_text("Veo una señal clara en email").wait_for(timeout=8000)

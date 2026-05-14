@@ -267,6 +267,16 @@
         border-bottom: 1px solid var(--rule);
         padding-bottom: var(--gap-3);
       }
+      /* En el starter (sin is-chat-mode), el hero del main debe quedar above the fold
+         en mobile. La sidebar de contexto se mueve debajo. En chat, la sidebar es
+         bottom sheet fija (gestionado en su propia regla más abajo). */
+      .shell-body > aside.sidebar:not(.is-chat-mode) {
+        order: 2;
+        border-bottom: none;
+        border-top: 1px solid var(--rule);
+        padding-top: var(--gap-3);
+        padding-bottom: var(--pad-y);
+      }
     }
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
