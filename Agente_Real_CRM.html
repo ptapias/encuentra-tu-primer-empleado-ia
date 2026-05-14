@@ -694,6 +694,56 @@
       text-transform: uppercase; padding: 8px 14px; cursor: pointer;
     }
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 8 — ERROR STATES
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    .turn.error-ai {
+      border: 1px solid var(--park);
+      background: var(--bg-elev);
+      padding: 22px;
+      display: grid; gap: 14px;
+      max-width: 80%;
+    }
+    .turn.error-ai .label { color: var(--park); }
+    .turn.error-ai .copy { color: var(--ink-soft); font-size: var(--t-body); line-height: 1.4; }
+    .turn.error-ai .actions { display: flex; gap: var(--gap-2); margin-top: var(--gap-1); }
+    .turn.error-ai .actions a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+    .turn.error-ai .actions a:hover { color: var(--cyan-2); }
+
+    .turn.rate {
+      border: 1px solid var(--refine);
+      background: var(--bg-elev);
+      padding: 18px 22px;
+      display: grid; gap: 8px;
+      max-width: 70%;
+    }
+    .turn.rate .label { color: var(--refine); }
+    .turn.rate .copy { color: var(--ink-soft); font-size: var(--t-body); line-height: 1.4; }
+    .turn.rate .countdown {
+      font-family: var(--font-mono);
+      color: var(--refine);
+      font-size: 14px;
+      letter-spacing: 0.2em;
+    }
+
+    /* Email field — usado por Task 10 también */
+    .field-error {
+      color: var(--ink-muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    .field-error[data-state="error"] { color: var(--park); }
+
   </style>
 </head>
 <body>
@@ -928,7 +978,12 @@
           return;
         }
         if (res.status === 429) {
-          appendTurn("agent", data.error || "Estoy con otra sesión. Vuelvo en unos segundos.");
+          // Rate limit clásico (sin queue_position) → countdown card
+          showRateLimitTurn(RATE_LIMIT_LOCK_SECONDS);
+          return;
+        }
+        if (res.status === 502 || res.status === 503) {
+          showAiDownCard();
           return;
         }
         if (!res.ok) {
@@ -936,6 +991,7 @@
           return;
         }
         appendTurn("agent", data.reply || "");
+        flagNetOk();
         // Refresh del sidebar entre turnos (single coherent update)
         const facts = data.facts || {};
         updateSidebarFromTurn({
@@ -948,7 +1004,7 @@
         setSaveStatus("syncing", "GUARDADO HACE 0s");
       } catch (e) {
         dismissWaitingTurn();
-        setSaveStatus("reconnect", "RECONECTANDO ▍");
+        flagNetReconnecting();
       } finally {
         if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = `Enviar <span class="arrow">→</span>`; }
         if (composer) { composer.disabled = false; composer.focus(); }
@@ -1235,6 +1291,100 @@
 
     window.showQueueTurn = showQueueTurn;
     window.retryAfterQueue = retryAfterQueue;
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       TASK 8 — ERROR STATES
+       flagNetReconnecting, flagNetOk, showAiDownCard, showRateLimitTurn
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    const NET_FAILURE_ESCALATE_AT = 3;
+    const NET_FAILURE_ESCALATE_AFTER_MS = 9000;
+    const RATE_LIMIT_LOCK_SECONDS = 30;
+    let _netRetryCount = 0;
+    let _netRetryTimer = null;
+
+    function flagNetReconnecting() {
+      _netRetryCount++;
+      setSaveStatus("reconnect", "RECONECTANDO ▍");
+      clearTimeout(_netRetryTimer);
+      _netRetryTimer = setTimeout(() => {
+        if (_netRetryCount >= NET_FAILURE_ESCALATE_AT) showAiDownCard();
+        else setSaveStatus(null);
+      }, NET_FAILURE_ESCALATE_AFTER_MS);
+    }
+
+    function flagNetOk() {
+      _netRetryCount = 0;
+      clearTimeout(_netRetryTimer);
+      setSaveStatus(null);
+    }
+
+    function showAiDownCard() {
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll || scroll.querySelector(".turn.error-ai")) return;
+      const turn = document.createElement("div");
+      turn.className = "turn error-ai";
+      turn.dataset.role = "agent";
+      turn.innerHTML = `
+        <span class="label">El agente no está disponible ahora</span>
+        <p class="copy">No te entrego un diagnóstico mediocre. Cuando vuelva, te aviso yo mismo — o puedes leer un informe de muestra mientras tanto.</p>
+        <div class="actions">
+          <a href="#" id="aiNotifyMe">Avisarme cuando vuelva →</a>
+          <a href="#" id="aiSampleLink" target="_blank" rel="noopener">Ver muestra →</a>
+        </div>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      document.getElementById("aiNotifyMe").addEventListener("click", (e) => {
+        e.preventDefault();
+        // Reusa el card de cola en modo "solo notificar" (posición 0 = no en cola)
+        showQueueTurn(0, 60, null, null);
+      });
+      const sampleEl = document.getElementById("aiSampleLink");
+      if (sampleEl) {
+        sampleEl.addEventListener("click", (e) => {
+          // Si la ruta /r/sample no existe, el navegador mostrará un 404 — esperado mientras
+          // no haya muestra publicada. Tarea futura podría hostear una.
+          sampleEl.href = "/r/sample";
+        });
+      }
+    }
+
+    function showRateLimitTurn(seconds) {
+      seconds = typeof seconds === "number" ? seconds : RATE_LIMIT_LOCK_SECONDS;
+      const scroll = document.getElementById("chatScroll");
+      if (!scroll) return;
+      const turn = document.createElement("div");
+      turn.className = "turn rate";
+      turn.dataset.role = "agent";
+      turn.innerHTML = `
+        <span class="label">Pausa breve</span>
+        <p class="copy">Estás yendo muy rápido. Sigo en <span class="countdown">${seconds}s</span>.</p>
+      `;
+      scroll.appendChild(turn);
+      scroll.scrollTop = scroll.scrollHeight;
+      const countdown = turn.querySelector(".countdown");
+      let remaining = seconds;
+      const composer = document.getElementById("composer");
+      const sendBtn = document.getElementById("sendBtn");
+      if (composer) composer.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+      const interval = setInterval(() => {
+        remaining--;
+        if (countdown) countdown.textContent = `${remaining}s`;
+        if (remaining <= 0) {
+          clearInterval(interval);
+          turn.remove();
+          if (composer) { composer.disabled = false; composer.focus(); }
+          if (sendBtn) sendBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    window.flagNetReconnecting = flagNetReconnecting;
+    window.flagNetOk = flagNetOk;
+    window.showAiDownCard = showAiDownCard;
+    window.showRateLimitTurn = showRateLimitTurn;
   </script>
 </body>
 
